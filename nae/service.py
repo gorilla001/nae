@@ -1,4 +1,3 @@
-import threadgroup
 import os
 import wsgi
 import log

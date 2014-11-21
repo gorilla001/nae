@@ -1,4 +1,4 @@
-import webob
+import webob.dec
 import routes
 from eventlet import wsgi
 import eventlet

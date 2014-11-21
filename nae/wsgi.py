@@ -62,7 +62,7 @@ class Resource(object):
 	    except AttributeError:
 		raise
 
-	    return dispatch(method,action_args) 
+	    return dispatch(request,method,action_args) 
 
 	def get_action_args(self,env):
 	    try:
@@ -81,9 +81,8 @@ class Resource(object):
 	    return args	
 	
 	@staticmethod
-	def dispatch(method,action_args):
-	    print('dispatch method')
-	    return method(**action_args)
+	def dispatch(request,method,action_args):
+	    return method(request,**action_args)
 	    
 
 

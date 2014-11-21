@@ -1,6 +1,8 @@
 import webob
 import logging
-import wsgi
+from nae import wsgi
+from nae import image
+from nae import db
 
 
 LOG=logging.getLogger('eventlet.wsgi.server')

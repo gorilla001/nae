@@ -1,4 +1,5 @@
-import wsgi
+from nae import wsgi
+from nae import db
 
 class MemberController(object):
     def __init__(self):

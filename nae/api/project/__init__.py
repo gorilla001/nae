@@ -1,5 +1,6 @@
-import wsgi
-import projects
+from nae import wsgi
+from nae.api.project import projects
+import routes
 
 class APIRouter(wsgi.Router):
     def __init__(self):

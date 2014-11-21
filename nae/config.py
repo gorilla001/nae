@@ -4,7 +4,7 @@ import os
 
 try:
     parser=ConfigParser.SafeConfigParser()
-    if parser.read(os.path.abspath("config.ini")) != [] :
+    if parser.read(os.path.abspath("/etc/nae/nae.conf")) != [] :
         pass
     else:
         raise IOError("Cannot open config file")
@@ -18,14 +18,14 @@ try:
         port=parser.get("default","port")
         workers=parser.get("default","workers")
 
-        PortRange = parser.get("default","PortRange")
+        PortRange = parser.get("default","port_range")
 
-        DNS=parser.get("default","DNS")
+        DNS=parser.get("default","dns")
 
-        HOST=parser.get("default","HOST")
+        HOST=parser.get("default","host")
 
-	PHP_ROOT_PATH=parser.get("default","PHP_ROOT_PATH")
-	JAVA_ROOT_PATH=parser.get("default","JAVA_ROOT_PATH")
+	PHP_ROOT_PATH=parser.get("default","php_root_path")
+	JAVA_ROOT_PATH=parser.get("default","jave_root_path")
 
     except ConfigParser.NoSectionError,error:
         pass

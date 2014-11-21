@@ -1,5 +1,6 @@
-import wsgi
-import images
+from nae import wsgi
+from nae.api.image import images
+import routes
 
 class APIRouter(wsgi.Router):
     def __init__(self):
@@ -9,7 +10,7 @@ class APIRouter(wsgi.Router):
 	self.setup_routes()
 	super(APIRouter,self).__init__(self.mapper)
 
-    def set_up_routes(self):
+    def setup_routes(self):
         self.mapper.connect('/images',
         		controller=self.resource,
         		action='index',

@@ -1,12 +1,12 @@
-import wsgi
-import repositories 
+from nae import wsgi
+from nae.api.repository import repositories 
+import routes
 
 class APIRouter(wsgi.Router):
     def __init__(self):
 
         self.mapper=routes.Mapper()
 	self.resource=repositories.create_resource()
-	self.resource=
 	self.setup_routes()
 	super(APIRouter,self).__init__(self.mapper)
 

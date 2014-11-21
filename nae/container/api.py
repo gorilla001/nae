@@ -238,8 +238,9 @@ class ContainerAPI():
         eventlet.spawn_n(self._commit,repo,tag)
         result=webob.Response('{"status_code":200"}')
         return result
-        def destroy(self,name):
-        eventlet.spawn_n(self._destroy,name)
+
+    def destroy(self,name):
+	eventlet.spawn_n(self._destroy,name)
         result=webob.Response('{"status_code":200"}')
         return result
 		

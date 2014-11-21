@@ -1,10 +1,14 @@
 import webob.dec
-import routes
+import routes.middleware
 from eventlet import wsgi
 import eventlet
 import os
-import log as logging
+from nae import log
+import logging
 from paste.deploy import loadapp
+
+
+LOG=logging.getLogger('eventlet.wsgi.server')
 
 class Router(object):
     """ WSGI middleware that maps incoming requests to WSGI apps. """
@@ -12,6 +16,10 @@ class Router(object):
     def __init__(self,mapper):
         self.mapper=mapper
         self._router=routes.middleware.RoutesMiddleware(self._dispatch,self.mapper)
+
+    @classmethod
+    def factory(cls,global_config,**local_config):
+        return cls()
     
     @webob.dec.wsgify
     def __call__(self,req):
@@ -25,10 +33,6 @@ class Router(object):
 	    return webob.exc.HTTPNotFound()
 	app=match['controller']
 	return app
-
-#class Application(object):
-#	pass
-#
 
 class Controller(object):
     @staticmethod
@@ -78,6 +82,7 @@ class Resource(object):
 	
 	@staticmethod
 	def dispatch(method,action_args):
+	    print('dispatch method')
 	    return method(**action_args)
 	    
 
@@ -93,7 +98,7 @@ class Server(object):
             self.pool_size = self.default_pool_size
             self._pool=eventlet.GreenPool(self.pool_size)
             self._logger = log.getlogger()
-            self._wsgi_logger=logging.WSGILogger(self._logger)
+            self._wsgi_logger=log.WSGILogger(self._logger)
 	        
             bind_addr = (host,port)
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
@@ -121,7 +126,7 @@ class Server(object):
 
 class Loader(object):
 	def __init__(self,config_path=None):
-	    self.config_file = 'api-paste.ini'
+	    self.config_file = '/etc/nae/api-paste.ini'
 	    self.config_path=os.path.abspath(self.config_file)
 	def load_app(self,name):
 	    return loadapp("config:%s" % self.config_path,name=name)

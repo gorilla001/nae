@@ -1,4 +1,5 @@
-import wsgi
+from nae import wsgi
+from nae import db
 
 class ProjectController(object):
     def __init__(self):

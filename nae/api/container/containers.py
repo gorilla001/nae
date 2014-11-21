@@ -1,13 +1,14 @@
 import logging
-import wsgi
-import container,image
-from utils import MercurialControl
+from nae import wsgi
+from nae import container,image
+from nae import db
+from nae.utils import MercurialControl
 
 LOG=logging.getLogger('eventlet.wsgi.server')
 
 class Controller(object):
     def __init__(self):
-        self.compute_api=container.API()
+        self.container_api=container.API()
         self.image_api=image.API()
         self.db_api = db.API()
         self.mercurial = MercurialControl()

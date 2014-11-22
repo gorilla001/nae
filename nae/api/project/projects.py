@@ -23,19 +23,17 @@ class ProjectController(object):
                 }
                 projects.append(project)
         else:
-            project_ids = utils.get_projects(user_id=user_id)
-            for project_id in project_ids:
-                project_info = utils.get_project_info(project_id) 
-                project_id = project_id
+            query = self.db_api.get_projects(user_id=user_id)
+            for item in query:
                 project={
-                    'ProjectId':project_id,
-                    'ProjectName':project_info[1],
-                    'ProjectDesc':project_info[2],
-                    'ProjectHgs':'',
-                    'ProjectImgs':'',
-                    'ProjectAdmin':project_info[5],
-                    'ProjectMembers':'',
-                    'CreatedTime':project_info[7],
+                    'id':project_id,
+                    'name':project_info[1],
+                    'desc':project_info[2],
+                    'repos':'',
+                    'images':'',
+                    'admins':project_info[5],
+                    'members':'',
+                    'created':project_info[7],
                  }
                 projects.append(project)
         return projects 

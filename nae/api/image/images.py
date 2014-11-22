@@ -3,6 +3,7 @@ import logging
 from nae import wsgi
 from nae import image
 from nae import db
+from nae.utils import isotime
 
 
 LOG=logging.getLogger('eventlet.wsgi.server')
@@ -14,7 +15,7 @@ class ImageController(object):
 
     def index(self,request):
         images=[]
-        project_id=request.GET.pop('project_id')
+        project_id=request.GET.get('project_id')
         query = self.db_api.get_images(project_id)
         if query is not None:
             for item in query:
@@ -24,7 +25,7 @@ class ImageController(object):
                        'size':item.size,
                        'desc':item.desc,
                        'project_id':item.project_id,
-                       'created':item.created,
+                       'created':isotime(item.created),
                        'user_id':item.user_id,
                        'status' : item.status}
                 images.append(image)
@@ -41,7 +42,7 @@ class ImageController(object):
                      'size' : query.size,
                      'desc' : query.desc,
                      'project_id' : query.project_id,
-                     'created' : query.created,
+                     'created' : isotime(query.created),
                      'user_id' : query.user_id,
                      'status' : query.status}
 

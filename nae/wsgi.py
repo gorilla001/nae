@@ -17,6 +17,7 @@ class Router(object):
     
     def __init__(self,mapper):
         self.mapper=mapper
+        self.mapper.redirect("","/")
         self._router=routes.middleware.RoutesMiddleware(self._dispatch,self.mapper)
 
     @classmethod
@@ -47,7 +48,8 @@ class Controller(object):
         _method=self.get_method(request)
         method=getattr(self,_method)     
 
-        response=webob.Response()
+        #response=webob.Response()
+	response=JsonResponse()
         result_json=method(request)
         response.json=result_json
         return response

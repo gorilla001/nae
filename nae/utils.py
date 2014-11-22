@@ -19,6 +19,8 @@ import eventlet
 
 LOG = logging.getLogger('eventlet.wsgi.server')
 
+TIME_FORMAT="%Y-%m-%d %H:%M:%S"
+
 class Daemon():
     def __init__(self):
         self.pid_file='jaecpn.pid'
@@ -223,3 +225,6 @@ class Daemon():
         se = file(self.stderr,'a+',0)
         os.dup2(so.fileno(),sys.stdout.fileno())
         os.dup2(se.fileno(),sys.stderr.fileno())
+
+def isotime(created):
+    return created.strftime(TIME_FORMAT) 

@@ -20,6 +20,8 @@ def add_image(values):
 	model.save(session=session)	
 
 def get_images(project_id):
+    if project_id is None:
+	return model_query(models.Image).all()
     return model_query(models.Image,
 		       project_id=project_id).all()
 
@@ -43,6 +45,15 @@ def add_container(values):
         model.save(session=session)
 
 def get_containers(project_id,user_id):
+    if project_id is None and user_id is None:
+	return model_query(models.Container).all()
+    if project_id is None:
+	return model_query(models.Container,
+			   user_id=user_id).all()
+    if user_id is None:
+	return model_query(models.Container,
+			   project_id=project_id).all()
+	
     return model_query(models.Container,
 		       project_id=project_id,
 		       user_id=user_id).all()

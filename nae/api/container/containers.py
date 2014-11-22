@@ -3,6 +3,7 @@ from nae import wsgi
 from nae import container,image
 from nae import db
 from nae.utils import MercurialControl
+import webob.exc
 
 LOG=logging.getLogger('eventlet.wsgi.server')
 
@@ -14,6 +15,9 @@ class Controller(object):
         self.mercurial = MercurialControl()
 
     def index(self,request):
+	"""
+        return containers list.
+	"""
         containers=[]
 
         project_id = request.GET.get('project_id')
@@ -220,6 +224,8 @@ class Controller(object):
                 host_port=item['HostPort']
             network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
         return (container_id,network_config,)
+    
+    
 
     def destroy(self,request):
 	name=request.environ['wsgiorg.routing_args'][1]['container_id']

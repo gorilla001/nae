@@ -7,7 +7,7 @@ _MAKER=None
 def get_engine():
     global _ENGINE
     if _ENGINE is None:
-        connection = "mysql://jaecpn:jaecpn@localhost/jaecpn"
+        connection = "mysql://nae:nae@localhost/nae"
         url = sqlalchemy.engine.url.make_url(connection)
 
 	engine_args = {
@@ -29,8 +29,8 @@ def get_session(autocommit=True,expire_on_commit=False):
     return _MAKER()
 
 def get_maker(engine):
-    session = sqlalchemy.orm.sessionmaker(bind=engine,
+    maker= sqlalchemy.orm.sessionmaker(bind=engine,
 					  autocommit=True,
 					  expire_on_commit=False)
 
-    return session()
+    return maker 

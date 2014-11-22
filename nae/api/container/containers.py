@@ -14,52 +14,58 @@ class Controller(object):
         self.mercurial = MercurialControl()
 
     def index(self,request):
+        containers=[]
+
         project_id = request.GET.get('project_id')
         user_id = request.GET.get('user_id')
-
-        rs = self.db_api.get_containers(project_id,user_id)
-        container_list = list()
-        for item in rs.fetchall():
+        
+        query = self.db_api.get_containers(project_id,user_id)
+        for item in query:
             container = {
-                    'ID':item[0],
-                    'Name':item[2],
-		            #'AccessMethod':'  '.join(ast.literal_eval(item[7])),
-		            'AccessMethod':'',
-                    'Created':item[9],
-                    'Status':item[11],
+                    'id':item.prefix,
+                    'name':item.name,
+		    'network':[],
+                    'created':item.created,
+                    'status':item.status,
                     }
-            container_id = item[1]
-            network_info = self.db_api.get_network(container_id)
-            network_list = list()
-            for net in network_info.fetchall():
-                pub_host = net[2]
-                pub_port = net[3]
-                pri_port = net[5]
-                network_config ="{}:{}~{}".format(pub_host,pub_port,pri_port)
-                network_list.append(network_config)
-            data = {
-                "AccessMethod":'  '.join(network_list),
-            }
-            container.update(data)
-            container_list.append(container)
-        return container_list
-
-    def show(self,request):
-        container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        container_info = self.db_api.get_container(container_id).fetchone()
-        project_info=self.db_api.get_project(container_info[4]).fetchone()
-        container = {
-                'name':container_info[2],
-                'id':container_info[1],
-                'env':container_info[3],
-                'project':project_info[1],
-                'hgs':container_info[5],
-                'code':container_info[6],
-                'access':' '.join(ast.literal_eval(container_info[7])),
-                'created':container_info[8],
-                'createdby':container_info[9],
-                'status':container_info[10],
+	    """
+            container_id = item.prefix
+            query = self.db_api.get_networks(container_id)
+            if query is not None:	
+                networks = [] 
+                for net in query:
+                    pub_host = net.public_host
+                    pub_port = net.public_port
+                    pri_port = net.private_port
+                    network_config ="{}:{}~{}".format(pub_host,pub_port,pri_port)
+                    networks.append(network_config)
+                data = {
+                "network":networks,
                 }
+                container.update(data)
+	    """
+            containers.append(container)
+        return containers
+
+    def show(self,request,id):
+	container={}
+        query= self.db_api.get_container(id)
+        #project_info=self.db_api.get_project(container_info[4]).fetchone()
+        if query is not None:
+            container = {
+                'name':query.name,
+                'id':query.prefix,
+                'env':query.env,
+                'project_id':query.project_id,
+                'repos':query.repos,
+                'branch':query.branch,
+                'image':query.image,
+                'network':query.network,
+                'created':query.created,
+                'user_id':query.user_id,
+                'status':query.status,
+                }
+
         return container
 
     def inspect(self,request):

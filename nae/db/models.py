@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 
 BaseModel = declarative_base()
@@ -32,15 +32,14 @@ class Image(BaseModel,JaeBase):
     id = Column(Integer,primary_key=True,autoincrement=True)
     prefix = Column(String(30))
     name = Column(String(50)) 
+    tag = Column(String(50)) 
     size = Column(String(50))
     desc = Column(String(300))
     project_id= Column(Integer,ForeignKey('projects.id'),nullable=True)
-    project=relationship(Project)
-			 
-    repo = Column(String(300))
+    repos = Column(String(300))
     branch = Column(String(150))
-    created = Column(String(150))
-    owner = Column(String(30))
+    created = Column(DateTime, default=func.now())
+    user_id = Column(String(30))
     status = Column(String(100))
 
 class Container(BaseModel,JaeBase):

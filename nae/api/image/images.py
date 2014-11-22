@@ -15,40 +15,36 @@ class ImageController(object):
     def index(self,request):
         images=[]
         project_id=request.GET.pop('project_id')
-        rs = self.db_api.get_images(project_id=project_id)
-        for item in rs.fetchall():
-            project_info = self.db_api.show_project(project_id=item[6]) 
-            project_name = project_info.fetchone()[1]
-            image={
-                'ID':item[0],
-                'ImageId':item[1],
-                'ImageName':item[2],
-		'ImageTag':item[3],
-                'ImageSize':item[4],
-                'ImageDesc':item[5],
-                'ImageProject':project_name,
-                'CreatedTime':item[9],
-                'CreatedBy':item[10],
-                'Status' : item[11],
-                }
-            images.append(image)
+        query = self.db_api.get_images(project_id)
+        if query is not None:
+            for item in query:
+                image={'id':item.prefix,
+                       'name':item.name,
+		       'tag':item.tag,
+                       'size':item.size,
+                       'desc':item.desc,
+                       'project_id':item.project_id,
+                       'created':item.created,
+                       'user_id':item.user_id,
+                       'status' : item.status}
+                images.append(image)
+
         return images 
 
-    def show(self,request):
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.db_api.get_image(image_id)
-        image_info=result.fetchone()
-	if image_info is None:
-		LOG.debug("image is None")	
-		return None
-        image={
-                'ImageID':image_info[1],
-                'ImageName':image_info[2],
-                'ImageSize':image_info[3],
-                'ImageDesc':image_info[4],
-                'RepoPath':image_info[7],
-		'Branch':image_info[8],
-        }
+    def show(self,request,id):
+	image = {}
+        query = self.db_api.get_image(id)
+	if query is not None:
+            image = {'id' : query.prefix,
+                     'name' : query.name,
+		     'tag' : query.tag,
+                     'size' : query.size,
+                     'desc' : query.desc,
+                     'project_id' : query.project_id,
+                     'created' : query.created,
+                     'user_id' : query.user_id,
+                     'status' : query.status}
+
         return image 
 
     def inspect(self,request):
@@ -62,46 +58,45 @@ class ImageController(object):
             image.update(result.json()) 
         return image 
 
-    def create(self,request):
-        image_name=request.json.pop('image_name')
-        image_desc=request.json.pop('image_desc')
-        project_id=request.json.pop('project_id')
-        repo_path=request.json.pop('repo_path')
-	repo_branch=request.json.pop('repo_branch')
-        user_name=request.json.pop('user_name')
-        created_time = utils.human_readable_time(time.time())
+    def create(self,request,body):
+        name = body.get('name')
+        desc = body.get('desc')
+        project_id = body.get('project_id')
+        repos = body.get('repos')
+	branch = body.get('branch')
+        user_id = body.get('user_id')
 
+        """
 	img_limit = quotas.get_quotas().get('image_limit')	
 	img_count = self.db_api.get_images(project_id)
 	img_count = len(img_count.fetchall())	
 	if img_count == img_limit :
 	    LOG.info("images limit exceed,can not created anymore...")
 	    return
-
-	id=self.db_api.add_image(
-                                  name=image_name,
-				  tag="latest",
-                                  desc=image_desc,
-                                  project_id=project_id,
-                                  repo = repo_path,
-				  branch = repo_branch, 
-                                  created= created_time,
-                                  owner=user_name,
-                                  status = 'building'
-	)
+        """
+	try:
+	    self.db_api.add_image(dict(
+                name=name,
+	        tag="latest",
+       	        desc=desc,
+       	        project_id=project_id,
+                repos = repos,
+                branch = branch, 
+                user_id = user_id,
+                status = 'building'))
+	except:
+	    return {"status":500}
+	"""
         self.image_api.create_image_from_file(id,image_name,str(repo_path),str(repo_branch),user_name)
-        result_json={}
-        return result_json
+	"""
+        return {"status":200} 
 
-    def delete(self,request):
-        _image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        f_id=request.GET['force']
-        image_info = self.db_api.get_image_by_id(_image_id).fetchone()
-        image_id=image_info[1]
-	self.db_api.update_image_status(
-				  id=_image_id,
-                                  status = "deleting")
+    def delete(self,request,id):
+	self.db_api.update_image(id=id,status="deleting")
+ 	"""	
         self.image_api.delete_image(_image_id,image_id,f_id)
+	"""
+	return {"status":200}
 
     def edit(self,request):
         _img_id=request.GET.pop('id')

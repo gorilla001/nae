@@ -1,3 +1,4 @@
+import webob
 import webob.dec
 import routes.middleware
 from eventlet import wsgi
@@ -6,6 +7,7 @@ import os
 from nae import log
 import logging
 from paste.deploy import loadapp
+import json
 
 
 LOG=logging.getLogger('eventlet.wsgi.server')
@@ -62,9 +64,10 @@ class Resource(object):
 	        method=getattr(self.controller,action)
 	    except AttributeError:
 		raise
+	    body=self.get_body(request)
+	    action_args.update(body)
 
-	    print action,method
-	    return self.dispatch(request,method,action_args) 
+	    return self._process_stack(request,method,action_args) 
 
 	def get_action_args(self,env):
 	    try:
@@ -81,7 +84,21 @@ class Resource(object):
 	        pass
 
 	    return args	
-	
+
+        def get_body(self,request):
+	    if len(request.body) == 0:
+		return {}
+	    return {'body':json.loads(request.body)}
+
+        def _process_stack(self,request,method,action_args):
+            response=webob.Response()
+            response.headers.add("Content-Type","application/json")
+
+            action_result = self.dispatch(request,method,action_args) 
+	    response.json = action_result
+	    
+	    return response
+
 	@staticmethod
 	def dispatch(request,method,action_args):
 	    return method(request,**action_args)

@@ -24,14 +24,11 @@ def get_images(project_id):
 		       project_id=project_id).all()
 
 def get_image(id):
-    return model_query(model,id=id).first()
+    return model_query(models.Image,id=id).first()
 
-def update_image(id,prefix,size,status):
+def update_image(id,**values):
     return model_query(models.Image,
-		       id=id).update(
-		       {'prefix':prefix,
-                        'size':size,
-                        'status':status})	
+		       id=id).update(values)
 
 def delete_image(id):
     return model_query(models.Image,id=id).delete()
@@ -148,5 +145,5 @@ def get_network(id):
                        id=id).first() 
 
 def get_networks(container_id):
-    return model_query(model.Network,
+    return model_query(models.Network,
                       container_id=container_id).all()

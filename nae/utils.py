@@ -13,6 +13,8 @@ import contextlib
 import time
 import stat
 import pwd
+import webob
+import eventlet
 
 
 LOG = logging.getLogger('eventlet.wsgi.server')
@@ -53,6 +55,15 @@ class Daemon():
         with open(self.pid_file,'w') as pid_file:
             pid_file.write('%d' % os.getpid())
 
+
+class ResponseSucceed(object):
+    def __call__(self): 
+        result=webob.Response(status=200)
+        return result
+
+
+def execute(func,*args):
+    eventlet.spawn_n(func,*args)
 
 def init():
     Daemon().initDaemon()

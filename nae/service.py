@@ -12,7 +12,7 @@ LOG = logging.getLogger('eventlet.wsgi.server')
 class WSGIService(object):
     def __init__(self):
         self.loader = wsgi.Loader()
-        self.app = self.loader.load_app('nae-api')
+        self.app = self.loader.load_app('nae')
         self.host = '0.0.0.0'
         self.port = 8282 
         self.workers = 5 

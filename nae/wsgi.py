@@ -30,7 +30,8 @@ class Router(object):
     def _dispatch(req):
         match = req.environ['wsgiorg.routing_args'][1]
 	if not match:
-	    return webob.exc.HTTPNotFound()
+	    #return webob.exc.HTTPNotFound()
+	    return webob.Response('{"error" : "404 Not Found"}')
 	app=match['controller']
 	return app
 
@@ -62,7 +63,8 @@ class Resource(object):
 	    except AttributeError:
 		raise
 
-	    return dispatch(request,method,action_args) 
+	    print action,method
+	    return self.dispatch(request,method,action_args) 
 
 	def get_action_args(self,env):
 	    try:

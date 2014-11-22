@@ -1,1 +1,1 @@
-A app engine designed by nmg used docker backend.
+A app engine designed for fun used docker backend.

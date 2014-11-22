@@ -3,6 +3,7 @@ from nae import db
 from nae import image
 from nae import utils
 from webob import Response
+from nae import docker
 
 
 
@@ -10,34 +11,9 @@ LOG = logging.getLogger('eventlet.wsgi.server')
 
 class API():
     def __init__(self):
-        self.url = "http://{}:{}".format(config.docker_host,config.docker_port) 
-        self.headers={'Content-Type':'application/json'}
         self.db_api=db.API()
 	self.image_api=image.API()
 
-    #@staticmethod
-    #def make_request(method,url,headers=self.headers,data=None):
-    #    if method == "GET":
-    #        rs=requests.get(url,headers=headers)    
-    #    if method == "POST":
-    #        rs=requests.post(url,data=data,headers=headers)
-    #    if method == "DELETE":
-    #        rs=requests.delete(url,headers=headers)    
-
-    #    return rs
-
-    #def get_containers(self):
-    #    _url="{}/containers/json?all=0".format(self.url)
-    #    rs=self.make_request("GET",_url)
-    #    return rs
-
-    #def get_container_by_id(self,container_id):
-    #    result=requests.get("{}/containers/json?all=1".format(self.url))    
-    #    response=webob.Response()
-    #    for res in result.json():
-    #        if container_id in res['Id']:
-    #            pass
-    #    return response
     #def create(self,kargs,name,repo_path,user_name,_ctn_id):
     def create(self,kargs,*args):
         data = {
@@ -72,8 +48,7 @@ class API():
                     id = _ctn_id,
                     status = "stoping"
             )
-	    _url="{}/containers/{}/stop?t=10".format(self.url,ctn_id)
-	    result=self.make_request("POST",_url)
+            res = docker.stop_container(ctn_id)
             if result.status_code == 204:
                 self.db_api.update_container_status(
             			id = _ctn_id,
@@ -83,24 +58,20 @@ class API():
                     	id = _ctn_id,
                     	status = "deleting"
             	)
-		_url="{}/containers/{}?v={}".format(self.url,ctn_id,v)
-		result=self.make_request("DELETE",_url)
-                if result.status_code == 204:
+                res = docker.delete_container(ctn_id,v)
+                if res.status_code == 204:
             	    self.db_api.delete_container(_ctn_id)
-            if result.status_code == 304:
-	        _url="{}/containers/{}?v={}".format(self.url,ctn_id,v)
-                self.make_request("DELETE",_url)    
+            if res.status_code == 304:
+                docker.delete_container(ctn_id,v)
             	self.db_api.delete_container(_ctn_id)
-            if result.status_code == 404: 
+            if res.status_code == 404: 
             	self.db_api.delete_container(_ctn_id)
 	else:
-		self.db_api.update_container_status(
-                    	id = _ctn_id,
-                    	status = "deleting"
-            	)
-		_url="{}/containers/{}?v={}".format(self.url,ctn_id,v)
-		result=self.make_request("DELETE",_url)
-                if result.status_code == 204:
+		self.db_api.update_container({
+                    	   'id':id,
+                    	   'status':"deleting"})
+                res = docker.delete_container(ctn_id,v)
+                if res.status_code == 204:
             	    self.db_api.delete_container(_ctn_id)
 		
 	return Response(status=200) 
@@ -128,12 +99,10 @@ class API():
 
         return Response(status=200)
 
-    def inspect(self,container_id):
-	_url="{}/containers/{}/json".format(self.url,container_id)
-	rs=self.make_request("GET",_url)
-        return rs
+    def inspect(self,id):
+        return docker.inspect_container(id) 
 
-    def run(self,kwargs,_ctn_id,ctn_id):
+    def run(self,kwargs,id,prefix):
 	data = {
             'Binds':[],
             'Links':[],
@@ -147,13 +116,10 @@ class API():
             'CapDrop':[],
 	    }
         data.update(kwargs)
-        _url="{}/containers/{}/start".format(self.url,ctn_id)
-	rs=self.make_request("POST",_url,data=json.dumps(data))
-        if rs.status_code == 204:
-            self.db_api.update_container_status(
-        			id = _ctn_id,
-        			status = "ok"
-        	)
+        resp = docker.start_container(prefix,data=json.dumps(data))
+        if resp.status_code == 204:
+            self.db_api.update_container(id = id,status = "ok")
+
         return Response(status=200)
 
     def destroy(self,name):
@@ -162,20 +128,16 @@ class API():
 
     def commit(self,repo,tag):
         utils.execute(self._commit,repo,tag)
-        return webob.Response(status=200)
+        return Response(status=200)
 
     @staticmethod
-    def create_container(data,name,_id,repo_path,user_name):
-        _url = "{}/containers/create?name={}".format(self.url,name)
-	resp=self.make_request(_url,data=json.dumps(data))
+    def create_container(data,name,id,repo_path,user_name):
+        resp = docker.create_container(name,data=json.dumps(data))
         if resp.status_code == 201:
             container_info = resp.json()
-            container_id = container_info["Id"]
-            self.db_api.update_container(
-            		id = _id,
-            		container_id = container_id, 
-            		status = 'created'
-            		)
+            prefix= container_info["Id"][:12]
+            self.db_api.update_container(id = id,{ 'prefix' : prefix,
+            		                           'status' : 'created'})
             repo_name = os.path.basename(repo_path)	
             path=os.path.join(os.path.dirname(__file__),'files')
             source_path = os.path.join(path,user_name,repo_name)
@@ -186,17 +148,12 @@ class API():
             }
             self.start_container(kargs,container_id)
 
-        
-    
     @staticmethod
-    def start_container(container_id,data):
-        _url="{}/containers/{}/start".format(self.url,container_id)
-	result=self.make_request("POST",_url,data=json.dumps(data))
-        if result.status_code == 204:
-            self.db_api.update_container_status(
-        			id = self._id,
-        			status = "ok"
-        	)
+    def start_container(id,data):
+        resp = docker.start_container(id,data=json.dumps(data))
+        if resp.status == 204:
+            self.db_api.update_container(id=id,
+        			         status='ok')
             result=self.inspect_container(container_id)
             network_settings = result.json()['NetworkSettings']
             ports=network_settings['Ports']
@@ -207,23 +164,18 @@ class API():
                 		host_ip=item['HostIp']
                 		host_port=item['HostPort']
                         self.db_api.add_network(
-                            container_id = container_id,
-                            pub_host = host_ip,
-                            pub_port = host_port,
-                            pri_host = private_host,
-                            pri_port = private_port,
-                        )
-        if result.status_code == 500:
-            self.db_api.update_container_status(
-        			id = self._id,
-        			status = "500"
-        ) 
-
+                            {'container_id' : container_id,
+                             'pub_host' : host_ip,
+                             'pub_port' : host_port,
+                             'pri_host' : private_host,
+                             'pri_port' : private_port})
+        if res.status == 500:
+            self.db_api.update_container({'id':id,
+        			          'status':500})
     
     @staticmethod
-    def stop_container(_ctn_id,ctn_id):
-	_url="{}/containers/{}/stop?t=10".format(self.url,ctn_id)
-	result=self.make_reqeust("POST",_url)
+    def stop_container(id,prefix):
+	resp = docker.stop_container(id)
 	if result.status_code == 204:
             self.db_api.update_container_status(
         			id = _ctn_id,
@@ -245,9 +197,6 @@ class API():
     
     		
     def destroy_container(self,name):
-	self.make_request("POST",
-			"{}/containers/{}/stop?t=10".format(self.url,name))
-	self.make_request("DELETE",
-        		"{}/containers/{}?v=1".format(self.url,name))    
+        return docker.destroy_container(name)
 
 

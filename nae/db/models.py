@@ -2,17 +2,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship,backref
 from sqlalchemy.sql import text
+from nae.db import base 
 
-BaseModel = declarative_base()
+Model = declarative_base()
 
-class BaseModel(BaseModel):
+class BaseModel(Model):
     __abstract__ = True
     __table_args__ = {
 	'mysql_engine': 'InnoDB',
 	'mysql_charset': 'utf8'
     }
-
-class JaeBase(object):
     def save(self,session):
 	session.add(self)	
 	session.flush()
@@ -21,7 +20,7 @@ class JaeBase(object):
 	for k,v in values.iteritems():
 	    setattr(self,k,v)
 
-class Project(BaseModel,JaeBase):
+class Project(BaseModel):
     __tablename__ = 'projects'
    
     id = Column(String(32),primary_key=True)
@@ -31,7 +30,7 @@ class Project(BaseModel,JaeBase):
 
     users = relationship('User',foreign_keys='User.project_id',lazy='dynamic')
 
-class Image(BaseModel,JaeBase):
+class Image(BaseModel):
     __tablename__ = 'images'
     
     id = Column(String(32),primary_key=True)
@@ -52,7 +51,8 @@ class Image(BaseModel,JaeBase):
     user_id= Column(String(32))
     status = Column(String(100))
 
-class Container(BaseModel,JaeBase):
+class Container(BaseModel):
+
     __tablename__ = 'containers'
  
     id = Column(String(32),primary_key=True)
@@ -75,7 +75,7 @@ class Container(BaseModel,JaeBase):
     user_id= Column(String(30))
     status = Column(String(100))
 
-class User(BaseModel,JaeBase):
+class User(BaseModel):
     __tablename__ = 'users'
 
     id = Column(String(32),primary_key=True)
@@ -90,7 +90,7 @@ class User(BaseModel,JaeBase):
     #		backref=backref('users',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
-class Repos(BaseModel,JaeBase):
+class Repos(BaseModel):
     __tablename__ = 'repos'
 
     id = Column(String(32),primary_key=True)
@@ -103,7 +103,7 @@ class Repos(BaseModel,JaeBase):
 		backref=backref('repos',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
-class Network(BaseModel,JaeBase):
+class Network(BaseModel):
     __tablename__ = 'networks'
 
     id = Column(Integer,primary_key=True,autoincrement=True)

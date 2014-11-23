@@ -1,4 +1,7 @@
 import sqlalchemy
+from nae.common import cfg
+
+CONF=cfg.CONF
 
 
 _ENGINE=None
@@ -7,12 +10,12 @@ _MAKER=None
 def get_engine():
     global _ENGINE
     if _ENGINE is None:
-        connection = "mysql://nae:nae@localhost/nae"
+        connection = CONF.db_connection 
         url = sqlalchemy.engine.url.make_url(connection)
 
 	engine_args = {
-	    "echo":False,
-	    "convert_unicode":True,
+	    "echo":bool(CONF.sql_show),
+	    "convert_unicode":bool(convert_unicode),
 	    "pool_size":100,
 	    "pool_recycle":3600,
 	}

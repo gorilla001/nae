@@ -10,6 +10,7 @@ setup(name='nae',
       url='https://git.oschina.net/nmg/nae.git',
 
       packages=['nae',
+		'nae.common',
 		'nae.api',
 		'nae.container',
 		'nae.image',

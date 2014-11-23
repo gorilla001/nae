@@ -5,7 +5,10 @@ import eventlet
 import time
 import signal
 import logging
-from nae import config
+from nae.common import cfg
+
+CONF=cfg.CONF
+
 
 LOG = logging.getLogger('eventlet.wsgi.server')
 
@@ -13,9 +16,9 @@ class WSGIService(object):
     def __init__(self):
         self.loader = wsgi.Loader()
         self.app = self.loader.load_app('nae')
-        self.host = '0.0.0.0'
-        self.port = 8282 
-        self.workers = 5 
+        self.host = CONF.bind_host 
+        self.port = int(CONF.bind_port) 
+        self.workers = int(CONF.workers) 
         self.server = wsgi.Server(
                     self.app,
         	    self.host,

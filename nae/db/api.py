@@ -85,21 +85,21 @@ def update_container(id,value):
 def add_project(values):
     session = get_session()
     with session.begin():
-        model=models.Container()
+        model=models.Project()
         model.update(values)
         model.save(session=session)
 
 def get_projects(user_id):
-    if user_id == 'admin':
+    if user_id is None:
 	return model_query(models.Project).all()
     return model_query(models.Project,
 		       user_id=user_id).all() 
 
 def get_project(id):
-    return model_query(model,id=id).first()
+    return model_query(models.Project,id=id).first()
 
-def delete_project():
-    return model_query(model,id=id).delete()
+def delete_project(id):
+    return model_query(models.Project,id=id).delete()
 
 def update_project():
     pass
@@ -113,6 +113,8 @@ def add_user(values):
         model.save(session=session)
 
 def get_users(project_id):
+    if project_id is None:
+        return model_query(models.User).all()
     return model_query(models.User,
 		       project_id=project_id).all()
 
@@ -128,19 +130,21 @@ def delete_user(id):
 def add_repo(values):
     session = get_session()
     with session.begin():
-        model=models.Repo()
+        model=models.Repos()
         model.update(values)
         model.save(session=session)
     
 def get_repo(id):
-    return model_query(models.Repo,id=id).first()
+    return model_query(models.Repos,id=id).first()
 
 def get_repos(project_id):
-    return model_query(models.Repo,
+    if project_id is None:
+        return model_query(models.Repos).all()
+    return model_query(models.Repos,
                        project_id=project_id).all()
 
 def delete_repo(id):
-    return model_query(models.Repo,id=id).delete()
+    return model_query(models.Repos,id=id).delete()
 
 ### network api ###
 

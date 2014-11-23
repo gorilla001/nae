@@ -1,7 +1,9 @@
 from nae import wsgi
-from nae.api.container import containers
-from nae.api.image import images
-from nae.api.project import projects
+from nae.api import containers
+from nae.api import images
+from nae.api import projects
+from nae.api import users 
+from nae.api import repos 
 import routes
 
 class APIRouter(wsgi.Router):
@@ -28,3 +30,9 @@ class APIRouter(wsgi.Router):
                                      'destroy':'POST'})
         self.mapper.resource('project','projects',
 			     controller=projects.create_resource())
+
+        self.mapper.resource('user','users',
+			     controller=users.create_resource())
+
+        self.mapper.resource('repository','repos',
+			     controller=repos.create_resource())

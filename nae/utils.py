@@ -15,6 +15,7 @@ import stat
 import pwd
 import webob
 import eventlet
+import uuid
 
 
 LOG = logging.getLogger('eventlet.wsgi.server')
@@ -228,3 +229,6 @@ class Daemon():
 
 def isotime(created):
     return created.strftime(TIME_FORMAT) 
+
+def uid():
+    return uuid.uuid4().hex

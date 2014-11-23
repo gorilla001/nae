@@ -4,6 +4,8 @@ from nae import wsgi
 from nae import image
 from nae import db
 from nae.utils import isotime
+from sqlalchemy.exc import IntegrityError
+import uuid
 
 
 LOG=logging.getLogger('eventlet.wsgi.server')
@@ -77,6 +79,7 @@ class ImageController(object):
         """
 	try:
 	    self.db_api.add_image(dict(
+		id=uuid.uuid4().hex,
                 name=name,
 	        tag="latest",
        	        desc=desc,
@@ -85,7 +88,8 @@ class ImageController(object):
                 branch = branch, 
                 user_id = user_id,
                 status = 'building'))
-	except:
+	except IntegrityError,err:
+	    LOG.error(err)
 	    return {"status":500}
 	"""
         self.image_api.create_image_from_file(id,image_name,str(repo_path),str(repo_branch),user_name)

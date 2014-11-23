@@ -16,7 +16,7 @@ setup(name='nae',
 		'nae.db',
 	       ],
 
-      scripts=['bin/nae-api'],
+      scripts=['bin/nae'],
 
       data_files=[('/etc/nae',['etc/nae.conf',
 			       'etc/api-paste.ini',

@@ -21,7 +21,8 @@ class ImageController(object):
         query = self.db_api.get_images(project_id)
         if query is not None:
             for item in query:
-                image={'id':item.prefix,
+                image={'id':item.id,
+                       'uuid':item.uuid,
                        'name':item.name,
 		       'tag':item.tag,
                        'size':item.size,
@@ -38,7 +39,8 @@ class ImageController(object):
 	image = {}
         query = self.db_api.get_image(id)
 	if query is not None:
-            image = {'id' : query.prefix,
+            image = {'id' : query.id,
+                     'uuid' : query.uuid,
                      'name' : query.name,
 		     'tag' : query.tag,
                      'size' : query.size,

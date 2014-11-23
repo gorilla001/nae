@@ -5,6 +5,13 @@ from sqlalchemy.sql import text
 
 BaseModel = declarative_base()
 
+class BaseModel(BaseModel):
+    __abstract__ = True
+    __table_args__ = {
+	'mysql_engine': 'InnoDB',
+	'mysql_charset': 'utf8'
+    }
+
 class JaeBase(object):
     def save(self,session):
 	session.add(self)	
@@ -22,35 +29,48 @@ class Project(BaseModel,JaeBase):
     desc = Column(String(300),default='')
     created = Column(DateTime, default=func.now())
 
+    users = relationship('User',foreign_keys='User.project_id',lazy='dynamic')
+
 class Image(BaseModel,JaeBase):
     __tablename__ = 'images'
     
     id = Column(String(32),primary_key=True)
-    prefix = Column(String(30))
+    uuid = Column(String(64))
     name = Column(String(50)) 
     tag = Column(String(50)) 
     size = Column(String(50))
     desc = Column(String(300))
-    project_id= Column(String(32),ForeignKey('projects.id'),nullable=True)
-    project = relationship('Project',cascade="delete")
+    project_id= Column(String(32),
+		ForeignKey('projects.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
+    #project = relationship('Project',
+#		backref=backref('images',lazy='dynamic'))
     repos = Column(String(300))
     branch = Column(String(150))
     created = Column(DateTime, default=func.now())
-    user_id = Column(String(30))
+    user_id= Column(String(32))
     status = Column(String(100))
 
 class Container(BaseModel,JaeBase):
     __tablename__ = 'containers'
  
     id = Column(String(32),primary_key=True)
-    prefix = Column(String(30))
+    uuid = Column(String(64))
     name = Column(String(50))
     env = Column(String(30))
-    project_id= Column(String(32),ForeignKey('projects.id'),nullable=True)
-    project = relationship('Project',cascade="delete")
+    project_id= Column(String(32),
+		ForeignKey('projects.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
+    project = relationship('Project',
+		backref=backref('containers',lazy='dynamic'))
     repos= Column(String(300))
     branch= Column(String(300))
-    image_id = Column(String(32),ForeignKey('images.id'),nullable=True)
+    image_id = Column(String(32),
+		ForeignKey('images.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
     created = Column(DateTime, default=func.now())
     user_id= Column(String(30))
     status = Column(String(100))
@@ -62,7 +82,12 @@ class User(BaseModel,JaeBase):
     name = Column(String(60))
     email = Column(String(150))
     role_id = Column(Integer)
-    project_id= Column(String(32),ForeignKey('projects.id',ondelete="CASCADE",onupdate='CASCADE'))
+    project_id= Column(String(32),
+		ForeignKey('projects.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
+    #project = relationship('Project',
+    #		backref=backref('users',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
 class Repos(BaseModel,JaeBase):
@@ -70,8 +95,12 @@ class Repos(BaseModel,JaeBase):
 
     id = Column(String(32),primary_key=True)
     repo_path = Column(String(300))
-    project_id= Column(String(32),ForeignKey('projects.id'),nullable=True)
-    project = relationship('Project',cascade="delete")
+    project_id= Column(String(32),
+		ForeignKey('projects.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
+    project = relationship('Project',
+		backref=backref('repos',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
 class Network(BaseModel,JaeBase):
@@ -82,5 +111,8 @@ class Network(BaseModel,JaeBase):
     public_port = Column(String(30))
     private_host = Column(String(100))
     private_port = Column(String(30))
-    container_id = Column(String(32),ForeignKey('containers.id'),nullable=True)
+    container_id = Column(String(32),
+		ForeignKey('containers.id',
+		ondelete='CASCADE',
+		onupdate='CASCADE'))
     created = Column(DateTime, default=func.now())

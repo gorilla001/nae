@@ -1,5 +1,6 @@
 from  session import get_session
 import models
+from sqlalchemy.orm import joinedload
 
 
 def model_query(model,**kwargs):
@@ -26,7 +27,7 @@ def get_images(project_id):
 		       project_id=project_id).all()
 
 def get_image(id):
-    return model_query(models.Image,id=id).first()
+    return model_query(models.Image,id=id).one()
 
 def update_image(id,**values):
     return model_query(models.Image,
@@ -60,7 +61,7 @@ def get_containers(project_id,user_id):
 
 def get_container(id):
     return model_query(models.Container,
-		       id=id).first()
+		       id=id).one()
 
 def delete_container(id):
     return model_query(models.Container,
@@ -91,12 +92,15 @@ def add_project(values):
 
 def get_projects(user_id):
     if user_id is None:
-	return model_query(models.Project).all()
+	return model_query(models.Project).\
+			   all()
     return model_query(models.Project,
-		       user_id=user_id).all() 
+		       user_id=user_id).\
+                       all() 
 
 def get_project(id):
-    return model_query(models.Project,id=id).first()
+    return model_query(models.Project,id=id).\
+		       one()
 
 def delete_project(id):
     return model_query(models.Project,id=id).delete()
@@ -120,7 +124,7 @@ def get_users(project_id):
 
 def get_user(id):
     return model_query(models.User,
-		       id=id).first()
+		       id=id).one()
 
 def delete_user(id):
     return model_query(models.User,id=id).delete()
@@ -135,7 +139,7 @@ def add_repo(values):
         model.save(session=session)
     
 def get_repo(id):
-    return model_query(models.Repos,id=id).first()
+    return model_query(models.Repos,id=id).one()
 
 def get_repos(project_id):
     if project_id is None:
@@ -157,7 +161,7 @@ def add_network(values):
 
 def get_network(id):
     return model_query(models.Network,
-                       id=id).first() 
+                       id=id).one() 
 
 def get_networks(container_id):
     return model_query(models.Network,

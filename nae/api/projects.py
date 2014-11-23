@@ -29,11 +29,12 @@ class Controller(object):
         query = self.db_api.get_project(id)
 	if query is None:
             return {}
-        project = {"id" : query.id,
-                   "name":query.name,
-                   "desc":query.desc,
-                   "created":isotime(query.created)}
-
+        project = {"id": query.id,
+                   "name": query.name,
+                   "desc": query.desc,
+                   "created": isotime(query.created),
+		   "users": query.users.all()},
+	"""
         query=self.db_api.get_repos(project_id=id)
         repos=[]
         for item in query:
@@ -85,7 +86,7 @@ class Controller(object):
                 }
             users.append(user)
 	project.update({"users":users})
-
+	"""
         return project 
 
     def create(self,request,body):

@@ -74,48 +74,48 @@ class Controller(object):
     def create(self,request,body=None):
 	if not body:
 	    LOG.error('body cannot be empty!')
-	    return {"status":500}
+	    return Response(500) 
 
         project_id = body.get('project_id')
 	if not project_id:
 	    LOG.error('project_id cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
 	limit = QUOTAS.images or _IMAGE_LIMIT 
 	query = self.db_api.get_images(project_id)
 	if len(query) >= limit :
 	    LOG.error("images limit exceed,can not created anymore...")
-	    return {"status":500}
+	    return Response(500) 
 
         name = body.get('name')
 	if not name:
 	    LOG.error('name cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
         desc = body.get('desc')
 	if not desc:
 	    LOG.error('desc cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
         project_id = body.get('project_id')
 	if not project_id:
 	    LOG.error('project_id cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
         repos = body.get('repos')
 	if not repos:
 	    LOG.error('repos cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
 	branch = body.get('branch')
 	if not branch:
 	    LOG.error('branch cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
         user_id = body.get('user_id')
 	if not user_id:
 	    LOG.error('user_id cannot be None!')
-	    return {"status":500}
+	    return Response(500) 
 
         self.image_api.create(body)
 

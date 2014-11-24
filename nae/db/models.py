@@ -35,7 +35,6 @@ class Image(BaseModel):
     uuid = Column(String(64))
     name = Column(String(50)) 
     tag = Column(String(50)) 
-    size = Column(String(50))
     desc = Column(String(300))
     project_id= Column(String(32))
     repos = Column(String(300))

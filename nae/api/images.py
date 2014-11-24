@@ -9,6 +9,7 @@ from nae.common.timeutils import isotime
 from nae.common import log as logging
 from nae.common import quotas
 from nae.common.exception import BodyEmptyError, ParamNoneError
+from nae.common.response import Response
 
 
 LOG=logging.getLogger(__name__)
@@ -116,29 +117,9 @@ class Controller(object):
 	    LOG.error('user_id cannot be None!')
 	    return {"status":500}
 
-	try:
-	    id = uuid.uuid4().hex
-	    self.db_api.add_image(dict(
-		id=id,
-                name=name,
-	        tag="latest",
-       	        desc=desc,
-       	        project_id=project_id,
-                repos = repos,
-                branch = branch, 
-                user_id = user_id,
-                status = 'building'))
-	except IntegrityError,err:
-	    LOG.error(err)
-	    return {"status":500}
+        self.image_api.create(body)
 
-        self.image_api.create(id,
-			      name,
-			      repos,
-			      branch,
-			      user_id)
-
-        return {"status":200} 
+        return Response(200) 
 
     def delete(self,request,id):
 	self.db_api.update_image(id=id,status="deleting")

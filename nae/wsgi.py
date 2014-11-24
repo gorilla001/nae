@@ -94,11 +94,7 @@ class Resource(object):
 	    return {'body':json.loads(request.body)}
 
         def _process_stack(self,request,method,action_args):
-            response=webob.Response()
-            response.headers.add("Content-Type","application/json")
-
-            action_result = self.dispatch(request,method,action_args) 
-	    response.json = action_result
+            response = self.dispatch(request,method,action_args) 
 	    
 	    return response
 

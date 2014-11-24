@@ -1,89 +1,33 @@
-from nae.common.mercu import MercurialControl
 from nae.common import log as logging
-from nae.common import driver
-from nae.common import utils
+from nae.common.response import Response
 from nae import db
 import eventlet
 import os
-from webob import Response
+import json
+from nae.common import cfg
+import requests
 
+
+CONF=cfg.CONF
 
 LOG=logging.getLogger(__name__)
 
 class API():
     def __init__(self):
-        self.mercurial = MercurialControl()
         self.db_api=db.API()
-	self.driver=driver.API()
     
-    def get_images(self):
-	url="{}/images/json".format(self.url)
-	return self.request_get(url)
-
-    def inspect_image(self,image_id):
-	url = "{}/images/{}/json".format(self.url,image_id)
-	return self.request_get(url)
-
-    def _create(self,
-		id,
-                name,
-                repos,
-                branch,
-                user_id):
-        repo_name=os.path.basename(repos)
-        if utils.repo_exist(user_id,repo_name):
-            self.mercurial.pull(user_id,repos)
-        else:
-            self.mercurial.clone(user_id,repos)
-        self.mercurial.update(user_id,repos,branch)
-        file_path=utils.get_file_path(user_id,repo_name)
-        tar_path=utils.make_zip_tar(file_path)
-
-	with open(tar_path,'rb') as data:
-	    resp=self.driver.image_create(name,data)
-	if resp.status_code == 200:
-            inspect=self.driver.image_inspect(name)
-	    if inspect.status_code == 200:
-                size=inspect['VirtualSize']
-                size = utils.human_readable_size(size)
-		uuid = inspect.json()['Id']
-            	self.db_api.update_image(
-		               id=id,
-                               uuid=uuid,
-                               size=size,
-                               status = "ok")
-	    if inspect.status_code == 404:
-            	self.db_api.update_image(
-				id=id,
-				status="error")
-	        LOG.error("image {} create failed!".format(name)) 
-	    if inspect.status_code == 500:
-	        self.db_api.update_image(
-			  id=id,
-                          status = "500")
-	        LOG.error("image {} create failed!".format(name)) 
-        if resp.status_code == 500:
-	    self.db_api.update_image(
-			  id=id,
-                          status = "500")
-	    LOG.error("image {} create failed!".format(name)) 
-
-    def create(self,
-	       id,
-               name,
-               repos,
-               branch,
-               user_id):
+    def create(self,body):
         eventlet.spawn_n(self._create,
-                         id,
-                         name,
-                         repos,
-                         branch,
-                         user_id)
+                         json.dumps(body))
 
-        return Response({"status":200})
+        return Response(200)
 
-        
+    def _create(self,body):
+        url = CONF.image_service_endpoint 
+        if not url:
+            LOG.error("image service endpoint must be specfied!")
+            return
+        requests.post(url,data=body)
 
     @staticmethod
     def _delete_image(url,image_id,f_id,_id):

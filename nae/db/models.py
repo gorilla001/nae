@@ -37,10 +37,7 @@ class Image(BaseModel):
     tag = Column(String(50)) 
     size = Column(String(50))
     desc = Column(String(300))
-    project_id= Column(String(32),
-		ForeignKey('projects.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    project_id= Column(String(32))
     repos = Column(String(300))
     branch = Column(String(150))
     created = Column(DateTime, default=func.now())
@@ -55,16 +52,10 @@ class Container(BaseModel):
     uuid = Column(String(64))
     name = Column(String(50))
     env = Column(String(30))
-    project_id= Column(String(32),
-		ForeignKey('projects.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    project_id= Column(String(32))
     repos= Column(String(300))
     branch= Column(String(300))
-    image_id = Column(String(32),
-		ForeignKey('images.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    image_id = Column(String(32))
     created = Column(DateTime, default=func.now())
     user_id= Column(String(30))
     status = Column(String(100))
@@ -76,10 +67,7 @@ class User(BaseModel):
     name = Column(String(60))
     email = Column(String(150))
     role_id = Column(Integer)
-    project_id= Column(String(32),
-		ForeignKey('projects.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    project_id= Column(String(32))
     created = Column(DateTime, default=func.now())
 
 class Repos(BaseModel):
@@ -87,10 +75,7 @@ class Repos(BaseModel):
 
     id = Column(String(32),primary_key=True)
     repo_path = Column(String(300))
-    project_id= Column(String(32),
-		ForeignKey('projects.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    project_id= Column(String(32))
     created = Column(DateTime, default=func.now())
 
 class Network(BaseModel):
@@ -101,8 +86,5 @@ class Network(BaseModel):
     public_port = Column(String(30))
     private_host = Column(String(100))
     private_port = Column(String(30))
-    container_id = Column(String(32),
-		ForeignKey('containers.id',
-		ondelete='CASCADE',
-		onupdate='CASCADE'))
+    container_id = Column(String(32))
     created = Column(DateTime, default=func.now())

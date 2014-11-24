@@ -1,21 +1,48 @@
-import logging
+from nae.common import log as logging
 from nae import db
 from nae import image
 from nae import utils
 from webob import Response
-from nae import docker
+from nae import driver 
 
 
 
-LOG = logging.getLogger('eventlet.wsgi.server')
+LOG = logging.getLogger(__name__)
 
 class API():
     def __init__(self):
         self.db_api=db.API()
 	self.image_api=image.API()
 
-    #def create(self,kargs,name,repo_path,user_name,_ctn_id):
-    def create(self,kargs,*args):
+    def start(self,kargs,id):
+        data = {
+            'Binds':[],
+            'Links':[],
+            'LxcConf':{},
+            'PortBindings':{},
+            'PublishAllPorts':True,
+            'Privileged':False,
+            'Dns':[],
+            'VolumesFrom':[],
+            'CapAdd':[],
+            'CapDrop':[],
+	    }
+        data.update(kargs)
+        utils.execute(self.start_container,container_id,data)
+
+	return Response(status=200)
+
+    def stop(self,id,uuid):
+        utils.execute(self.stop_container,id,uuid)
+
+        return Response(status=200)
+
+    def create(self,
+	       kargs,
+	       id,
+	       name,
+	       repos,
+	       user_id):
         data = {
             'Hostname' : '',
             'User'     : '',
@@ -38,17 +65,20 @@ class API():
             
         }
         data.update(kargs)
-        #eventlet.spawn_n(self._create_container,data,name,_ctn_id,repo_path,user_name)
-        utils.execute(self.create_container,data,*args)
+        eventlet.spawn_n(self._create,
+			 data,
+                         id,
+                         name,
+			 repos,
+                         user_id)
 
-    def delete(self,_ctn_id,ctn_id,v):
+    def delete(self,id,uuid):
 	status = self.db_api.get_container_status(_ctn_id)
 	if status != 'stop':
-            self.db_api.update_container_status(
-                    id = _ctn_id,
-                    status = "stoping"
-            )
-            res = docker.stop_container(ctn_id)
+            self.db_api.update_container(
+                    id = id,
+                    status = "stoping")
+            resp = driver.stop_container(ctn_id)
             if result.status_code == 204:
                 self.db_api.update_container_status(
             			id = _ctn_id,
@@ -76,33 +106,7 @@ class API():
 		
 	return Response(status=200) 
 
-    def start(self,kargs,container_id):
-        data = {
-            'Binds':[],
-            'Links':[],
-            'LxcConf':{},
-            'PortBindings':{},
-            'PublishAllPorts':True,
-            'Privileged':False,
-            'Dns':[],
-            'VolumesFrom':[],
-            'CapAdd':[],
-            'CapDrop':[],
-	    }
-        data.update(kargs)
-        utils.execute(self.start_container,container_id,data)
-
-	return Response(status=200)
-
-    def stop(self,_ctn_id,ctn_id):
-        utils.execute(self.stop_container,_ctn_id,ctn_id)
-
-        return Response(status=200)
-
-    def inspect(self,id):
-        return docker.inspect_container(id) 
-
-    def run(self,kwargs,id,prefix):
+    def run(self,kwargs,id,uuid):
 	data = {
             'Binds':[],
             'Links':[],
@@ -116,12 +120,17 @@ class API():
             'CapDrop':[],
 	    }
         data.update(kwargs)
-        resp = docker.start_container(prefix,data=json.dumps(data))
+        resp = docker.start_container(uuid,data=json.dumps(data))
         if resp.status_code == 204:
             self.db_api.update_container(id = id,status = "ok")
 
         return Response(status=200)
 
+    
+    def inspect(self,id):
+        return docker.inspect_container(id) 
+
+    
     def destroy(self,name):
 	utils.execute(self.destroy_container,name)
         return Response(status=200)
@@ -131,14 +140,18 @@ class API():
         return Response(status=200)
 
     @staticmethod
-    def create_container(data,name,id,repo_path,user_name):
-        resp = docker.create_container(name,data=json.dumps(data))
+    def _create(data,
+                id,
+                name,
+                repos,
+                user_id):
+        resp = driver.create_container(name,data=json.dumps(data))
         if resp.status_code == 201:
-            container_info = resp.json()
-            prefix= container_info["Id"][:12]
-            self.db_api.update_container(id = id,{ 'prefix' : prefix,
-            		                           'status' : 'created'})
-            repo_name = os.path.basename(repo_path)	
+            uuid = resp.json()['Id']
+            self.db_api.update_container(id= id,
+					 uuid= uuid,
+            		                 status= 'created' )
+            repo_name = os.path.basename(repos)	
             path=os.path.join(os.path.dirname(__file__),'files')
             source_path = os.path.join(path,user_name,repo_name)
             dest_path = "/mnt"
@@ -146,16 +159,16 @@ class API():
               	'Binds':['{}:{}'.format(source_path,dest_path)],
             	'Dns':[config.DNS.strip("'")],
             }
-            self.start_container(kargs,container_id)
+            self._start(kargs,id,uuid)
 
     @staticmethod
-    def start_container(id,data):
-        resp = docker.start_container(id,data=json.dumps(data))
+    def _start(data,id,uuid):
+        resp = driver.start_container(uuid,data=json.dumps(data))
         if resp.status == 204:
             self.db_api.update_container(id=id,
         			         status='ok')
-            result=self.inspect_container(container_id)
-            network_settings = result.json()['NetworkSettings']
+            resp=self.inspect_container(uuid)
+            network_settings = resp.json()['NetworkSettings']
             ports=network_settings['Ports']
             private_host = network_settings['IPAddress']
             for port in ports:
@@ -164,14 +177,14 @@ class API():
                 		host_ip=item['HostIp']
                 		host_port=item['HostPort']
                         self.db_api.add_network(
-                            {'container_id' : container_id,
-                             'pub_host' : host_ip,
-                             'pub_port' : host_port,
-                             'pri_host' : private_host,
-                             'pri_port' : private_port})
-        if res.status == 500:
-            self.db_api.update_container({'id':id,
-        			          'status':500})
+                             public_host=host_ip,
+                             public_port=host_port,
+                             private_host=private_host,
+                             private_port=private_port
+                             container_id=id)
+        if resp.status == 500:
+            self.db_api.update_container(id=id,
+        			         status=500)
     
     @staticmethod
     def stop_container(id,prefix):

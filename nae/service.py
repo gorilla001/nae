@@ -4,13 +4,13 @@ import log
 import eventlet
 import time
 import signal
-import logging
+from nae.common import log as logging
 from nae.common import cfg
 
 CONF=cfg.CONF
 
 
-LOG = logging.getLogger('eventlet.wsgi.server')
+LOG = logging.getLogger(__name__)
 
 class WSGIService(object):
     def __init__(self):

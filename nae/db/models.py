@@ -28,7 +28,6 @@ class Project(BaseModel):
     desc = Column(String(300),default='')
     created = Column(DateTime, default=func.now())
 
-    users = relationship('User',foreign_keys='User.project_id',lazy='dynamic')
 
 class Image(BaseModel):
     __tablename__ = 'images'
@@ -43,8 +42,6 @@ class Image(BaseModel):
 		ForeignKey('projects.id',
 		ondelete='CASCADE',
 		onupdate='CASCADE'))
-    #project = relationship('Project',
-#		backref=backref('images',lazy='dynamic'))
     repos = Column(String(300))
     branch = Column(String(150))
     created = Column(DateTime, default=func.now())
@@ -63,8 +60,6 @@ class Container(BaseModel):
 		ForeignKey('projects.id',
 		ondelete='CASCADE',
 		onupdate='CASCADE'))
-    project = relationship('Project',
-		backref=backref('containers',lazy='dynamic'))
     repos= Column(String(300))
     branch= Column(String(300))
     image_id = Column(String(32),
@@ -86,8 +81,6 @@ class User(BaseModel):
 		ForeignKey('projects.id',
 		ondelete='CASCADE',
 		onupdate='CASCADE'))
-    #project = relationship('Project',
-    #		backref=backref('users',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
 class Repos(BaseModel):
@@ -99,8 +92,6 @@ class Repos(BaseModel):
 		ForeignKey('projects.id',
 		ondelete='CASCADE',
 		onupdate='CASCADE'))
-    project = relationship('Project',
-		backref=backref('repos',lazy='dynamic'))
     created = Column(DateTime, default=func.now())
 
 class Network(BaseModel):

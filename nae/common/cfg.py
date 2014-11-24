@@ -1,6 +1,23 @@
     
 from nae.common.parser import BaseParser
 
+class Bool(object):
+    _boolean_states = {'1': True, '0': False, 
+		       'yes': True, 'no': False,
+		       'true': True,'false': False, 
+		       'True': True, 'False': False, 
+		       'on': True,'off': False}
+    def __new__(cls,value):
+        return cls._boolean_states.get(value)
+
+class Int(int):
+    def __new__(cls,value):
+       return int.__new__(cls,value) 
+
+class Str(str):
+    def __new__(cls,value):
+        return str.__new__(cls,value)
+
 class ConfigParser(BaseParser):
     def __init__(self):
 	super(ConfigParser, self).__init__()
@@ -10,7 +27,10 @@ class ConfigParser(BaseParser):
 	self._parse_config_file(conf)
 
     def __getattr__(self,key):
-	return self._opts[key]
+        try:
+	    return self._opts[key]
+        except KeyError:
+	    return None
 
     def _parse_config_file(self,conf):
 	
@@ -23,5 +43,11 @@ class ConfigParser(BaseParser):
 
 CONF=ConfigParser()
 
-def setup_config():
+def parse_config():
     return CONF('/etc/nae/nae.conf')
+
+
+if __name__ == '__main__':
+    CONF('/etc/nae/nae.conf')
+    for key,value in CONF._opts.items():
+	print key,value

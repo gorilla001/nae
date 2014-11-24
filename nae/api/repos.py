@@ -1,11 +1,12 @@
+import uuid
+from sqlalchemy.exc import IntegrityError
+
 from nae import wsgi
 from nae import db
-import uuid
 from nae.utils import isotime
-from sqlalchemy.exc import IntegrityError
-import logging
+from nae.common import log as logging
 
-LOG = logging.getLogger('eventlet.wsgi.server')
+LOG = logging.getLogger(__name__)
 
 class Controller(object):
 

@@ -1,8 +1,8 @@
 from nae.utils import MercurialControl
-import logging
+from nae.common import log as logging
 from nae import db
 
-LOG=logging.getLogger('eventlet.wsgi.server')
+LOG=logging.getLogger(__name__)
 
 class API():
     def __init__(self):

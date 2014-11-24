@@ -1,15 +1,15 @@
-import logging
+import webob.exc
 from nae import wsgi
 from nae import container,image
 from nae import db
-from nae.utils import MercurialControl
-import webob.exc
+from nae.common.mercurial import MercurialControl
+from nae.common import log as logging
 
-LOG=logging.getLogger('eventlet.wsgi.server')
+LOG=logging.getLogger(__name__)
 
 class Controller(object):
     def __init__(self):
-        self.container_api=container.API()
+        self.con_api=container.API()
         self.image_api=image.API()
         self.db_api = db.API()
         self.mercurial = MercurialControl()
@@ -54,7 +54,6 @@ class Controller(object):
     def show(self,request,id):
 	container={}
         query= self.db_api.get_container(id)
-        #project_info=self.db_api.get_project(container_info[4]).fetchone()
         if query is not None:
             container = {
                 'name':query.name,
@@ -77,27 +76,27 @@ class Controller(object):
         result=requests.get("http://0.0.0.0:2375/containers/{}/json".format(container_id))
         return result
 
-    def delete(self,request):
-        result_json={"status":"200"}
-        _container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        _v = request.GET.get('v')
-        container_info = self.db_api.get_container(_container_id).fetchone()
-        container_id = container_info[1]
-        eventlet.spawn_n(self.compute_api.delete_container,_container_id,container_id,_v)
-        return result_json
+    def delete(self,request,body):
+        id=body.get('id')
+        query = self.db_api.get_container(id)
+        eventlet.spawn_n(self.con_api.delete,
+			 query.id,
+			 query.uuid)
 
-    def create(self,request):
-        container_image=request.json.pop('container_image')
-	if container_image == "-1":
+        return {"status":200} 
+
+    def create(self,request,body):
+	image_id=body.get('image_id')
+	if image == "-1":
 	    LOG.error("image can not be empity!")
 	    return
-        container_env = request.json.pop('container_environ')
-        project_id = request.json.pop('container_project')
-        container_hg=request.json.pop('container_hg')
-        container_code = request.json.pop('container_code')
-        app_type= request.json.pop('app_type')
-        user_name = request.json.pop('user_name')
-        user_key = request.json.pop('user_key')
+        env = body.get('env')
+        project_id = body.get('project_id') 
+        repos = body.get('repos') 
+        branch = body.get('branch')
+        app_type= body.get('app_type')
+        user_id = body.get('user_id')
+        user_key = body.get('user_key')
 
 	ctn_limit = quotas.get_quotas().get('container_limit')	
 	ctn_count = self.db_api.get_containers(project_id,user_name)
@@ -107,58 +106,57 @@ class Controller(object):
 	    LOG.warning("containers limit exceed,can not created anymore...")
 	    return {"status":100}
 
-        container_name = os.path.basename(container_hg) + '-' + container_code 
+        name = os.path.basename(repos) + '-' + branch 
         max_id = self.db_api.get_max_container_id()
         max_id = max_id.fetchone()[0]
         if max_id is not None:
             max_id = max_id + 1;
         else:
             max_id = 0;
-        container_name = container_name + '-' + str(max_id).zfill(4)
-        created_time = utils.human_readable_time(time.time())
-        _container_id = self.db_api.add_container(
-                container_name=container_name,
-                container_env=container_env,
+        name = name + '-' + str(max_id).zfill(4)
+        id = self.db_api.add_container(
+                name=name,
+                env=env,
                 project_id=project_id,
-                container_hg=container_hg,
-                container_code=container_code,
-		container_image=container_image,
-                created=created_time,
-                created_by=user_name,
+                repos=repos,
+                branch=branch,
+		image_id=image_id,
+                user_id=user_id,
                 status="building")
 
-        self.prepare_start_container(user_name,user_key,container_hg,container_code,container_env)
-        self.start_container(container_name,container_image,container_hg,container_code,app_type,container_env,user_key,user_name,_container_id)
+        self.prepare_create(user_id,
+			   user_key,
+			   repos,
+			   branch,
+			   env)
+        self.create_container(id,
+			     name,
+			     image_id,
+                             repos,
+                             branch,
+                             app_type,
+                             env,
+			     user_key,
+			     user_id)
 
-    def stop(self,request):
-        _ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
-        ctn_id = _ctn_info[1]
-	self.db_api.update_container_status(
-		id = _ctn_id,
-		status = "stoping",
-	)
-	eventlet.spawn_n(self.compute_api.stop_container,_ctn_id,ctn_id)
-        
-    def start(self,request):
-	_ctn_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        _ctn_info = self.db_api.get_container(_ctn_id).fetchone()
-        ctn_id = _ctn_info[1]
-	self.db_api.update_container_status(
-		id = _ctn_id,
-		status = "starting",
-	)
+            
+    def start(self,request,body):
+	id = body.get('id')
+        query = self.db_api.get_container(id)
+	self.db_api.update_container(
+		id = query.id,
+		status = "starting")
 
 	bindings = {}
-	network_info=self.db_api.get_network(ctn_id)
-	for _net in network_info.fetchall():
-		_port = "{}/tcp".format(_net[5])
+	querys = self.db_api.get_networks(id)
+	for query in querys:
+		_port = "{}/tcp".format(query.public_port)
 		data = {
 			_port:
 			[
 			    {
-				"HostIp":_net[2],
-				"HostPort":_net[3],
+				"HostIp":query,
+				"HostPort":query,
 			    }
 			]
 		}
@@ -167,29 +165,61 @@ class Controller(object):
 		'Cmd':["/usr/bin/supervisord"],
 		'PortBindings':bindings,
 	}	
-	eventlet.spawn_n(self.compute_api.start_container_once,kwargs,_ctn_id,ctn_id)
+	eventlet.spawn_n(self.con_api.run,
+			 kwargs,
+			 id,
+			 uuid)
+
+        return {"status":200} 
+
+    def stop(self,request,body):
+        id=body.get('id')
+        query = self.db_api.get_container(id)
+	self.db_api.update_container(
+		id = query.id,
+		status = "stoping")
+	eventlet.spawn_n(self.con_api.stop,
+			query.id,
+			query.uuid)
+
+        return {"status":200} 
 
     def reboot(self,request):
-	self.stop(request)
+	pass
 
-    def commit(self,request):
-	repo = request.GET.pop('repo')
-	tag = request.GET.pop('tag')
-	self.compute_api.commit(repo,tag)
+    def destroy(self,request,body):
+ 	id=body.get('id')	
+        eventlet.spawn_n(self.con_api.destroy(id))
+
+        return {"status":200} 
+
+    def commit(self,request,body):
+	repo = body.get('repo') 
+	tag = body.get('tag')
+	eentlet.spawn_n(self.con_api.commit(repo,tag))
+
+        return {"status":200} 
 	
-    def start_container(self,name,image,repo_path,branch,app_type,app_env,ssh_key,user_name,_container_id):
-        image_info = self.db_api.get_image(image).fetchone()
-	if image_info is None:
+    def create_container(self,
+			id,
+			name,
+			image_id,
+			repos,
+			branch,
+			app_type,
+			app_env,
+			ssh_key,
+			user_id)
+        query = self.db_api.get_image(image_id)
+	if len(query) == 0:
 	    LOG.error("image can not be empity!")
 	    return 
-        image_id = image_info[1]
-        result=self.image_api.inspect_image(image_id)
-        result_json=result.json()
-        port=result_json['Config']['ExposedPorts']
+        resp = self.image_api.inspect_image(query.uuid)
+        port=resp.json()['Config']['ExposedPorts']
         kwargs={
-                'Image':image_id,
+                'Image':query.uuid,
 	    'Env':[
-	          "REPO_PATH={}".format(repo_path),
+	          "REPO_PATH={}".format(repos),
 	          "BRANCH={}".format(branch),
 	          "APP_TYPE={}".format(app_type),
 	          "APP_ENV={}".format(app_env),
@@ -199,9 +229,13 @@ class Controller(object):
                 'ExposedPorts':port,
 	    
             }
-        self.compute_api.create_container(kwargs,name,repo_path,user_name,_container_id)
+        self.con_api.create(kwargs,
+			   id,
+			   name,
+			   repos,
+			   user_id)
 
-    def prepare_start_container(self,user,key,hg,branch,env):
+    def prepare_create(self,user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(hg)
         if utils.repo_exist(user,repo_name):
@@ -227,9 +261,6 @@ class Controller(object):
     
     
 
-    def destroy(self,request):
-	name=request.environ['wsgiorg.routing_args'][1]['container_id']
-        self.compute_api.destroy(name)
  
 def create_resource():
     return wsgi.Resource(Controller())

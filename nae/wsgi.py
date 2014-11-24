@@ -1,16 +1,18 @@
+import os
+import json
 import webob
 import webob.dec
 import routes.middleware
-from eventlet import wsgi
 import eventlet
-import os
-from nae import log
-import logging
+from eventlet import wsgi
 from paste.deploy import loadapp
-import json
 
+from nae.common import log as logging
+from nae.common import cfg
 
-LOG=logging.getLogger('eventlet.wsgi.server')
+LOG=logging.getLogger(__name__)
+
+CONF=cfg.CONF
 
 class Router(object):
     """ WSGI middleware that maps incoming requests to WSGI apps. """
@@ -117,8 +119,7 @@ class Server(object):
             self._protocol = eventlet.wsgi.HttpProtocol
             self.pool_size = self.default_pool_size
             self._pool=eventlet.GreenPool(self.pool_size)
-            self._logger = log.getlogger()
-            self._wsgi_logger=log.WSGILogger(self._logger)
+            self._wsgi_logger=logging.WSGILogger(LOG)
 	        
             bind_addr = (host,port)
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
@@ -145,8 +146,7 @@ class Server(object):
 	    self._server.wait()
 
 class Loader(object):
-	def __init__(self,config_path=None):
-	    self.config_file = '/etc/nae/api-paste.ini'
-	    self.config_path=os.path.abspath(self.config_file)
+	def __init__(self):
+	    self.config = CONF.api_paste_file 
 	def load_app(self,name):
-	    return loadapp("config:%s" % self.config_path,name=name)
+	    return loadapp("config:%s" % self.config,name=name)

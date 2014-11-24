@@ -1,14 +1,15 @@
 import webob
-import logging
+import uuid
+from sqlalchemy.exc import IntegrityError
+
 from nae import wsgi
 from nae import image
 from nae import db
 from nae.utils import isotime
-from sqlalchemy.exc import IntegrityError
-import uuid
+from nae.common import log as logging
 
 
-LOG=logging.getLogger('eventlet.wsgi.server')
+LOG=logging.getLogger(__name__)
 
 class ImageController(object):
     def __init__(self):

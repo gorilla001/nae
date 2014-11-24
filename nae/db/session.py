@@ -1,5 +1,6 @@
 import sqlalchemy
 from nae.common import cfg
+from nae.common.cfg import Bool, Int
 
 CONF=cfg.CONF
 
@@ -13,11 +14,26 @@ def get_engine():
         connection = CONF.db_connection 
         url = sqlalchemy.engine.url.make_url(connection)
 
+        if CONF.sql_show:
+	    echo = Bool(CONF.echo)
+        else:
+	    echo = False
+
+	if CONF.pool_size:
+	    pool_size = Int(CONF.pool_size)
+	else:
+	    pool_size = 100
+	
+	if CONF.pool_recycle:
+	    pool_recycle = Int(CONF.pool_recycle)
+	else:
+	    pool_recycle = 3600
+
 	engine_args = {
-	    "echo":bool(CONF.sql_show),
-	    "convert_unicode":bool(convert_unicode),
-	    "pool_size":100,
-	    "pool_recycle":3600,
+	    "echo":echo,
+	    "convert_unicode":True,
+	    "pool_size":pool_size,
+	    "pool_recycle":pool_recycle,
 	}
 	_ENGINE = sqlalchemy.create_engine(url,**engine_args)
 

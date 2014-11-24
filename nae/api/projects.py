@@ -1,11 +1,11 @@
+import uuid
+from sqlalchemy.exc import IntegrityError
 from nae import wsgi
 from nae import db
-import uuid
 from nae.utils import isotime
-from sqlalchemy.exc import IntegrityError
-import logging
+from nae.common import log as logging
 
-LOG = logging.getLogger('eventlet.wsgi.server')
+LOG = logging.getLogger(__name__)
 
 class Controller(object):
     def __init__(self):
@@ -32,9 +32,8 @@ class Controller(object):
         project = {"id": query.id,
                    "name": query.name,
                    "desc": query.desc,
-                   "created": isotime(query.created),
-		   "users": query.users.all()},
-	"""
+                   "created": isotime(query.created)}
+
         query=self.db_api.get_repos(project_id=id)
         repos=[]
         for item in query:
@@ -86,7 +85,7 @@ class Controller(object):
                 }
             users.append(user)
 	project.update({"users":users})
-	"""
+
         return project 
 
     def create(self,request,body):

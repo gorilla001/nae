@@ -29,6 +29,19 @@ class API():
             return
         requests.post(url,data=body)
 
+    def delete(self,id):
+	eventlet.spawn_n(self._delete,id)
+
+	return Response(200)
+
+    def _delete(self,id):
+        url = CONF.image_service_endpoint 
+        if not url:
+            LOG.error("image service endpoint must be specfied!")
+            return
+	request_url = url + "/" + id
+	requests.delete(request_url)
+ 	
     @staticmethod
     def _delete_image(url,image_id,f_id,_id):
 	url = "{}/images/{}?force={}".format(self.url,image_id,f_id)

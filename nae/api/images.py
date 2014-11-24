@@ -10,6 +10,7 @@ from nae.common import log as logging
 from nae.common import quotas
 from nae.common.exception import BodyEmptyError, ParamNoneError
 from nae.common.response import Response
+from nae.common.view import View
 
 
 LOG=logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class Controller(object):
                        'status' : item.status}
                 images.append(image)
 
-        return images 
+        return View(images) 
 
     def show(self,request,id):
 	image = {}
@@ -56,7 +57,7 @@ class Controller(object):
                      'user_id' : query.user_id,
                      'status' : query.status}
 
-        return image 
+        return View(image) 
 
     def inspect(self,request):
 	image={}
@@ -67,7 +68,7 @@ class Controller(object):
         if result.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image_id)}
             image.update(result.json()) 
-        return image 
+        return View(image) 
 
     def create(self,request,body=None):
 	if not body:
@@ -120,11 +121,13 @@ class Controller(object):
         return Response(200) 
 
     def delete(self,request,id):
-	self.db_api.update_image(id=id,status="deleting")
  	"""	
+	self.db_api.update_image(id=id,status="deleting")
         self.image_api.delete_image(_image_id,image_id,f_id)
 	"""
-	return {"status":200}
+        self.image_api.delete(id)
+
+	return Response(200) 
 
     def edit(self,request):
         _img_id=request.GET.pop('id')

@@ -1,31 +1,21 @@
-from nae.utils import MercurialControl
+from nae.common.mercu import MercurialControl
 from nae.common import log as logging
+from nae.common import driver
+from nae.common import utils
 from nae import db
+import eventlet
+import os
+from webob import Response
+
 
 LOG=logging.getLogger(__name__)
 
 class API():
     def __init__(self):
-        self.url="http://{}:{}".format(config.docker_host,config.docker_port)
-	self.headers = {'Content-Type':'application/json'}	
         self.mercurial = MercurialControl()
         self.db_api=db.API()
+	self.driver=driver.API()
     
-    @staticmethod
-    def request_get(url):
-	return requests.get(url,
-			headers=self.headers)
-
-    @staticmethod
-    def request_post(url,headers,data=None):
-	return requests.post(url,
-			     headers=headers,
-			     data=data)
-
-    @staticmethod
-    def request_delete(url,headers):
-	return requests.delete(url,headers)
-
     def get_images(self):
 	url="{}/images/json".format(self.url)
 	return self.request_get(url)
@@ -34,49 +24,66 @@ class API():
 	url = "{}/images/{}/json".format(self.url,image_id)
 	return self.request_get(url)
 
-    @staticmethod
-    def _create_image(url,image_name,tar_path,_id):
-	data=open(tar_path,'rb')
-        headers={'Content-Type':'application/tar'}
-	url="{}/build?t={}".format(url,image_name)
-	rs=self.request_post(url,headers=headers,data=data)
-	if rs.status_code == 200:
-            result=self.inspect_image(image_name)
-	    if result.status_code == 200:
-                image_size=result['VirtualSize']
-                image_size = utils.human_readable_size(image_size)
-		image_id=result.json()['Id'][:12]
+    def _create(self,
+		id,
+                name,
+                repos,
+                branch,
+                user_id):
+        repo_name=os.path.basename(repos)
+        if utils.repo_exist(user_id,repo_name):
+            self.mercurial.pull(user_id,repos)
+        else:
+            self.mercurial.clone(user_id,repos)
+        self.mercurial.update(user_id,repos,branch)
+        file_path=utils.get_file_path(user_id,repo_name)
+        tar_path=utils.make_zip_tar(file_path)
+
+	with open(tar_path,'rb') as data:
+	    resp=self.driver.image_create(name,data)
+	if resp.status_code == 200:
+            inspect=self.driver.image_inspect(name)
+	    if inspect.status_code == 200:
+                size=inspect['VirtualSize']
+                size = utils.human_readable_size(size)
+		uuid = inspect.json()['Id']
             	self.db_api.update_image(
-		               id=_id,
-                               image_id=image_id,
-                               size=image_size,
+		               id=id,
+                               uuid=uuid,
+                               size=size,
                                status = "ok")
-	    if result.status_code == 404:
-	        LOG.error("image {} create failed!".format(image_name)) 
-	    if result.status_code == 500:
+	    if inspect.status_code == 404:
+            	self.db_api.update_image(
+				id=id,
+				status="error")
+	        LOG.error("image {} create failed!".format(name)) 
+	    if inspect.status_code == 500:
 	        self.db_api.update_image(
 			  id=id,
-                          image_id='',
-                          size='',
                           status = "500")
-        if rs.status_code == 500:
+	        LOG.error("image {} create failed!".format(name)) 
+        if resp.status_code == 500:
 	    self.db_api.update_image(
 			  id=id,
-                          image_id='',
-                          size='',
                           status = "500")
+	    LOG.error("image {} create failed!".format(name)) 
 
-    def create_image(self,id,image_name,repo_path,repo_branch,user_name):
-        repo_name=os.path.basename(repo_path)
-        if utils.repo_exist(user_name,repo_name):
-            self.mercurial.pull(user_name,repo_path)
-        else:
-            self.mercurial.clone(user_name,repo_path)
-        self.mercurial.update(user_name,repo_path,repo_branch)
-        file_path=utils.get_file_path(user_name,repo_name)
-        tar_path=utils.make_zip_tar(file_path)
-        eventlet.spawn_n(self._create_image,self.url,image_name,tar_path,id)
-        return webob.Response('{"status_code":200"}')
+    def create(self,
+	       id,
+               name,
+               repos,
+               branch,
+               user_id):
+        eventlet.spawn_n(self._create,
+                         id,
+                         name,
+                         repos,
+                         branch,
+                         user_id)
+
+        return Response({"status":200})
+
+        
 
     @staticmethod
     def _delete_image(url,image_id,f_id,_id):

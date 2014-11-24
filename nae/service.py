@@ -6,6 +6,7 @@ import time
 import signal
 from nae.common import log as logging
 from nae.common import cfg
+from nae.common.cfg import Int
 
 CONF=cfg.CONF
 
@@ -17,8 +18,8 @@ class WSGIService(object):
         self.loader = wsgi.Loader()
         self.app = self.loader.load_app('nae')
         self.host = CONF.bind_host 
-        self.port = int(CONF.bind_port) 
-        self.workers = int(CONF.workers) 
+        self.port = Int(CONF.bind_port) 
+        self.workers = Int(CONF.workers) 
         self.server = wsgi.Server(
                     self.app,
         	    self.host,

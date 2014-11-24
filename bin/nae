@@ -9,7 +9,7 @@ from nae.common import log as logging
 
 if __name__ == '__main__':
     cfg.parse_config()
-    logging.setup(__name__)
+    logging.setup()
     launcher = service.ProcessLauncher()
     server = service.WSGIService()
     launcher.launch_server(server,workers=server.workers or 1)

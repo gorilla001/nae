@@ -7,11 +7,17 @@ from nae import image
 from nae import db
 from nae.utils import isotime
 from nae.common import log as logging
+from nae.common import quotas
+from nae.common.exception import BodyEmptyError, ParamNoneError
 
 
 LOG=logging.getLogger(__name__)
 
-class ImageController(object):
+QUOTAS=quotas.Quotas()
+
+_IMAGE_LIMIT = 12
+
+class Controller(object):
     def __init__(self):
         self.image_api=image.API()
         self.db_api=db.API()
@@ -64,7 +70,22 @@ class ImageController(object):
             image.update(result.json()) 
         return image 
 
-    def create(self,request,body):
+    def create(self,request,body=None):
+	if not body:
+	    LOG.error('body cannot be empty!')
+	    return {"status":500}
+
+        project_id = body.get('project_id')
+	if not project_id:
+	    LOG.error('project_id cannot be None!')
+	    return {"status":500}
+
+	limit = QUOTAS.images or _IMAGE_LIMIT 
+	query = self.db_api.get_images(project_id)
+	if len(query) >= limit :
+	    LOG.error("images limit exceed,can not created anymore...")
+	    return {"status":500}
+
         name = body.get('name')
         desc = body.get('desc')
         project_id = body.get('project_id')
@@ -72,17 +93,29 @@ class ImageController(object):
 	branch = body.get('branch')
         user_id = body.get('user_id')
 
-        """
-	img_limit = quotas.get_quotas().get('image_limit')	
-	img_count = self.db_api.get_images(project_id)
-	img_count = len(img_count.fetchall())	
-	if img_count == img_limit :
-	    LOG.info("images limit exceed,can not created anymore...")
-	    return
-        """
+	if not name:
+	    LOG.error('name cannot be None!')
+	    return {"status":500}
+	if not desc:
+	    LOG.error('desc cannot be None!')
+	    return {"status":500}
+	if not project_id:
+	    LOG.error('project_id cannot be None!')
+	    return {"status":500}
+	if not repos:
+	    LOG.error('repos cannot be None!')
+	    return {"status":500}
+	if not branch:
+	    LOG.error('branch cannot be None!')
+	    return {"status":500}
+	if not user_id:
+	    LOG.error('user_id cannot be None!')
+	    return {"status":500}
+
 	try:
+	    id = uuid.uuid4().hex
 	    self.db_api.add_image(dict(
-		id=uuid.uuid4().hex,
+		id=id,
                 name=name,
 	        tag="latest",
        	        desc=desc,
@@ -94,9 +127,13 @@ class ImageController(object):
 	except IntegrityError,err:
 	    LOG.error(err)
 	    return {"status":500}
-	"""
-        self.image_api.create_image_from_file(id,image_name,str(repo_path),str(repo_branch),user_name)
-	"""
+
+        self.image_api.create(id,
+			      name,
+			      repos,
+			      branch,
+			      user_id)
+
         return {"status":200} 
 
     def delete(self,request,id):
@@ -152,6 +189,6 @@ class ImageController(object):
 		ctn_list.append(ctn)
 	LOG.debug(ctn_list)
 	return ctn_list
-
+	
 def create_resource():
-    return wsgi.Resource(ImageController())
+    return wsgi.Resource(Controller())

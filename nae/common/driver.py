@@ -1,9 +1,9 @@
 import requests
 from nae.common import cfg
 from nae.common.cfg import Str, Int
+import requests
 
 CONF=cfg.CONF
-CONF('/etc/nae/nae.conf')
 
 class API(object):
     def __init__(self):
@@ -11,6 +11,16 @@ class API(object):
 	self.port = Int(CONF.port)
         self.url = "http://%s:%s" % (self.host,self.port) 
         self.headers={'Content-Type':'application/json'}
+    def image_create(self,name,data):
+        _url = "%s/images/create?name=%s" % \
+	       (self.url,name)
+        return requests.post(_url,
+		    data=data)
+	
+    def image_inspect(self,name):
+        _url = "%s/images/%s/json" % \
+	       (self.url,name)
+        return requests.get(_url)
 
     class container(object):
         @classmethod

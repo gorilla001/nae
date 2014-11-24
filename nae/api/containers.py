@@ -2,7 +2,7 @@ import webob.exc
 from nae import wsgi
 from nae import container,image
 from nae import db
-from nae.common.mercurial import MercurialControl
+from nae.common.mercu import MercurialControl
 from nae.common import log as logging
 
 LOG=logging.getLogger(__name__)
@@ -129,16 +129,15 @@ class Controller(object):
 			   repos,
 			   branch,
 			   env)
-        self.create_container(id,
-			     name,
-			     image_id,
-                             repos,
-                             branch,
-                             app_type,
-                             env,
-			     user_key,
-			     user_id)
-
+        self._create(id,
+	             name,
+		     image_id,
+                     repos,
+                     branch,
+                     app_type,
+                     env,
+		     user_key,
+		     user_id)
             
     def start(self,request,body):
 	id = body.get('id')
@@ -200,16 +199,16 @@ class Controller(object):
 
         return {"status":200} 
 	
-    def create_container(self,
-			id,
-			name,
-			image_id,
-			repos,
-			branch,
-			app_type,
-			app_env,
-			ssh_key,
-			user_id)
+    def _create(self,
+                id,
+		name,
+		image_id,
+		repos,
+		branch,
+		app_type,
+		app_env,
+		ssh_key,
+		user_id):
         query = self.db_api.get_image(image_id)
 	if len(query) == 0:
 	    LOG.error("image can not be empity!")
@@ -234,8 +233,8 @@ class Controller(object):
 			   name,
 			   repos,
 			   user_id)
-
-    def prepare_create(self,user,key,hg,branch,env):
+    @staticmethod
+    def prepare_create(user,key,hg,branch,env):
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(hg)
         if utils.repo_exist(user,repo_name):

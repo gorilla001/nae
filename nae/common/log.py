@@ -10,14 +10,15 @@ _DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 _loggers={}
 
-def setup(name):
-    _setup_logging_from_conf(name)
+def setup():
+    _setup_logging_from_conf()
 
-def _setup_logging_from_conf(name):
-    log_root = getLogger(name)
+def _setup_logging_from_conf():
+    log_root = getLogger()
     if CONF.log_file:
 	handler = logging.FileHandler(CONF.log_file)
-    handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.StreamHandler(sys.stdout)
     log_root.addHandler(handler)
 
     fmt=CONF.log_format or _DEFAULT_LOG_FORMAT
@@ -30,7 +31,7 @@ def _setup_logging_from_conf(name):
     else:
         log_root.setLevel(logging.INFO)
 
-def getLogger(name):
+def getLogger(name=None):
     if name not in _loggers: 
         _loggers[name]=logging.getLogger(name)
     return _loggers[name] 

@@ -1,6 +1,10 @@
 import mercurial.commands
 import mercurial.ui
 import mercurial.hg
+import os
+from nae.common import log as logging
+
+LOG=logging.getLogger(__name__)
 
 class MercurialControl(object):
     def __init__(self):

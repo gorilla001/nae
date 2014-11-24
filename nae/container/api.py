@@ -145,7 +145,8 @@ class API():
                 name,
                 repos,
                 user_id):
-        resp = driver.create_container(name,data=json.dumps(data))
+        resp = driver.container.create(name,
+				       data=json.dumps(data))
         if resp.status_code == 201:
             uuid = resp.json()['Id']
             self.db_api.update_container(id= id,
@@ -163,7 +164,8 @@ class API():
 
     @staticmethod
     def _start(data,id,uuid):
-        resp = driver.start_container(uuid,data=json.dumps(data))
+        resp = driver.container.start(uuid,
+                                      data=json.dumps(data))
         if resp.status == 204:
             self.db_api.update_container(id=id,
         			         status='ok')
@@ -180,7 +182,7 @@ class API():
                              public_host=host_ip,
                              public_port=host_port,
                              private_host=private_host,
-                             private_port=private_port
+                             private_port=private_port,
                              container_id=id)
         if resp.status == 500:
             self.db_api.update_container(id=id,

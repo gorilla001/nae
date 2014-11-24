@@ -2,7 +2,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship,backref
 from sqlalchemy.sql import text
-from nae.db import base 
 
 Model = declarative_base()
 

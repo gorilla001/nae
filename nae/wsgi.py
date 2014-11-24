@@ -9,6 +9,7 @@ from paste.deploy import loadapp
 
 from nae.common import log as logging
 from nae.common import cfg
+from nae.common.exception import BodyEmptyError
 
 LOG=logging.getLogger(__name__)
 
@@ -50,7 +51,6 @@ class Controller(object):
         _method=self.get_method(request)
         method=getattr(self,_method)     
 
-        #response=webob.Response()
 	response=JsonResponse()
         result_json=method(request)
         response.json=result_json
@@ -119,7 +119,7 @@ class Server(object):
             self._protocol = eventlet.wsgi.HttpProtocol
             self.pool_size = self.default_pool_size
             self._pool=eventlet.GreenPool(self.pool_size)
-            self._wsgi_logger=logging.WSGILogger(LOG)
+            self._wsgi_logger=logging.WSGILogger(logging.getLogger())
 	        
             bind_addr = (host,port)
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)

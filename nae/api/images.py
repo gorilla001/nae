@@ -87,27 +87,31 @@ class Controller(object):
 	    return {"status":500}
 
         name = body.get('name')
-        desc = body.get('desc')
-        project_id = body.get('project_id')
-        repos = body.get('repos')
-	branch = body.get('branch')
-        user_id = body.get('user_id')
-
 	if not name:
 	    LOG.error('name cannot be None!')
 	    return {"status":500}
+
+        desc = body.get('desc')
 	if not desc:
 	    LOG.error('desc cannot be None!')
 	    return {"status":500}
+
+        project_id = body.get('project_id')
 	if not project_id:
 	    LOG.error('project_id cannot be None!')
 	    return {"status":500}
+
+        repos = body.get('repos')
 	if not repos:
 	    LOG.error('repos cannot be None!')
 	    return {"status":500}
+
+	branch = body.get('branch')
 	if not branch:
 	    LOG.error('branch cannot be None!')
 	    return {"status":500}
+
+        user_id = body.get('user_id')
 	if not user_id:
 	    LOG.error('user_id cannot be None!')
 	    return {"status":500}

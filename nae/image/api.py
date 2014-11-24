@@ -43,29 +43,6 @@ class API():
 	requests.delete(request_url)
  	
     @staticmethod
-    def _delete_image(url,image_id,f_id,_id):
-	url = "{}/images/{}?force={}".format(self.url,image_id,f_id)
-	res = self.request_delete(url)
-	status_code = res.status_code 
-	if status_code == 200 or status_code == 404:
-	    self.db_api.delete_image(_id)
-	if status_code == 409: 
-	    if not self.db_api.get_containers_by_image(id).fetchone():	
-	        self.db_api.delete_image(_id)	
-		return
-	    self.db_api.update_image_status(
-	                               id=_id,
-                                       status = "409")
-        if status_code == 500: 
-	    self.db_api.update_image_status(
-				      id=_id,
-                                      status = "500")
-
-    def delete_image(self,id,image_id,f_id):
-	eventlet.spawn_n(self._delete_image,image_id,f_id,id)
-        return webob.Response('{"status_code":200"}')
-
-    @staticmethod
     def _edit(kwargs,name,port):
 	data = {
             'Hostname' : '',

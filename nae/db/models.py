@@ -87,3 +87,10 @@ class Network(BaseModel):
     private_port = Column(String(30))
     container_id = Column(String(32))
     created = Column(DateTime, default=func.now())
+
+class Host(BaseModel):
+    __tablename__ = 'hosts'
+
+    id = Column(String(32),primary_key=True)
+    host = Column(String(20))
+    port = Column(Integer)

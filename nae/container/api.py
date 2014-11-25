@@ -4,6 +4,7 @@ from nae import image
 from nae import utils
 from webob import Response
 from nae import driver 
+from nae.scheduler import manager
 
 
 
@@ -13,6 +14,7 @@ class API():
     def __init__(self):
         self.db_api=db.API()
 	self.image_api=image.API()
+	self._manager = manager.SchedulerManager()
 
     def start(self,kargs,id):
         data = {

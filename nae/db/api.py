@@ -166,3 +166,9 @@ def get_network(id):
 def get_networks(container_id):
     return model_query(models.Network,
                       container_id=container_id).all()
+
+
+### host api ###
+
+def get_hosts():
+    return model_query(models.Host).all()

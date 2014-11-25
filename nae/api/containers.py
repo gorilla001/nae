@@ -5,6 +5,7 @@ from nae import db
 from nae.common.mercu import MercurialControl
 from nae.common import log as logging
 from nae.common.view import View
+from nae.common.exception import ContainerLimitExceeded
 
 LOG=logging.getLogger(__name__)
 
@@ -81,6 +82,49 @@ class Controller(object):
         return {"status":200} 
 
     def create(self,request,body):
+	if not body:
+	    LOG.error("body cannot be empty!")
+	    return web.exc.HttpBadRequest()
+	image_id = body.get('image_id')
+	if image == "-1":
+	    LOG.error("image can not be empity!")
+	    return web.exc.HttpBadRequest()
+        query = self.db_api.get_image(image_id)
+        if len(query) == 0: 
+            LOG.error("no such image!")
+            return web.exc.HttpBadRequest()
+
+	body['image_id'] = query.uuid 
+
+	project_id = body.get('project_id')
+	if not project_id:
+	    LOG.error("project id cannot be None!")
+	    return web.exc.HttpBadRequest()
+	user_id = body.get('user_id')
+	if not user_id:
+	    LOG.error("user id cannot be None!")
+	    return web.exc.HttpBadRequest()
+
+	limit = QUOTAS.containers or _CONTAINER_LIMIT
+	query = self.db_api.get_containers(project_id,user_id)
+	if len(query) >= limit:
+	    raise ContainerLimitExceeded()  
+
+	repos = body.get('repos')
+	if not repos:
+	    LOG.error("repos cannot be None!")
+	    return web.exc.HttpBadRequest()
+
+	branch = body.get('branch') or 'default'
+	body['branch'] = branch
+
+	user_key = body.get('user_key') or ''
+	body['user_key'] = user_key
+
+	self.con_api.create(body)
+	    
+
+	"""
 	image_id=body.get('image_id')
 	if image == "-1":
 	    LOG.error("image can not be empity!")
@@ -134,6 +178,7 @@ class Controller(object):
 		     user_key,
 		     user_id)
             
+	"""
     def start(self,request,body):
 	id = body.get('id')
         query = self.db_api.get_container(id)

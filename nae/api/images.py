@@ -41,7 +41,6 @@ class Controller(object):
                        'user_id':item.user_id,
                        'status' : item.status}
                 images.append(image)
-
         return View(images) 
 
     def show(self,request,id):

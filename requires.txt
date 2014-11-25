@@ -1,0 +1,8 @@
+eventlet
+PasteDeploy
+requests
+paste
+webob
+sqlalchemy
+routes
+humanize

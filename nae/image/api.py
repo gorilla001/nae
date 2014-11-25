@@ -1,5 +1,6 @@
 from nae.common import log as logging
 from nae.common.response import Response
+from nae.image import manager
 from nae import db
 import eventlet
 import os
@@ -15,33 +16,19 @@ LOG=logging.getLogger(__name__)
 class API():
     def __init__(self):
         self.db_api=db.API()
+        self._manager = manager.Manager()
     
     def create(self,body):
-        eventlet.spawn_n(self._create,
+        eventlet.spawn_n(self._manager.create,
                          json.dumps(body))
 
         return Response(200)
 
-    def _create(self,body):
-        url = CONF.image_service_endpoint 
-        if not url:
-            LOG.error("image service endpoint must be specfied!")
-            return
-        requests.post(url,data=body)
-
     def delete(self,id):
-	eventlet.spawn_n(self._delete,id)
+	eventlet.spawn_n(self._manager.delete,id)
 
 	return Response(200)
 
-    def _delete(self,id):
-        url = CONF.image_service_endpoint 
-        if not url:
-            LOG.error("image service endpoint must be specfied!")
-            return
-	request_url = url + "/" + id
-	requests.delete(request_url)
- 	
     @staticmethod
     def _edit(kwargs,name,port):
 	data = {

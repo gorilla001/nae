@@ -28,7 +28,7 @@ class SimpleScheduler(driver.Scheduler):
 	selected_hosts = []
 	unweighted_host = self.db.get_hosts()
 	for host in unweighted_host:
-	    weight=self.get_weight(host.host)
+	    weight=self.get_weight(host.id)
 	    weighted_host = WeightedHost(weight,
 				         host.host,
 					 host.port)
@@ -39,7 +39,7 @@ class SimpleScheduler(driver.Scheduler):
 	return selected_hosts
 
     def get_weight(self,host):
-	containers = self.db.get_containers_by_host(host)
+	containers = self.db.get_containers_by_host(host_id)
 	weight = len(containers)
 
 	return weight	

@@ -59,11 +59,11 @@ def get_containers(project_id,user_id):
 		       project_id=project_id,
 		       user_id=user_id).all()
 
-def get_containers_by_host(host):
-    if not host:
+def get_containers_by_host(host_id):
+    if not host_id:
 	return []
     return model_query(models.Container,
-		       host=host).all()
+		       host_id=host_id).all()
 
 def get_container(id):
     return model_query(models.Container,

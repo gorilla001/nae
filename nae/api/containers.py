@@ -117,7 +117,10 @@ class Controller(object):
 	limit = QUOTAS.containers or _CONTAINER_LIMIT
 	query = self.db_api.get_containers(project_id,user_id)
 	if len(query) >= limit:
-	    raise ContainerLimitExceeded()  
+	    #raise ContainerLimitExceeded()  
+	    msg = 'container limit exceeded!!!'
+	    LOG.error(msg)
+	    return webob.exc.HTTPForbidden(explanation=msg)
 
 	repos = body.get('repos')
 	if not repos:

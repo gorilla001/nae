@@ -29,6 +29,10 @@ class API():
 
 	return Response(200)
 
+    def edit(self,kargs,name,port):
+        eventlet.spawn_n(self._manager.edit,kargs,name,port)
+        return webob.Response('{"status_code":200"}')
+
     @staticmethod
     def _edit(kwargs,name,port):
 	data = {
@@ -86,9 +90,6 @@ class API():
 	    else:
 	        LOG.debug("create for-image-edit container failed") 
 
-    def edit(self,kargs,name,port):
-        eventlet.spawn_n(self._edit,kargs,name,port)
-        return webob.Response('{"status_code":200"}')
 
     @staticmethod
     def _commit(repo,tag,ctn,id):

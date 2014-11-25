@@ -11,6 +11,7 @@ from nae.common import quotas
 from nae.common.exception import BodyEmptyError, ParamNoneError
 from nae.common.response import Response
 from nae.common.view import View
+from nae.common import utils
 
 
 LOG=logging.getLogger(__name__)
@@ -75,30 +76,15 @@ class Controller(object):
 	    LOG.error("images limit exceed,can not created anymore...")
 	    return Response(500) 
 
-        name = body.get('name')
-	if not name:
-	    LOG.error('name cannot be None!')
-	    return Response(500) 
-
-        desc = body.get('desc')
-	if not desc:
-	    LOG.error('desc cannot be None!')
-	    return Response(500) 
-
-        project_id = body.get('project_id')
-	if not project_id:
-	    LOG.error('project_id cannot be None!')
-	    return Response(500) 
+        name = body.get('name') or utils.random_str()
+        desc = body.get('desc') or ''
 
         repos = body.get('repos')
 	if not repos:
 	    LOG.error('repos cannot be None!')
 	    return Response(500) 
 
-	branch = body.get('branch')
-	if not branch:
-	    LOG.error('branch cannot be None!')
-	    return Response(500) 
+	branch = body.get('branch') or 'default'
 
         user_id = body.get('user_id')
 	if not user_id:
@@ -118,16 +104,12 @@ class Controller(object):
 
 	return Response(200) 
 
-    def edit(self,request):
-        _img_id=request.GET.pop('id')
-        _img_info = self.db_api.get_image(_img_id).fetchone()
-        img_id = _img_info[1]
+    def edit(self,request,id):
+        query = self.db_api.get_image(id)
 	name = utils.random_str()
-	port = utils.get_random_port()
-	kwargs={
-		"Image":img_id,
-	    	}
-	eventlet.spawn_n(self.image_api.edit,kwargs,name,port)
+	port = utils.random_port()
+	kwargs={"Image":query.uuid}
+	self.image_api.edit(kwargs,name,port)
 	
 	return {
 		"url":"http://{}:{}".format(config.docker_host,port),

@@ -30,7 +30,7 @@ def execute(func,*args):
 def init():
     Daemon().initDaemon()
  
-def get_random_port():
+def random_port():
 	port_range=config.PortRange.strip("'").split(':')	
 	random_port = random.randint(int(port_range[0]),int(port_range[1]))
 		

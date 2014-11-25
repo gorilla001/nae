@@ -72,8 +72,7 @@ class ProjectController(object):
             img_name = item[2]
             project_imgs.append(img_name)
         project_imgs=' '.join(project_imgs)
-        result_json={}
-        result_json = {
+        project = {
                     "id" : project_id,
                     "name":project_name,
                     "desc":project_desc,
@@ -83,7 +82,7 @@ class ProjectController(object):
                     "imgs":project_imgs,
                     "created":project_created,
                     }
-        return result_json
+        return project 
 
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']

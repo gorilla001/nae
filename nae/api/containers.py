@@ -4,6 +4,7 @@ from nae import container,image
 from nae import db
 from nae.common.mercu import MercurialControl
 from nae.common import log as logging
+from nae.common.view import View
 
 LOG=logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class Controller(object):
                 container.update(data)
 	    """
             containers.append(container)
-        return containers
+        return View(containers)
 
     def show(self,request,id):
 	container={}
@@ -69,15 +70,9 @@ class Controller(object):
                 'status':query.status,
                 }
 
-        return container
+        return View(container)
 
-    def inspect(self,request):
-        container_id=request.environ['wsgiorg.routing_args'][1]['container_id']
-        result=requests.get("http://0.0.0.0:2375/containers/{}/json".format(container_id))
-        return result
-
-    def delete(self,request,body):
-        id=body.get('id')
+    def delete(self,request,id):
         query = self.db_api.get_container(id)
         eventlet.spawn_n(self.con_api.delete,
 			 query.id,

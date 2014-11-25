@@ -5,7 +5,7 @@ class ProjectController(object):
         self.db_api=db.API()
 
     def index(self,request):
-        result_json=[]
+        projects=[]
         user_id = request.GET.get('user_id')
         if user_id == 'admin':
             project_info = self.db_api.get_projects()
@@ -20,7 +20,7 @@ class ProjectController(object):
                     'ProjectMembers':'',
                     'CreatedTime':item[7],
                 }
-                result_json.append(project)
+                projects.append(project)
         else:
             project_ids = utils.get_projects(user_id=user_id)
             for project_id in project_ids:
@@ -36,8 +36,8 @@ class ProjectController(object):
                     'ProjectMembers':'',
                     'CreatedTime':project_info[7],
                  }
-                result_json.append(project)
-        return result_json
+                projects.append(project)
+        return projects 
 
     def show(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
@@ -45,20 +45,20 @@ class ProjectController(object):
         project_info = result.fetchone()
         project_name= project_info[1]
         project_desc = project_info[2]
-        hgs=self.db_api.get_hgs(project_id = project_id)
-        hg_list=list()
-        for _item in hgs.fetchall():
-            hg = _item[1]
-            hg_list.append(hg)
-        project_hgs = ' '.join(hg_list) 
 
-	_user_info = self.db_api.get_users_by_role(project_id,1)
-	user_info=_user_info.fetchall()
-	project_admin = []
-	for item in user_info:
+        query=self.db_api.get_repos(project_id = project_id)
+        repos=[]
+        for item in query.fetchall():
+            repo = item[1]
+            repos.append(hg)
+        project_repos = ' '.join(repos) 
+
+	admins = []
+	query = self.db_api.get_users_by_role(project_id,1)
+	for item in query.fetchall():
 	    admin=item[1]
-	    project_admin.append(admin)	
-	project_admin=' '.join(project_admin)
+	    admins.append(admin)	
+	project_admin=' '.join(admins)
 
         _members = self.db_api.get_users(project_id=project_id)
         project_members=list()
@@ -87,14 +87,14 @@ class ProjectController(object):
 
     def inspect(self,request):
         image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.image_api.inspect_image(image_id)
-        result_json={}
-        if result.status_code == 200:
-            result_json=result.json()   
-        if result.status_code == 404:
+        inspect = self.image_api.inspect_image(image_id)
+        result={}
+        if inspect.status_code == 200:
+            result=inspect.json()   
+        if inspect.status_code == 404:
             errors={"errors":"404 Not Found:no such image {}".format(image_id)}
-            result_json=errors
-        return result_json
+            result=errors
+        return result
 
     def create(self,request):
         project_name=request.json.pop('project_name')
@@ -123,8 +123,7 @@ class ProjectController(object):
             role_id = 1, # 0 for admin
             created = created_time,
         )
-        result_json={"status":200}
-        return result_json
+        
 
     def delete(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
@@ -133,8 +132,8 @@ class ProjectController(object):
         self.db_api.delete_images(project_id)
         self.db_api.delete_users(project_id)
         self.db_api.delete_hgs(project_id)
-        result_json={}
-        return result_json
+
+        return {"status":200}
 
     def update(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']
@@ -159,12 +158,12 @@ class ProjectController(object):
                     created = utils.human_readable_time(time.time()),
 
                 )
-        hg_list = str(project_hgs).split()
-        self.db_api.delete_hgs(project_id)
+        repo_list = str(project_hgs).split()
+        self.db_api.delete_repos(project_id)
         for hg in hg_list:
-            self.db_api.add_hg(
+            self.db_api.add_repo(
                     project_id = project_id,
-                    hg_name = hg,
+                    repo_name = repo,
                     image_id = ''
                     )
 

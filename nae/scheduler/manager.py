@@ -1,10 +1,11 @@
 from nae.scheduler import scheduler
+from nae.common import exception
 
 class SchedulerManager(object):
     def __init__(self):
 	self.driver = scheduler.SimpleScheduler()
-    def run_instance(self):
+    def create(self,body):
 	try:
-	    self.driver.run_instance()
-	except exception.NoVaildHost:
+	    self.driver.create(body)
+	except exception.NoValidHost:
 	    raise

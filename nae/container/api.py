@@ -1,10 +1,11 @@
 from nae.common import log as logging
 from nae import db
 from nae import image
-from nae import utils
+from nae.common import utils
 from webob import Response
-from nae import driver 
-from nae.scheduler import manager
+#from nae import driver 
+from nae.container import manager
+import eventlet
 
 
 
@@ -14,7 +15,7 @@ class API():
     def __init__(self):
         self.db_api=db.API()
 	self.image_api=image.API()
-	self._manager = manager.SchedulerManager()
+	self._manager = manager.Manager()
 
     def start(self,kargs,id):
         data = {
@@ -39,40 +40,46 @@ class API():
 
         return Response(status=200)
 
-    def create(self,
-	       kargs,
-	       id,
-	       name,
-	       repos,
-	       user_id):
-        data = {
-            'Hostname' : '',
-            'User'     : '',
-            'Memory'   : '',
-            'MemorySwap' : '',
-            'AttachStdin' : False,
-            'AttachStdout' : False,
-            'AttachStderr': False,
-            'PortSpecs' : [],
-            'Tty'   : True,
-            'OpenStdin' : True,
-            'StdinOnce' : False,
-	    'Env':[],
-            'Cmd' : [], 
-            'Dns' : None,
-            'Image' : None,
-            'Volumes' : {},
-            'VolumesFrom' : '',
-            'ExposedPorts': {}
-            
-        }
-        data.update(kargs)
-        eventlet.spawn_n(self._create,
-			 data,
-                         id,
-                         name,
-			 repos,
-                         user_id)
+    def create(self,body):
+	"""
+	create a container.
+	"""
+	eventlet.spawn_n(self._manager.create,body)	
+	
+    #def create(self,
+    #           kargs,
+    #           id,
+    #           name,
+    #           repos,
+    #           user_id):
+    #    data = {
+    #        'Hostname' : '',
+    #        'User'     : '',
+    #        'Memory'   : '',
+    #        'MemorySwap' : '',
+    #        'AttachStdin' : False,
+    #        'AttachStdout' : False,
+    #        'AttachStderr': False,
+    #        'PortSpecs' : [],
+    #        'Tty'   : True,
+    #        'OpenStdin' : True,
+    #        'StdinOnce' : False,
+    #        'Env':[],
+    #        'Cmd' : [], 
+    #        'Dns' : None,
+    #        'Image' : None,
+    #        'Volumes' : {},
+    #        'VolumesFrom' : '',
+    #        'ExposedPorts': {}
+    #        
+    #    }
+    #    data.update(kargs)
+    #    eventlet.spawn_n(self._create,
+    #    		 data,
+    #                     id,
+    #                     name,
+    #    		 repos,
+    #                     user_id)
 
     def delete(self,id,uuid):
 	status = self.db_api.get_container_status(_ctn_id)

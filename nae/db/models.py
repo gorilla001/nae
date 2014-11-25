@@ -57,6 +57,7 @@ class Container(BaseModel):
     image_id = Column(String(32))
     created = Column(DateTime, default=func.now())
     user_id= Column(String(30))
+    host = Column(String(20))
     status = Column(String(100))
 
 class User(BaseModel):

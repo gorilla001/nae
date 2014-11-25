@@ -6,8 +6,12 @@ from nae.common.mercu import MercurialControl
 from nae.common import log as logging
 from nae.common.view import View
 from nae.common.exception import ContainerLimitExceeded
+from nae.common.response import Response
+from nae.common import quotas
 
 LOG=logging.getLogger(__name__)
+
+QUOTAS=quotas.Quotas()
 
 class Controller(object):
     def __init__(self):
@@ -79,31 +83,36 @@ class Controller(object):
 			 query.id,
 			 query.uuid)
 
-        return {"status":200} 
+        return Response(200) 
 
-    def create(self,request,body):
+    def create(self,request,body=None):
 	if not body:
-	    LOG.error("body cannot be empty!")
-	    return web.exc.HttpBadRequest()
+	    msg = "post request has no body?"
+	    LOG.error(msg)
+	    return webob.exc.HTTPBadRequest(explanation=msg)
 	image_id = body.get('image_id')
 	if image == "-1":
-	    LOG.error("image can not be empity!")
-	    return web.exc.HttpBadRequest()
+	    msg = "invalid image id -1."
+	    LOG.error(msg)
+	    return web.exc.HttpBadRequest(explanation=msg)
         query = self.db_api.get_image(image_id)
-        if len(query) == 0: 
-            LOG.error("no such image!")
-            return web.exc.HttpBadRequest()
+        if not query: 
+	    msg = "image id is invalid,no such image."
+            LOG.error(msg)
+            return webob.exc.HTTPBadRequest(explanation=msg)
 
 	body['image_id'] = query.uuid 
 
 	project_id = body.get('project_id')
 	if not project_id:
-	    LOG.error("project id cannot be None!")
-	    return web.exc.HttpBadRequest()
+	    msg = "project id must be provided."
+	    LOG.error(msg)
+	    return webob.exc.HTTPBadRequest(explanation=msg)
 	user_id = body.get('user_id')
 	if not user_id:
-	    LOG.error("user id cannot be None!")
-	    return web.exc.HttpBadRequest()
+	    msg = "user id must be provided."
+	    LOG.error(msg)
+	    return webob.exc.HTTPBadRequest(explanation=msg)
 
 	limit = QUOTAS.containers or _CONTAINER_LIMIT
 	query = self.db_api.get_containers(project_id,user_id)
@@ -112,8 +121,9 @@ class Controller(object):
 
 	repos = body.get('repos')
 	if not repos:
-	    LOG.error("repos cannot be None!")
-	    return web.exc.HttpBadRequest()
+	    msg = "repos must be provided"
+	    LOG.error(msg)
+	    return webob.exc.HTTPBadRequest(explanaiton=msg)
 
 	branch = body.get('branch') or 'default'
 	body['branch'] = branch
@@ -123,62 +133,8 @@ class Controller(object):
 
 	self.con_api.create(body)
 	    
+	return Response(201)
 
-	"""
-	image_id=body.get('image_id')
-	if image == "-1":
-	    LOG.error("image can not be empity!")
-	    return
-        env = body.get('env')
-        project_id = body.get('project_id') 
-        repos = body.get('repos') 
-        branch = body.get('branch')
-        app_type= body.get('app_type')
-        user_id = body.get('user_id')
-        user_key = body.get('user_key')
-
-	ctn_limit = quotas.get_quotas().get('container_limit')	
-	ctn_count = self.db_api.get_containers(project_id,user_name)
-	ctn_count = len(ctn_count.fetchall())	
-	LOG.info(ctn_count)
-	if ctn_count == ctn_limit :
-	    LOG.warning("containers limit exceed,can not created anymore...")
-	    return {"status":100}
-
-        name = os.path.basename(repos) + '-' + branch 
-        max_id = self.db_api.get_max_container_id()
-        max_id = max_id.fetchone()[0]
-        if max_id is not None:
-            max_id = max_id + 1;
-        else:
-            max_id = 0;
-        name = name + '-' + str(max_id).zfill(4)
-        id = self.db_api.add_container(
-                name=name,
-                env=env,
-                project_id=project_id,
-                repos=repos,
-                branch=branch,
-		image_id=image_id,
-                user_id=user_id,
-                status="building")
-
-        self.prepare_create(user_id,
-			   user_key,
-			   repos,
-			   branch,
-			   env)
-        self._create(id,
-	             name,
-		     image_id,
-                     repos,
-                     branch,
-                     app_type,
-                     env,
-		     user_key,
-		     user_id)
-            
-	"""
     def start(self,request,body):
 	id = body.get('id')
         query = self.db_api.get_container(id)

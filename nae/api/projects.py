@@ -4,6 +4,7 @@ from nae import wsgi
 from nae import db
 from nae.common.timeutils import isotime
 from nae.common import log as logging
+from nae.common.view import View
 
 LOG = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class Controller(object):
                 'created':isotime(item.created),
              }
             projects.append(project)
-        return projects 
+        return View(projects) 
 
     def show(self,request,id):
         query = self.db_api.get_project(id)
@@ -86,7 +87,7 @@ class Controller(object):
             users.append(user)
 	project.update({"users":users})
 
-        return project 
+        return View(project) 
 
     def create(self,request,body):
         name=body.get('name')

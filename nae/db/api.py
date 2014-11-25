@@ -27,7 +27,7 @@ def get_images(project_id):
 		       project_id=project_id).all()
 
 def get_image(id):
-    return model_query(models.Image,id=id).one()
+    return model_query(models.Image,id=id).first()
 
 def update_image(id,**values):
     return model_query(models.Image,
@@ -58,6 +58,12 @@ def get_containers(project_id,user_id):
     return model_query(models.Container,
 		       project_id=project_id,
 		       user_id=user_id).all()
+
+def get_containers_by_host(host):
+    if not host:
+	return []
+    return model_query(models.Container,
+		       host=host).all()
 
 def get_container(id):
     return model_query(models.Container,

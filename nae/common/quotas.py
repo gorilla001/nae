@@ -8,6 +8,6 @@ class Quotas(object):
         return self.quotas.get('image_limit')
     
     @property
-    def contaiers(self):
+    def containers(self):
         return self.quotas.get('container_limit')
  

@@ -3,9 +3,7 @@ import routes
 from eventlet import wsgi
 import eventlet
 import os
-
 import log as logging
-
 from paste.deploy import loadapp
 
 class Router(object):

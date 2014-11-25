@@ -1,9 +1,13 @@
 import requests
+from requests import ConnectionError
 from operator import attrgetter
 from nae.common import exception
+from nae.common import log as logging
 
 from nae.scheduler import driver
 from nae.scheduler.host import WeightedHost
+
+LOG = logging.getLogger(__name__)
 
 class SimpleScheduler(driver.Scheduler):
     """
@@ -21,8 +25,8 @@ class SimpleScheduler(driver.Scheduler):
 	host,port = weighted_host.addr,weighted_host.port
 	try:
 	    self.post(host,port,body)
-	except:
-	    raise
+	except ConnectionError,err:
+	    LOG.error(err)
     
     def delete_instance(self,id):
 	pass

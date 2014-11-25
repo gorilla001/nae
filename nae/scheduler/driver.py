@@ -1,4 +1,5 @@
 import requests
+from requests import ConnectionError
 import json
 from nae import db
 
@@ -13,6 +14,9 @@ class Scheduler(object):
     def post(self,host,port,body):
 	#if not isinstance(body,json):
 	#    body = json.dumps(body) 
-        return requests.post("http://%s:%s/containers/create" % (host,port),
+	try:
+            return requests.post("http://%s:%s/containers/create" % (host,port),
 			     headers = {'Content-Type':'application/json'},
 			     data = body) 
+	except ConnectionError:
+	    raise

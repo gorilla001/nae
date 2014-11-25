@@ -15,7 +15,7 @@ class Scheduler(object):
 	#if not isinstance(body,json):
 	#    body = json.dumps(body) 
 	try:
-            return requests.post("http://%s:%s/containers/create" % (host,port),
+            return requests.post("http://%s:%s/v1/containers/create" % (host,port),
 			     headers = {'Content-Type':'application/json'},
 			     data = body) 
 	except ConnectionError:

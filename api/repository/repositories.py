@@ -8,7 +8,7 @@ class RepoController(object):
     def index(self,request):
         repos=[]
         project_id = request.GET.get('project_id')
-        rs = self.db_api.get_hgs(project_id=project_id)
+        rs = self.db_api.get_repos(project_id=project_id)
         for item in rs.fetchall():
             repo={
                 'Id':item[0],
@@ -20,19 +20,19 @@ class RepoController(object):
 
     def create(self,request):
         project_id=request.json.pop('project_id')
-        hg_addr=request.json.pop('hg_addr')
+        repo_path=request.json.pop('repo_path')
         created=utils.human_readable_time(time.time()) 
-        self.db_api.add_hg(
+        self.db_api.add_repo(
                 project_id = project_id,
-                hg_addr = hg_addr,
+                repo_path= repo_path,
                 created = created,
         )
-        result_json = {"status":200}
-        return result_json
+        ret = {"status":200}
+        return ret
 
     def delete(self,request):
-        hg_id=request.environ['wsgiorg.routing_args'][1]['id']
-        self.db_api.delete_hg(hg_id)
+        repo_id=request.environ['wsgiorg.routing_args'][1]['id']
+        self.db_api.delete_repo(hg_id)
         result='{"status":200}'
         return result
 

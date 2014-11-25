@@ -59,17 +59,6 @@ class Controller(object):
 
         return View(image) 
 
-    def inspect(self,request):
-	image={}
-        image_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-        result = self.image_api.inspect_image(image_id)
-        if result.status_code == 200:
-            image.update(result.json())   
-        if result.status_code == 404:
-            errors={"errors":"404 Not Found:no such image {}".format(image_id)}
-            image.update(result.json()) 
-        return View(image) 
-
     def create(self,request,body=None):
 	if not body:
 	    LOG.error('body cannot be empty!')

@@ -12,16 +12,19 @@ class SimpleScheduler(driver.Scheduler):
     def __init__(self):
 	super(SimpleScheduler,self).__init__()
 	
-    def create(self,body):
+    def run_instance(self,body):
 	weighted_hosts = self._scheduler()
         try:
 	    weighted_host = weighted_hosts.pop(0)
 	except IndexError:
 	    raise exception.NoValidHost("No valid host was found")
-	host,port,weight = weighted_host.addr,weighted_host.port,weighted_host.weight
-	print host,port,weight
+	host,port = weighted_host.addr,weighted_host.port
+	try:
+	    self.post(host,port,body)
+	except:
+	    raise
     
-    def delete(self,id):
+    def delete_instance(self,id):
 	pass
 	
     def _scheduler(self):

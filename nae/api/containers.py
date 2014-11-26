@@ -103,6 +103,7 @@ class Controller(object):
 
 	body['repository'] = query.name 
 	body['tag'] = query.tag
+	body['image_uuid'] = query.uuid
 
 	project_id = body.get('project_id')
 	if not project_id:

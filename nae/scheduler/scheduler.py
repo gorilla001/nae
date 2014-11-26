@@ -23,6 +23,7 @@ class SimpleScheduler(driver.Scheduler):
 	except IndexError:
 	    raise exception.NoValidHost("No valid host was found")
 	host,port = weighted_host.addr,weighted_host.port
+	body['host_id'] = weighted_host.id
 	try:
 	    self.post(host,port,body)
 	except ConnectionError,err:
@@ -36,13 +37,15 @@ class SimpleScheduler(driver.Scheduler):
 	unweighted_host = self.db.get_hosts()
 	for host in unweighted_host:
 	    weight=self.get_weight(host.id)
-	    weighted_host = WeightedHost(weight,
+	    weighted_host = WeightedHost(host.id,
+					 weight,
 				         host.host,
 					 host.port)
 		
 	    selected_hosts.append(weighted_host)
 
 	selected_hosts.sort(key=attrgetter('weight'))
+	
 	return selected_hosts
 
     def get_weight(self,host_id):

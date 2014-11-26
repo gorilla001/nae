@@ -1,4 +1,5 @@
 import requests
+import uuid
 from requests import ConnectionError
 from operator import attrgetter
 from nae.common import exception

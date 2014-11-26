@@ -53,13 +53,18 @@ class Resource(object):
 	def __call__(self,request):
 	    action_args = self.get_action_args(request.environ)
 	    action = action_args.pop('action',None)
-	    method=getattr(self.controller,action)
+	    try:
+	        method=getattr(self.controller,action)
+	    except AttributeError:
+		raise
 
-	    return method(request) 
+	    return dispatch(method,action_args) 
 
 	def get_action_args(self,env):
-	    args = env['wsgiorg.routing_args'][1].copy()
-
+	    try:
+	        args = env['wsgiorg.routing_args'][1].copy()
+	    except KeyError:
+		raise
 	    try:
 	        del args['controller']
 	    except KeyError:
@@ -68,7 +73,13 @@ class Resource(object):
 	        del args['format']
 	    except KeyError:
 	        pass
+
 	    return args	
+	
+	@staticmethod
+	def dispatch(method,action_args):
+	    return method(**action_args)
+	    
 
 
 class Server(object):

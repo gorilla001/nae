@@ -12,8 +12,6 @@ class Scheduler(object):
 	raise NotImplementedError(msg)
 
     def post(self,host,port,body):
-	#if not isinstance(body,json):
-	#    body = json.dumps(body) 
 	try:
             return requests.post("http://%s:%s/v1/containers" % (host,port),
 			     headers = {'Content-Type':'application/json'},

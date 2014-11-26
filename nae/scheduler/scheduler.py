@@ -8,6 +8,7 @@ from nae.common import exception
 from nae.common import log as logging
 
 from nae.scheduler import driver
+from nae.scheduler import filters
 from nae.scheduler.host import WeightedHost
 
 LOG = logging.getLogger(__name__)
@@ -17,6 +18,8 @@ class SimpleScheduler(driver.Scheduler):
     very simple scheduler scheduling by the quantity of the containers.
     """
     def __init__(self):
+	self.filter = filters.StatusFilter()
+
 	super(SimpleScheduler,self).__init__()
 	
     def run_instance(self,body):
@@ -84,7 +87,7 @@ class SimpleScheduler(driver.Scheduler):
 	return filtered_hosts
 
     def _passes_filters(self,host):
-	return True
+	return self.filter.host_passes(host)
 
     def get_weight(self,host_id):
 	containers = self.db.get_containers_by_host(host_id)

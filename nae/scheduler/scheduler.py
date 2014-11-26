@@ -28,6 +28,15 @@ class SimpleScheduler(driver.Scheduler):
         db_id         = uuid.uuid4().hex
 	body['db_id'] = db_id
 
+	"""generate container name"""
+	repos = body['repos']
+	branch = body['branch']
+	name   = os.path.basename(repos) + '-' + branch
+        query  = self.db_api.get_containers()
+        count  = len(query)
+        suffix = count +1
+        name   = name + '-' + str(suffix).zfill(8)
+	body['name'] = name
 	"""
 	insert db a record for instance create.
 	"""
@@ -78,12 +87,8 @@ class SimpleScheduler(driver.Scheduler):
         user_id    = body.get('user_id')
         user_key   = body.get('user_key')
         host_id    = body.get('host_id')
+	name	   = body.get('name')
 
-        name   = os.path.basename(repos) + '-' + branch
-        query  = self.db_api.gets()
-        count  = len(query)
-        suffix = count +1
-        name   = name + '-' + str(suffix).zfill(8)
         self.db_api.add_container(dict(
                 id=db_id,
                 name=name,

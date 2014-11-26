@@ -57,8 +57,8 @@ class Resource(object):
 
 	    return method(request) 
 
-	def get_action_args(self,request_environment):
-	    args = request_environment['wsgiorg.routing_args'][1].copy()
+	def get_action_args(self,env):
+	    args = env['wsgiorg.routing_args'][1].copy()
 
 	    try:
 	        del args['controller']

@@ -1,7 +1,7 @@
 class Quotas(object):
     quotas = {
-	'container_limit':12,
-	'image_limit':12,
+	'container_limit':10000,
+	'image_limit':10000,
     }
     @property
     def images(self):

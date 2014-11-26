@@ -101,6 +101,7 @@ class Controller(object):
             LOG.error(msg)
             return webob.exc.HTTPBadRequest(explanation=msg)
 
+	print query.name,query.tag
 	body['repository'] = query.name 
 	body['tag'] = query.tag
 	body['image_uuid'] = query.uuid

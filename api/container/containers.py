@@ -5,7 +5,7 @@ from utils import MercurialControl
 
 LOG=logging.getLogger('eventlet.wsgi.server')
 
-class ContainerController(object):
+class Controller(object):
     def __init__(self):
         self.compute_api=container.API()
         self.image_api=image.API()
@@ -219,4 +219,4 @@ class ContainerController(object):
         self.compute_api.destroy(name)
  
 def create_resource():
-    return wsgi.Resource(ContainerController())
+    return wsgi.Resource(Controller())

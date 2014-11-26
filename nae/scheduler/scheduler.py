@@ -56,7 +56,13 @@ class SimpleScheduler(driver.Scheduler):
 	
     def _scheduler(self):
 	selected_hosts = []
-	unweighted_host = self.db.get_hosts()
+	unfiltered_hosts = self.db.get_hosts()
+	filtered_hosts = self._filter_hosts(unfiltered_hosts)
+
+	if not filtered_hosts:
+	    raise exception.NoValidHost("No valid host was found")
+
+	unweighted_host = filtered_hosts 
 	for host in unweighted_host:
 	    weight=self.get_weight(host.id)
 	    weighted_host = WeightedHost(host.id,
@@ -69,6 +75,16 @@ class SimpleScheduler(driver.Scheduler):
 	selected_hosts.sort(key=attrgetter('weight'))
 	
 	return selected_hosts
+
+    def _filter_hosts(self,hosts):
+	filtered_hosts = []
+	for host in hosts:
+	    if self._passes_filters(host):
+		filtered_hosts.append(host)
+	return filtered_hosts
+
+    def _passes_filters(self,host):
+	return True
 
     def get_weight(self,host_id):
 	containers = self.db.get_containers_by_host(host_id)

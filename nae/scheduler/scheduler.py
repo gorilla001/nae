@@ -23,11 +23,21 @@ class SimpleScheduler(driver.Scheduler):
 	except IndexError:
 	    raise exception.NoValidHost("No valid host was found")
 	host,port = weighted_host.addr,weighted_host.port
+
 	body['host_id'] = weighted_host.id
+        db_id         = uuid.uuid4().hex
+	body['db_id'] = db_id
+
+	"""
+	insert db a record for instance create.
+	"""
+	self.save_to_db(body)
 	try:
 	    self.post(host,port,body)
 	except ConnectionError,err:
 	    LOG.error(err)
+	    """post failed,cleanup db record."""
+	    self.cleanup_db(db_id)
     
     def delete_instance(self,id):
 	pass
@@ -53,3 +63,40 @@ class SimpleScheduler(driver.Scheduler):
 	weight = len(containers)
 
 	return weight	
+
+    def save_to_db(self,body):
+	db_id      = body.get('db_id')
+	image_id   = body.get('image_id')
+        image_uuid = body.get('image_uuid')
+        repository = body.get('repository')
+        tag        = body.get('tag')
+        env        = body.get('env')
+        project_id = body.get('project_id')
+        repos      = body.get('repos')
+        branch     = body.get('branch')
+        app_type   = body.get('app_type')
+        user_id    = body.get('user_id')
+        user_key   = body.get('user_key')
+        host_id    = body.get('host_id')
+
+        name   = os.path.basename(repos) + '-' + branch
+        query  = self.db_api.gets()
+        count  = len(query)
+        suffix = count +1
+        name   = name + '-' + str(suffix).zfill(8)
+        self.db_api.add_container(dict(
+                id=db_id,
+                name=name,
+                env=env,
+                project_id=project_id,
+                repos=repos,
+                branch=branch,
+                image_id=image_id,
+                user_id=user_id,
+                host_id=host_id,
+                status="building"))
+    def cleanup_db(self,id):
+	"""
+	remove record from db.
+	"""
+	self.db_api.delete_container(id)	

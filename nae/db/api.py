@@ -45,7 +45,7 @@ def add_container(values):
         model.update(values)
         model.save(session=session)
 
-def get_containers(project_id,user_id):
+def get_containers(project_id=None,user_id=None):
     if project_id is None and user_id is None:
 	return model_query(models.Container).all()
     if project_id is None:

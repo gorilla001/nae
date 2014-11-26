@@ -1,5 +1,7 @@
 import requests
 import uuid
+import os
+
 from requests import ConnectionError
 from operator import attrgetter
 from nae.common import exception
@@ -33,7 +35,7 @@ class SimpleScheduler(driver.Scheduler):
 	repos = body['repos']
 	branch = body['branch']
 	name   = os.path.basename(repos) + '-' + branch
-        query  = self.db_api.get_containers()
+        query  = self.db.get_containers()
         count  = len(query)
         suffix = count +1
         name   = name + '-' + str(suffix).zfill(8)
@@ -90,7 +92,7 @@ class SimpleScheduler(driver.Scheduler):
         host_id    = body.get('host_id')
 	name	   = body.get('name')
 
-        self.db_api.add_container(dict(
+        self.db.add_container(dict(
                 id=db_id,
                 name=name,
                 env=env,
@@ -105,4 +107,4 @@ class SimpleScheduler(driver.Scheduler):
 	"""
 	remove record from db.
 	"""
-	self.db_api.delete_container(id)	
+	self.db.delete_container(id)	

@@ -16,7 +16,6 @@ import uuid
 
 LOG = logging.getLogger('eventlet.wsgi.server')
 
-TIME_FORMAT="%Y-%m-%d %H:%M:%S"
 
 
 class ResponseSucceed(object):
@@ -154,8 +153,6 @@ class Daemon():
         os.dup2(so.fileno(),sys.stdout.fileno())
         os.dup2(se.fileno(),sys.stderr.fileno())
 
-def isotime(created):
-    return created.strftime(TIME_FORMAT) 
 
 def uid():
     return uuid.uuid4().hex

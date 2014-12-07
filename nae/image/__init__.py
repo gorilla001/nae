@@ -12,5 +12,6 @@ class API(object):
         backend = self.__get_backend()
         return getattr(backend, key)
 """
+from nae.common import importutils
 
 API = importutils.import_class('nae.image.api.API')

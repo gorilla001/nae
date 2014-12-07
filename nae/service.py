@@ -1,6 +1,5 @@
 import os
 from nae import wsgi
-import log
 import eventlet
 import time
 import signal

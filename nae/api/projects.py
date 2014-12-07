@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from nae import wsgi
 from nae import db
-from nae.utils import isotime
+from nae.common.timeutils import isotime
 from nae.common import log as logging
 
 LOG = logging.getLogger(__name__)

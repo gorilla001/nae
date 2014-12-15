@@ -9,7 +9,7 @@ from jae.common.timeutils import isotime
 from jae.common import log as logging
 from jae.common import quotas
 from jae.common.exception import BodyEmptyError, ParamNoneError
-from jae.common.response import Response
+from jae.common.response import Response, ResponseObject
 from jae.common.view import View
 from jae.common import utils
 
@@ -22,13 +22,12 @@ _IMAGE_LIMIT = 12
 
 class Controller(Base):
     def __init__(self):
-        self.image_api=image.API()
-        self.db_api=db.API()
+	super(Controller,self).__init__()
 
     def index(self,request):
         images=[]
         project_id=request.GET.get('project_id')
-        query = self.db_api.get_images(project_id)
+        query = self.db.get_images(project_id)
         if query is not None:
             for item in query:
                 image={'id':item.id,
@@ -41,11 +40,11 @@ class Controller(Base):
                        'user_id':item.user_id,
                        'status' : item.status}
                 images.append(image)
-        return View(images) 
+        return ResponseObject(images) 
 
     def show(self,request,id):
 	image = {}
-        query = self.db_api.get_image(id)
+        query = self.db.get_image(id)
 	if query is not None:
             image = {'id' : query.id,
                      'uuid' : query.uuid,
@@ -57,7 +56,7 @@ class Controller(Base):
                      'user_id' : query.user_id,
                      'status' : query.status}
 
-        return View(image) 
+        return ResponseObject(image) 
 
     def create(self,request,body=None):
 	if not body:
@@ -102,6 +101,7 @@ class Controller(Base):
 	self.db_api.update_image(id=id,status="deleting")
         self.image_api.delete_image(_image_id,image_id,f_id)
 	"""
+	query = self.db.get_image(id)
         self.image_api.delete(id)
 
 	return Response(200) 

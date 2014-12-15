@@ -3,7 +3,7 @@
 import eventlet
 eventlet.monkey_patch(os=False)
 import sys
-from jae.image import service
+from jae import service
 from jae.common import cfg
 from jae.common import log as logging
 
@@ -11,6 +11,6 @@ if __name__ == '__main__':
     cfg.parse_config()
     logging.setup()
     launcher = service.ProcessLauncher()
-    server = service.WSGIService()
+    server = service.WSGIService('image')
     launcher.launch_server(server,workers=server.workers or 1)
     launcher.wait()

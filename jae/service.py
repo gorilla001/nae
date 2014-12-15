@@ -14,10 +14,11 @@ LOG = logging.getLogger(__name__)
 
 class WSGIService(object):
     def __init__(self,name):
+	self.name = name
         self.loader = wsgi.Loader()
-        self.app = self.loader.load_app(name)
-        self.host = CONF.bind_host 
-        self.port = Int(CONF.bind_port) 
+        self.app = self.loader.load_app(self.name)
+        self.host = getattr(CONF,"%s_bind_host" % self.name)
+        self.port = Int(getattr(CONF,"%s_bind_port" % self.name)) 
         self.workers = Int(CONF.workers) 
         self.server = wsgi.Server(
                     self.app,

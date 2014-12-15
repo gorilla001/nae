@@ -1,4 +1,3 @@
 build/*
 dist/*
-nae.egg-info/*
-nae/common/*
+jae.egg-info/*

@@ -16,6 +16,7 @@ setup(name='nae',
 		'nae.image',
 		'nae.db',
 		'nae.scheduler',
+		'nae.network',
 	       ],
 
       scripts=['bin/nae'],

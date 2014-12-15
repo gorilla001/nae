@@ -58,6 +58,7 @@ class Container(BaseModel):
     created = Column(DateTime, default=func.now())
     user_id= Column(String(30))
     host_id = Column(String(32))
+    fixed_ip = Column(String(32))
     status = Column(String(100))
 
 class User(BaseModel):

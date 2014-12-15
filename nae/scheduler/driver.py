@@ -2,10 +2,12 @@ import requests
 from requests import ConnectionError
 import json
 from nae import db
+from nae.network import manager 
 
 class Scheduler(object):
     def __init__(self):
 	self.db = db.API()
+	self.network = manager.NetworkManager()
 
     def run_instance():
 	msg = "Driver must implement run_instance"

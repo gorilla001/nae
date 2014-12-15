@@ -40,3 +40,10 @@ class NoValidHost(Exception):
 
     def __str__(self):
 	return self.msg
+
+class NoValidIPAddress(Exception):
+    def __init__(self,message):
+	self.msg = message
+
+    def __str__(self):
+	return self.msg

@@ -24,15 +24,24 @@ class SimpleScheduler(driver.Scheduler):
 	
     def run_instance(self,body):
 	weighted_hosts = self._scheduler()
+	for host in weighted_hosts:
+	    print host.addr,host.port,host.weight
         try:
 	    weighted_host = weighted_hosts.pop(0)
 	except IndexError:
 	    raise exception.NoValidHost("No valid host was found")
+
 	host,port = weighted_host.addr,weighted_host.port
 
 	body['host_id'] = weighted_host.id
         db_id         = uuid.uuid4().hex
 	body['db_id'] = db_id
+
+	""" get fixed ip from ip resource pool."""
+	fixed_ip = self.network.get_fixed_ip()
+
+	print fixed_ip
+	body['fixed_ip'] = fixed_ip
 
 	"""generate container name"""
 	repos = body['repos']
@@ -110,6 +119,7 @@ class SimpleScheduler(driver.Scheduler):
         user_key   = body.get('user_key')
         host_id    = body.get('host_id')
 	name	   = body.get('name')
+	fixed_ip   = body.get('fixed_ip')
 
         self.db.add_container(dict(
                 id=db_id,
@@ -121,6 +131,7 @@ class SimpleScheduler(driver.Scheduler):
                 image_id=image_id,
                 user_id=user_id,
                 host_id=host_id,
+		fixed_ip=fixed_ip,
                 status="building"))
     def cleanup_db(self,id):
 	"""

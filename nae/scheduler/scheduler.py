@@ -37,11 +37,12 @@ class SimpleScheduler(driver.Scheduler):
         db_id         = uuid.uuid4().hex
 	body['db_id'] = db_id
 
-	""" get fixed ip from ip resource pool."""
+	""" get fixed ip from ip resource pool
 	fixed_ip = self.network.get_fixed_ip()
 
 	print fixed_ip
 	body['fixed_ip'] = fixed_ip
+	"""
 
 	"""generate container name"""
 	repos = body['repos']
@@ -131,7 +132,7 @@ class SimpleScheduler(driver.Scheduler):
                 image_id=image_id,
                 user_id=user_id,
                 host_id=host_id,
-		fixed_ip=fixed_ip,
+		##fixed_ip=fixed_ip,
                 status="building"))
     def cleanup_db(self,id):
 	"""

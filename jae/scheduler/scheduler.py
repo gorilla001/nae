@@ -22,7 +22,16 @@ class SimpleScheduler(driver.Scheduler):
 
 	super(SimpleScheduler,self).__init__()
 	
-    def run_instance(self,body):
+    def run_instance(self,
+		     project_id,
+		     user_id,
+                     image_id,
+                     repos,
+                     branch,
+		     env,
+		     user_key):
+	"""schedule the instance for creation and handle creating the DB entry."""
+
 	weighted_hosts = self._scheduler()
 	for host in weighted_hosts:
 	    print host.addr,host.port,host.weight
@@ -33,9 +42,11 @@ class SimpleScheduler(driver.Scheduler):
 
 	host,port = weighted_host.addr,weighted_host.port
 
-	body['host_id'] = weighted_host.id
+	""" the host id where the container will be on."""
+	host_id = weighted_host.id
+
+	""" the unique container uuid"""
         db_id         = uuid.uuid4().hex
-	body['db_id'] = db_id
 
 	""" get fixed ip from ip resource pool
 	fixed_ip = self.network.get_fixed_ip()
@@ -45,25 +56,46 @@ class SimpleScheduler(driver.Scheduler):
 	"""
 
 	"""generate container name"""
-	repos = body['repos']
-	branch = body['branch']
 	name   = os.path.basename(repos) + '-' + branch
         query  = self.db.get_containers()
         count  = len(query)
         suffix = count +1
         name   = name + '-' + str(suffix).zfill(8)
-	body['name'] = name
 	"""
 	insert db a record for instance create.
 	"""
-	self.save_to_db(body)
+	self.save_to_db(db_id,
+			name,
+			env,
+			project_id,
+			repos,
+			branch,
+			image_id,
+			user_id,
+			host_id)
 	try:
-	    self.post(host,port,body)
+	    self.post(host,
+		      port,
+		      db_id=db_id,
+		      name=name,
+                      env=env,
+                      project_id=project_id,
+                      repos=repos,
+                      branch=branch,
+                      image_id=image_id,
+                      user_id=user_id,
+                      user_key=user_key)
 	except ConnectionError,err:
 	    LOG.error(err)
 	    """post failed,cleanup db record."""
 	    self.cleanup_db(db_id)
+
+	    """raise error to controller"""
+	    raise 
     
+	instance = { "id":db_id,"name":name }
+	return instance
+
     def delete_instance(self,id):
 	pass
 	
@@ -105,7 +137,18 @@ class SimpleScheduler(driver.Scheduler):
 
 	return weight	
 
-    def save_to_db(self,body):
+    def save_to_db(self,
+		   db_id,
+		   name,
+		   env,
+		   project_id,
+		   repos,
+		   branch,
+		   image_id,
+		   user_id,
+		   host_id):
+	"""creating db entry for creation"""
+	"""
 	db_id      = body.get('db_id')
 	image_id   = body.get('image_id')
         image_uuid = body.get('image_uuid')
@@ -121,7 +164,7 @@ class SimpleScheduler(driver.Scheduler):
         host_id    = body.get('host_id')
 	name	   = body.get('name')
 	fixed_ip   = body.get('fixed_ip')
-
+	"""
         self.db.add_container(dict(
                 id=db_id,
                 name=name,

@@ -14,8 +14,9 @@ class Manager(object):
 	self._scheduler = manager.SchedulerManager()
 
     def create(self,body):
-        self._scheduler.run_instance(body)	
+        instance = self._scheduler.run_instance(body)	
+	return instance
 
     def delete(self,id):
-        self._scheduler.scheduler("DELETE",id)
+	pass	
 

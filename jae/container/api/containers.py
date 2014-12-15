@@ -4,7 +4,7 @@ import uuid
 import os
 
 from jae import wsgi
-from jae import db
+from jae.base import Base
 from jae.common.mercu import MercurialControl
 from jae.common import log as logging
 from jae.common.view import View
@@ -16,10 +16,10 @@ LOG=logging.getLogger(__name__)
 
 CONF = cfg.CONF
 
-class Controller(object):
+class Controller(Base):
     def __init__(self):
         self._manager=manager.Manager()
-        self.db_api = db.API()
+        #self.db_api = db.API()
         self.mercurial = MercurialControl()
 
     def index(self,request):
@@ -54,16 +54,19 @@ class Controller(object):
         return Response(200) 
 
     def create(self,request,body):
-	"""
-	create new container and start it.
-	"""
+	"""create new container and start it."""
 
 	id	   = body.get('db_id')
 	name       = body.get('name')
 	image_id   = body.get('image_id')
-	image_uuid = body.get('image_uuid')
-	repository = body.get('repository')
-	tag	   = body.get('tag')
+	query = self.db.get_image(image_id)
+	if not query:
+	    msg = "image id is invalid"
+	    raise exception.ImageNotFound(msg) 
+	image_uuid = query.uuid
+	repository = query.name
+	tag	   = queyr.tag
+
         env        = body.get('env')
         project_id = body.get('project_id') 
         repos      = body.get('repos') 

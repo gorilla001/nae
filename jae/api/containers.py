@@ -4,9 +4,9 @@ from jae.api import container,image
 from jae.common import log as logging
 from jae.common.view import View
 from jae.common.exception import ContainerLimitExceeded
-from jae.common.response import Response
+from jae.common.response import Response, ResponseObject
 from jae.common import quotas
-from jae.api.container import manager
+from jae.scheduler import scheduler
 from jae.base import Base
 
 LOG=logging.getLogger(__name__)
@@ -15,7 +15,8 @@ QUOTAS=quotas.Quotas()
 
 class Controller(Base):
     def __init__(self):
-	self._manager=manager.Manager()
+	if not CONF.default_scheduler:
+	    self._scheduler=scheduler.SimpleScheduler()
 
     def index(self,request):
 	"""
@@ -87,26 +88,32 @@ class Controller(Base):
 	    msg = "post request has no body?"
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
-	image_id = body.get('image_id')
-	if image == "-1":
-	    msg = "invalid image id -1."
-	    LOG.error(msg)
-	    return web.exc.HttpBadRequest(explanation=msg)
-        query = self.db_api.get_image(image_id)
-        if not query: 
-	    msg = "image id is invalid,no such image."
-            LOG.error(msg)
-            return webob.exc.HTTPBadRequest(explanation=msg)
-
-	body['repository'] = query.name 
-	body['tag'] = query.tag
-	body['image_uuid'] = query.uuid
-
 	project_id = body.get('project_id')
 	if not project_id:
 	    msg = "project id must be provided."
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
+
+	image_id = body.get('image_id')
+	if image == "-1":
+	    msg = "invalid image id -1."
+	    LOG.error(msg)
+	    return web.exc.HttpBadRequest(explanation=msg)
+        #query = self.db_api.get_image(image_id)
+        #if not query: 
+	#    msg = "image id is invalid,no such image."
+        #    LOG.error(msg)
+        #    return webob.exc.HTTPBadRequest(explanation=msg)
+	"""
+	"""get image repository for image pull if necessary"""
+	image_repository = query.name 
+
+	"""get image tag for image pull if necessary""" 
+	image_tag = query.tag
+
+	"""image uuid for container creation"""
+	image_uuid = query.uuid
+	"""
 	user_id = body.get('user_id')
 	if not user_id:
 	    msg = "user id must be provided."
@@ -128,18 +135,25 @@ class Controller(Base):
 	    return webob.exc.HTTPBadRequest(explanaiton=msg)
 
 	branch = body.get('branch') or 'default'
-	body['branch'] = branch
+
+	env = body.get('env') or 'QA'
 
 	user_key = body.get('user_key') or ''
-	body['user_key'] = user_key
 	
 	#eventlet.spawn_n(self._manager.create,body)
 	try:
-	    instance = self._manager.create(body)
+	    instance = self._scheduler.run_instance(project_id,
+						    user_id,
+						    image_id,
+						    repos,
+						    branch,
+						    env,
+						    user_key,
+						     )
 	except:
 	    pass
 	    
-	return Response(instance)
+	return ResponseObject(instance)
 
     def start(self,request,body):
 	id = body.get('id')
@@ -166,12 +180,15 @@ class Controller(Base):
 		'Cmd':["/usr/bin/supervisord"],
 		'PortBindings':bindings,
 	}	
-	eventlet.spawn_n(self.con_api.run,
-			 kwargs,
-			 id,
-			 uuid)
-
-        return {"status":200} 
+	#eventlet.spawn_n(self.con_api.run,
+	#		 kwargs,
+	#		 id,
+	#		 uuid)
+		
+        return self._start(host,port,id) 
+    def _start(self,host,port,id):
+	resp = requests.post("http://%s:%s/containers/%s/start" % (host,port,id))
+	return resp.status_code
 
     def stop(self,request,body):
         id=body.get('id')

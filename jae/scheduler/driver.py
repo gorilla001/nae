@@ -13,7 +13,7 @@ class Scheduler(object):
 	msg = "Driver must implement run_instance"
 	raise NotImplementedError(msg)
 
-    def post(self,host,port,body):
+    def post(self,host,port,**body):
 	try:
             return requests.post("http://%s:%s/v1/containers" % (host,port),
 			     headers = {'Content-Type':'application/json'},

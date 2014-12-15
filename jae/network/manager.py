@@ -1,4 +1,3 @@
-import netaddr
 from netaddr import IPRange, IPAddress
 
 from jae.common import cfg
@@ -25,12 +24,12 @@ class NetworkManager(Base):
 	try:
 	    return str(FIXED_RANGE[0])	
 	except IndexError:
-	    raise NoValidIPAddress(msg='ip resource used up')
+	    raise exception.NoValidIPAddress(msg='ip resource used up')
 
     def get_fixed_range(self):
 	ip_resource_pool = CONF.ip_resource_pool 	
 	if not ip_resource_pool:
-	    raise NoValidIPAddress(msg='ip resource pool is None')
+	    raise exception.NoValidIPAddress(msg='ip resource pool is None')
 	
 	start,_,end=ip_resource_pool.rpartition("-")
 

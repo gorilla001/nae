@@ -1,1 +1,0 @@
-common stuff for nae

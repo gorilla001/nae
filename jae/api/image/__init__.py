@@ -12,6 +12,6 @@ class API(object):
         backend = self.__get_backend()
         return getattr(backend, key)
 """
-from jae.common import importutils
+#from jae.common import importutils
 
-API = importutils.import_class('jae.image.api.API')
+#API = importutils.import_class('jae.image.api.API')

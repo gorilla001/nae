@@ -178,3 +178,7 @@ def get_networks(container_id):
 
 def get_hosts():
     return model_query(models.Host).all()
+
+def get_host(host_id):
+    return model_query(models.Host,
+		       id=id).first()

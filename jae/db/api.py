@@ -73,7 +73,7 @@ def delete_container(id):
     return model_query(models.Container,
 			id=id).delete()
 
-def update_container(id,value):
+def update_container(id,**value):
     return model_query(models.Container,id=id).update(value)
 
 #def update_container_prefix_and_status(id,prefix,status):

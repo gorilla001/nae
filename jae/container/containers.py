@@ -18,8 +18,9 @@ CONF = cfg.CONF
 
 class Controller(Base):
     def __init__(self):
+	super(Controller,self).__init__()
+
         self._manager=manager.Manager()
-        #self.db_api = db.API()
         self.mercurial = MercurialControl()
 
     def index(self,request):
@@ -65,7 +66,7 @@ class Controller(Base):
 	    raise exception.ImageNotFound(msg) 
 	image_uuid = query.uuid
 	repository = query.name
-	tag	   = queyr.tag
+	tag	   = query.tag
 
         env        = body.get('env')
         project_id = body.get('project_id') 

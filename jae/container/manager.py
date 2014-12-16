@@ -83,11 +83,11 @@ class Manager(object):
                   'Tty'            : True,
                   'OpenStdin'      : True,
                   'StdinOnce'      : False,
-		  'Env'            : ["REPO_PATH={}".format(repos),
-			              "BRANCH={}".format(branch),
-	                              "APP_TYPE={}".format(app_type),
-	                              "APP_ENV={}".format(app_env),
-                                      "SSH_KEY={}".format(ssh_key)],
+		  'Env'            : ["REPO_PATH=%s" % repos,
+			              "BRANCH=%s" % branch,
+	                              "APP_TYPE=%s" % app_type,
+	                              "APP_ENV=%s" % app_env,
+                                      "SSH_KEY=%s" % ssh_key],
             	  'Cmd'            : ["/opt/start.sh"], 
                   'Dns'            : None,
 	          'Image'          : image_uuid,
@@ -99,14 +99,14 @@ class Manager(object):
 	resp = self.driver.create(name,kwargs)
 	if resp.status_code == 201:
 	    uuid = resp.json()['Id'] 
-	    self.db.update(id,uuid=uuid,status="created")
+	    self.db.update_container(id,uuid=uuid,status="created")
 
 	    repo_name = os.path.basename(repos)
             path=os.path.join(os.path.dirname(__file__),'files')
             source_path = os.path.join(path,user_id,repo_name)
             dest_path = "/mnt"
             kwargs = {
-                'Binds':['{}:{}'.format(source_path,dest_path)],
+                'Binds':['%s:%s' % (source_path,dest_path)],
                 'Dns':[CONF.dns],
 		'PublishAllPorts':True,
 		'PortBindings':{ "22/tcp": [{ "HostIp": fixed_ip }] }
@@ -122,12 +122,12 @@ class Manager(object):
 	    """
 	    status = self.driver.start(uuid,kwargs)
 	    if status == 204:
-		self.db.update(id,status="running")
+		self.db.update_container(id,status="running")
 	    if status == 500:
 		LOG.error("start container %s error" % uuid)
-		self.db.update(id,status="error")
+		self.db.update_container(id,status="error")
 	if resp.status_code == 500:
-	    self.db.update(id,status='error')
+	    self.db.update_container(id,status='error')
 	    raise web.exc.HTTPInternalServerError()
 	if resp.status_code == 404:
 	    LOG.error("no such image %s" % image_uuid)
@@ -136,10 +136,10 @@ class Manager(object):
     def delete(self,id):
 	query = self.db_api.get(id)
 	if query.status == 'running':
-	    self.db.update(id,status="stoping")
+	    self.db.update_container(id,status="stoping")
 	    status = self.driver.stop(query.uuid)
 	    if status in (204,304,404):
-		self.db.update(id,status="deleting")
+		self.db.update_container(id,status="deleting")
 		status = self.driver.delete(query.uuid)
 		if status in (204,404):
 		    self.db.delete(id)
@@ -147,7 +147,7 @@ class Manager(object):
 		LOG.error("I donot known what to do")
 		return 
 	if query.status == 'error':
-	    self.db.update(id,status="deleting")
+	    self.db.update_container(id,status="deleting")
 	    status = self.driver.delete(query.uuid)
 	    if status in (204,404):
 		self.db.delete(id)
@@ -166,10 +166,10 @@ class Manager(object):
 	query = self.db.get(id)
 	if query.status == "stoped":
 	    return
-	self.db.update(id,status="stoping") 
+	self.db.update_container(id,status="stoping") 
 	status = self.driver.stop(query.uuid)
 	if status == 204:
-	    self.db.update(id,status="stoped")
+	    self.db.update_container(id,status="stoped")
     
     def destroy(self,name):
 	"""

@@ -138,7 +138,12 @@ class Controller(Base):
 
     def delete(self,request,id):
         container = self.db.get_container(id)
-	host = self.db.get_host(container.host_id)	
+	host_id = container.host_id
+	host = self.db.get_host(host_id)	
+	if not host:
+	    LOG.error("no such host %s" % host_id)
+	    return Response(404)
+
 	host,port = host.host,host.port
 	response = requests.delete("http://%s:%s/containers/%s" \
 			%(host,port,id))

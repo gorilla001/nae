@@ -96,4 +96,3 @@ class Host(BaseModel):
     id = Column(String(32),primary_key=True)
     host = Column(String(20))
     port = Column(Integer)
-    zone = Column(String(10))

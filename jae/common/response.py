@@ -11,4 +11,4 @@ class Response(Response):
 class ResponseObject(Response):
     def __init__(self,data):
 	super(Response,self).__init__()		
-	self.json = json.dumps(data)
+	self.json = data

@@ -50,16 +50,18 @@ class Controller(Base):
         query= self.db.get_container(id)
         if query is not None:
             container = {
+                'id':query.id,
                 'name':query.name,
-                'id':query.prefix,
+		'uuid':query.uuid,
                 'env':query.env,
                 'project_id':query.project_id,
                 'repos':query.repos,
                 'branch':query.branch,
-                'image':query.image,
-                'network':query.network,
-                'created':query.created,
+                'image_id':query.image_id,
+                'network':query.fixed_ip,
+                'created':timeutils.isotime(query.created),
                 'user_id':query.user_id,
+		'host_id':query.host_id,
                 'status':query.status,
                 }
 

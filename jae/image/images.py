@@ -10,7 +10,7 @@ from jae.common import log as logging
 from jae.common.mercu import MercurialControl
 from jae.common import utils
 from jae.common.response import Response
-from jae.image.api import driver
+from jae.image import driver
 
 
 LOG=logging.getLogger(__name__)

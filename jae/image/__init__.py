@@ -1,5 +1,5 @@
 from jae import wsgi
-from jae.image.api import images
+from jae.image import images
 import routes
 
 class APIRouter(wsgi.Router):

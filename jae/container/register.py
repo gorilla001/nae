@@ -32,7 +32,7 @@ class Register(object):
 	    """
 	    already register? just pass.
 	    """
-	    pass
+	    print 'register' 
 
     def get_host(self):
 	"""

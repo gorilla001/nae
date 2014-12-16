@@ -38,6 +38,7 @@ jae/container/containers.py
 jae/container/driver.py
 jae/container/manager.py
 jae/container/register.py
+jae/container/wsgi.py
 jae/db/__init__.py
 jae/db/api.py
 jae/db/models.py

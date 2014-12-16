@@ -182,3 +182,13 @@ def get_hosts():
 def get_host(host_id):
     return model_query(models.Host,
 		       id=id).first()
+
+
+### register host ###
+
+def register(values):
+    session = get_session()
+    with session.begin():
+        model = models.Host()
+        model.update(values)
+        model.save(session=session)

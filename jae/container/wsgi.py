@@ -10,6 +10,7 @@ from paste.deploy import loadapp
 from jae.common import log as logging
 from jae.common import cfg
 from jae.common.exception import BodyEmptyError
+from jae.container import register
 
 LOG=logging.getLogger(__name__)
 
@@ -108,26 +109,23 @@ class Server(object):
 
 	default_pool_size = 1000
 
-	def __init__(self,name,app,host,port,backlog=128):
-	    self.name = name
+	def __init__(self,app,host,port,backlog=128):
             self._server = None
             self.app = app
             self._protocol = eventlet.wsgi.HttpProtocol
             self.pool_size = self.default_pool_size
             self._pool=eventlet.GreenPool(self.pool_size)
             self._wsgi_logger=logging.WSGILogger(logging.getLogger())
+	    self._register = register.Register()
 	        
             bind_addr = (host,port)
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
 
 	    """
-            register host for scheduler.
-            """
-	    if self.name == 'container':
-		from jae.container import register
-	    	self._register = register.Register()
-            	(self.host, self.port) = self._socket.getsockname()
-            	self._register.register(self.host,self.port)
+	    register host for scheduler.
+	    """
+	    (self.host, self.port) = self._socket.getsockname()
+	    self._register.register(self.host,self.port)
 
 	def start(self):
 	    dup_socket = self._socket.dup()

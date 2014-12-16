@@ -1,4 +1,4 @@
-from jae import wsgi
+from jae.container import wsgi
 from jae.container import containers
 import routes
 

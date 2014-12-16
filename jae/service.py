@@ -20,10 +20,10 @@ class WSGIService(object):
         self.host = getattr(CONF,"%s_bind_host" % self.name)
         self.port = Int(getattr(CONF,"%s_bind_port" % self.name)) 
         self.workers = Int(CONF.workers) 
-        self.server = wsgi.Server(
-                    self.app,
-        	    self.host,
-        	    self.port)
+        self.server = wsgi.Server(self.name,
+                                  self.app,
+        	                  self.host,
+        	                  self.port)
     def start(self):
         self.server.start()
 

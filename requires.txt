@@ -6,3 +6,4 @@ webob
 sqlalchemy
 routes
 humanize
+netifaces

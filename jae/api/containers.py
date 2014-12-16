@@ -75,7 +75,7 @@ class Controller(Base):
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
 	image_id = body.get('image_id')
-	if image == "-1":
+	if image_id == "-1":
 	    msg = "invalid image id -1."
 	    LOG.error(msg)
 	    return web.exc.HttpBadRequest(explanation=msg)

@@ -13,9 +13,12 @@ import webob
 import eventlet
 import uuid
 
+from jae.common import cfg
+from jae.common import log as logging
 
-LOG = logging.getLogger('eventlet.wsgi.server')
+LOG = logging.getLogger(__name__)
 
+CONF=cfg.CONF
 
 
 class ResponseSucceed(object):
@@ -95,7 +98,7 @@ def make_zip_tar(path):
 
     return "/tmp/%s.tar.gz" % _str
 def make_user_home(user_name,user_key):
-    path = os.path.join(os.path.dirname(__file__),'files')
+    path = CONF.static_file_path or "/tmp"
     user_home = os.path.join(path,user_name)
     if not os.path.exists(user_home):
         os.mkdir(user_home)
@@ -104,7 +107,7 @@ def make_user_home(user_name,user_key):
         os.mkdir(ssh_dir)
         authorized_keys_file = os.path.join(ssh_dir,'authorized_keys')
         with open(authorized_keys_file,'a') as f:
-            f.write('{}\n'.format(user_key))
+            f.write('%s\n' % user_key)
     return user_home
 
 def change_dir_owner(home,user_name):

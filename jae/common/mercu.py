@@ -3,13 +3,16 @@ import mercurial.ui
 import mercurial.hg
 import os
 from jae.common import log as logging
+from jae.common import cfg
+
+CONF=cfg.CONF
 
 LOG=logging.getLogger(__name__)
 
 class MercurialControl(object):
     def __init__(self):
         self._ui = mercurial.ui.ui()
-        self.path=os.path.join(os.path.dirname(__file__),'files')
+        self.path=CONF.static_file_path
     def clone(self,user_name,repo_path):
         source = repo_path
         path = os.path.join(self.path,user_name)

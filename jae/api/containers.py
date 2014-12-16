@@ -7,6 +7,7 @@ from jae.common.exception import ContainerLimitExceeded
 from jae.common.response import Response, ResponseObject
 from jae.common import quotas
 from jae.common import cfg
+from jae.common import timeutils
 from jae.scheduler import scheduler
 from jae.base import Base
 
@@ -18,6 +19,8 @@ QUOTAS=quotas.Quotas()
 
 class Controller(Base):
     def __init__(self):
+	super(Controller,self).__init__()
+
 	if not CONF.default_scheduler:
 	    self._scheduler=scheduler.SimpleScheduler()
 
@@ -36,7 +39,7 @@ class Controller(Base):
                     'id':item.id,
                     'name':item.name,
 		    'network':item.fixed_ip,
-                    'created':item.created,
+                    'created':timeutils.isotime(item.created),
                     'status':item.status,
                     }
             containers.append(container)
@@ -79,7 +82,7 @@ class Controller(Base):
 	    msg = "invalid image id -1."
 	    LOG.error(msg)
 	    return web.exc.HttpBadRequest(explanation=msg)
-        query = self.db_api.get_image(image_id)
+        query = self.db.get_image(image_id)
         if not query: 
 	    msg = "image id is invalid,no such image."
             LOG.error(msg)
@@ -92,7 +95,7 @@ class Controller(Base):
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
 	limit = QUOTAS.containers or _CONTAINER_LIMIT
-	query = self.db_api.get_containers(project_id,user_id)
+	query = self.db.get_containers(project_id,user_id)
 	if len(query) >= limit:
 	    msg = 'container limit exceeded!!!'
 	    LOG.error(msg)
@@ -114,7 +117,7 @@ class Controller(Base):
 	if not env:
 	    msg = "env must be provided"
 	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanaiton=msg)
+	    return webob.exc.HTTPBadRequest(explanation=msg)
 
 	user_key = body.get('user_key') or ''
 	

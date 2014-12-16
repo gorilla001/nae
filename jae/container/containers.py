@@ -10,7 +10,7 @@ from jae.common import log as logging
 from jae.common.view import View
 from jae.common.response import Response
 from jae.common import cfg
-from jae.container.api import manager
+from jae.container import manager
 
 LOG=logging.getLogger(__name__)
 

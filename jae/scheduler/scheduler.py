@@ -75,9 +75,9 @@ class SimpleScheduler(driver.Scheduler):
 			host_id)
 	try:
 	    self.post(host,
-		      port,
-		      db_id=db_id,
-		      name=name,
+	              port,
+	              db_id=db_id,
+	              name=name,
                       env=env,
                       project_id=project_id,
                       repos=repos,
@@ -92,9 +92,8 @@ class SimpleScheduler(driver.Scheduler):
 
 	    """raise error to controller"""
 	    raise 
-    
-	instance = { "id":db_id,"name":name }
-	return instance
+        intance={"id":db_id} 
+	return ResponseObject(instance) 
 
     def delete_instance(self,id):
 	pass

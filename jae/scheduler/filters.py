@@ -15,9 +15,12 @@ class StatusFilter(object):
     def service_is_up(self,host):
 	telnet = Telnet() 
 	try:
-	    telnet.open(host.host,host.port)
+	    telnet.open(str(host.host),int(host.port))
 	except socket.error: 
 	    return False
+	except error:
+	    raise
+	     
 	finally:
 	    telnet.close()
 	

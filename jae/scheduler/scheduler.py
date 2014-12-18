@@ -6,6 +6,7 @@ from requests import ConnectionError
 from operator import attrgetter
 from jae.common import exception
 from jae.common import log as logging
+from jae.common.response import ResponseObject,Response
 
 from jae.scheduler import driver
 from jae.scheduler import filters
@@ -92,8 +93,8 @@ class SimpleScheduler(driver.Scheduler):
 
 	    """raise error to controller"""
 	    raise 
-        intance={"id":db_id} 
-	return ResponseObject(instance) 
+
+	return {"id":db_id} 
 
     def delete_instance(self,id):
 	pass

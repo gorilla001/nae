@@ -138,6 +138,8 @@ class Controller(Base):
 
     def delete(self,request,id):
         container = self.db.get_container(id)
+	if not container:
+	    return Response(200)
 	host_id = container.host_id
 	host = self.db.get_host(host_id)	
 	if not host:

@@ -101,8 +101,13 @@ class Manager(object):
 	    uuid = resp.json()['Id'] 
 	    self.db.update_container(id,uuid=uuid,status="created")
 
+	    network = self.network.get_fixed_ip() 
+	    try:
+	        nwutils.create_virtual_iface(uuid[:12],network)
+	    except exception.NetWorkError:
+		raise
 	    repo_name = os.path.basename(repos)
-            path=os.path.join(os.path.dirname(__file__),'files')
+            path=os.path.join(CONF.static_file_path,'files')
             source_path = os.path.join(path,user_id,repo_name)
             dest_path = "/mnt"
             kwargs = {

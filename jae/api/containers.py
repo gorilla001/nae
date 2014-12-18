@@ -147,7 +147,7 @@ class Controller(Base):
 	    return Response(404)
 
 	host,port = host.host,host.port
-	response = requests.delete("http://%s:%s/containers/%s" \
+	response = requests.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
         return Response(response.status_code) 
 

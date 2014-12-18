@@ -48,13 +48,25 @@ class API(object):
 	response = requests.post("%s?fromImage=%s" % (url,from_image))
         return response.status_code
 
-    def start(self,uuid,kwargs):
+    def start(self,uuid):
 	"""
 	start a container with kwargs specified by uuid.
 	"""
+	kwargs={
+               'Cmd':["/usr/bin/supervisord"],
+               'PortBindings':{}}
 	response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))
 				
 	return response.status_code
 
+    def stop(self,uuid):
+         """stop the container specified by uuid"""
+         response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
+         return response.status_code
+
+    def delete(self,uuid):
+         """delete the container uuid"""
+         response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
+         return response.status_code

@@ -11,6 +11,7 @@ from jae.common.view import View
 from jae.common.response import Response
 from jae.common import cfg
 from jae.container import manager
+from jae.common import states
 
 LOG=logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class Controller(Base):
 	host = CONF.my_ip
 	if not host:
 	    return []
-	return self.db_api.gets_by_host(host)
+	return self.db.gets_by_host(host)
 	"""
 
     def show(self,request,id):
@@ -45,8 +46,8 @@ class Controller(Base):
 	"""
 	delete container for given container id.
 	"""
-        query = self.db_api.get_container(id)
-	if len(query) == 0:
+        query = self.db.get_container(id)
+	if not query:
 	    LOG.error("no such container")
 	    return webob.exc.HttpNotFound()
 
@@ -97,41 +98,22 @@ class Controller(Base):
 	"""
 	start container for given id.
 	"""
-	id = body.get('id')
-        query = self.db_api.get_container(id)
-	self.db_api.update_container(
-		id = query.id,
-		status = "starting")
+        query = self.db.get_container(id)
+        if query.status == states.RUNNING:
+           LOG.info("already running,ignore...")
+            return Response(204)
+        eventlet.spawn_n(self._manager.start,id)
 
-	bindings = {}
-	querys = self.db_api.get_networks(id)
-	for query in querys:
-		_port = "{}/tcp".format(query.public_port)
-		data = {
-			_port:
-			[
-			    {
-				"HostIp":query,
-				"HostPort":query,
-			    }
-			]
-		}
-		bindings.update(data)
-	kwargs={
-		'Cmd':["/usr/bin/supervisord"],
-		'PortBindings':bindings,
-	}	
-	eventlet.spawn_n(self.con_api.run,
-			 kwargs,
-			 id,
-			 uuid)
-
-        return {"status":200} 
+        return Response(204)
 
     def stop(self,request,id):
 	"""
 	stop a container by a given id.
 	"""
+	query = self.db.get_container(id)
+        if query.status == states.STOPED:
+            LOG.info("already stoped,ignore...")
+            return Response(204)
 	eventlet.spawn_n(self._manager.stop,id)
 
         return Response(204) 

@@ -10,7 +10,7 @@ from jae.common.exception import NetWorkError
 from jae.common import nwutils
 
 from jae.container import driver
-from jae import db
+from jae import base 
 from jae.network import manager
 
 
@@ -19,9 +19,10 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class Manager(object):
+class Manager(base.Base):
     def __init__(self):
-	self.db = db.API()
+	super(Manager,self).__init__()
+
 	self.driver = driver.API()
 	self.mercurial = MercurialControl()
 	self.network = manager.NetworkManager()
@@ -153,7 +154,8 @@ class Manager(object):
 	    return
 
     def delete(self,id):
-	query = self.db_api.get(id)
+	LOG.info("DELETE +job delete %s" % id)
+	query = self.db.get_container(id)
 	if query.status == 'running':
 	    self.db.update_container(id,status="stoping")
 	    status = self.driver.stop(query.uuid)
@@ -161,19 +163,27 @@ class Manager(object):
 		self.db.update_container(id,status="deleting")
 		status = self.driver.delete(query.uuid)
 		if status in (204,404):
-		    self.db.delete(id)
+		    self.db.delete_container(id)
 	    if status == 500:
 		LOG.error("I donot known what to do")
 		return 
-	if query.status == 'error':
+	elif query.status == 'error':
 	    self.db.update_container(id,status="deleting")
 	    status = self.driver.delete(query.uuid)
 	    if status in (204,404):
-		self.db.delete(id)
-	if query.status == "stoped":
+		self.db.delete_container(id)
+	elif query.status == "stoped":
 	    status = self.driver.delete(query.uuid)
 	    if status in (204,404):
-		self.db.delete(id)
+		self.db.delete_container(id)
+	else:
+           self.db.update_container(id,status="deleting")
+           self.db.delete_container(id)
+        try:
+            nwutils.delete_virtual_iface(query.uuid[:8])
+        except:
+            raise
+	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,kwargs,uuid):
 	return status
@@ -182,7 +192,7 @@ class Manager(object):
 	"""
 	stop container for a given id.
 	"""
-	query = self.db.get(id)
+	query = self.db.get_container(id)
 	if query.status == "stoped":
 	    return
 	self.db.update_container(id,status="stoping") 

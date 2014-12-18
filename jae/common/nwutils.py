@@ -15,4 +15,12 @@ def create_virtual_iface(uuid,addr):
 	raise NetWorkError("create virtual interface error %s " % output)
 
 def delete_virtual_iface(uuid):
-    pass
+    prefix = CONF.interface_name
+    if not prefix:
+       raise NetWorkError("no interface specified!")
+    if len(uuid) > 8:
+       uuid = uuid[:8]
+    vif = "%s:%s" % (prefix,uuid)
+    status,output = commands.getstatusoutput('ifconfig %s down' % vif)
+    if status != 0:
+       raise NetWorkError("delete virtual interface error %s " % output)

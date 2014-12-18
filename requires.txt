@@ -7,3 +7,5 @@ sqlalchemy
 routes
 humanize
 netifaces
+repoze.lru
+mercurial

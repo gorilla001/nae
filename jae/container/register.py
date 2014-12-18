@@ -1,6 +1,7 @@
 from jae import db 
 from jae.common import cfg
 from jae.common import log as logging
+from jae.common import exception
 import uuid
 import netifaces
 from sqlalchemy.exc import IntegrityError
@@ -41,7 +42,7 @@ class Register(object):
 	"""
 	interface_name = CONF.interface_name
 	if not interface_name:	
-	    interface_name = 'eth0'
+	    raise exception.NetWorkError("no interface specified!")
         addrs = netifaces.ifaddresses(interface_name)
 	
 	return addrs[netifaces.AF_INET][0]['addr']

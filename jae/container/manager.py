@@ -6,6 +6,8 @@ from jae.common import log as logging
 from jae.common.cfg import Int, Str
 from jae.common import utils
 from jae.common.mercu import MercurialControl 
+from jae.common.exception import NetWorkError
+from jae.common import nwutils
 
 from jae.container import driver
 from jae import db
@@ -103,9 +105,21 @@ class Manager(object):
 
 	    network = self.network.get_fixed_ip() 
 	    try:
-	        nwutils.create_virtual_iface(uuid[:12],network)
-	    except exception.NetWorkError:
+	        nwutils.create_virtual_iface(uuid[:8],network)
+	    except NetWorkError:
 		raise
+	    self.db.update_container(id,fixed_ip=network)
+
+            PB={}
+	    EP=port
+            for key in EP.keys():
+                nt_list=[]
+                nt = { "HostIp":network,
+                       "HostPort":key.rpartition("/")[0]
+                     }
+                nt_list.append(nt)
+                PB[key] = nt_list
+
 	    repo_name = os.path.basename(repos)
             path=os.path.join(CONF.static_file_path,'files')
             source_path = os.path.join(path,user_id,repo_name)
@@ -114,7 +128,7 @@ class Manager(object):
                 'Binds':['%s:%s' % (source_path,dest_path)],
                 'Dns':[CONF.dns],
 		'PublishAllPorts':True,
-		'PortBindings':{ "22/tcp": [{ "HostIp": fixed_ip }] }
+		'PortBindings':PB
             }
 
 	    """

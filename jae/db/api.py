@@ -181,7 +181,7 @@ def get_hosts():
 
 def get_host(host_id):
     return model_query(models.Host,
-		       id=id).first()
+		       id=host_id).first()
 
 
 ### register host ###

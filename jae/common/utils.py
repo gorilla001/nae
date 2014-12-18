@@ -55,8 +55,7 @@ def get_file_path(user_name,repo_name):
     return user_dir 
 
 def repo_exist(user_name,repo_name):
-    base_dir=os.path.dirname(__file__)
-    user_dir=os.path.join(base_dir,'files',user_name)
+    user_dir=os.path.join(CONF.static_file_path,user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
         return False 

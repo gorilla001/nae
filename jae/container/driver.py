@@ -48,13 +48,10 @@ class API(object):
 	response = requests.post("%s?fromImage=%s" % (url,from_image))
         return response.status_code
 
-    def start(self,uuid):
+    def start(self,uuid,kwargs):
 	"""
 	start a container with kwargs specified by uuid.
 	"""
-	kwargs={
-               'Cmd':["/usr/bin/supervisord"],
-               'PortBindings':{}}
 	response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))

@@ -36,7 +36,7 @@ class Manager(base.Base):
 	"""pull or clone code from repos repos and update to branch branch."""
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(repos)
-        if utils.repo_exist(user,repo_name):
+        if utils.repo_exist(user_home,repo_name):
             self.mercurial.pull(user,repos)
         else:
             self.mercurial.clone(user,repos)
@@ -58,6 +58,7 @@ class Manager(base.Base):
 		user_id):
 	"""create new container use mount of args."""
 
+	LOG.info("CREATE +job create %s" % id)
 	resp = self.driver.inspect_image(image_uuid)
 	if resp.status_code == 404:
 	    LOG.error("inspect error,no such image?")
@@ -153,6 +154,7 @@ class Manager(base.Base):
 	    LOG.error("no such image %s" % image_uuid)
 	    return
 
+	LOG.info("CREATE -job create %s" % id)
     def delete(self,id):
 	LOG.info("DELETE +job delete %s" % id)
 	query = self.db.get_container(id)
@@ -185,13 +187,38 @@ class Manager(base.Base):
             raise
 	LOG.info("DELETE -job delete %s" % id)
 
-    def start(self,kwargs,uuid):
-	return status
+    def start(self,id):
+	"""start container"""
+	LOG.info("START +job start %s" % id)
+	self.db.update_container(id,status="starting") 
+	query = self.db.get_container(id)
+	uuid = query.uuid
+	network = query.fixed_ip
+	image_id = query.image_id
+	image = self.db.get_image(image_id)
+	resp = self.driver.inspect_image(image.uuid)
+        port=resp.json()['Config']['ExposedPorts']
+	PB={}
+        EP=port
+        for key in EP.keys():
+            nt_list=[]
+            nt = { "HostIp":network,
+                   "HostPort":key.rpartition("/")[0]}
+            nt_list.append(nt)
+            PB[key] = nt_list
+	kwargs={"Cmd":["/usr/bin/supervisord"],
+		"PortBindings":PB}
+	status = self.driver.start(uuid,kwargs)
+	if status == 204:
+	    self.db.update_container(id,status="running")
+	LOG.info("START -job start %s" % id)
 
     def stop(self,id):
 	"""
 	stop container for a given id.
 	"""
+	LOG.info("STOP +job stop %s" % id)
+	
 	query = self.db.get_container(id)
 	if query.status == "stoped":
 	    return
@@ -200,6 +227,8 @@ class Manager(base.Base):
 	if status == 204:
 	    self.db.update_container(id,status="stoped")
     
+	LOG.info("STOP -job stop %s" % id)
+
     def destroy(self,name):
 	"""
 	destroy a temporary container by a given name.

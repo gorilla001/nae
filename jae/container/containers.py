@@ -29,12 +29,6 @@ class Controller(Base):
         return containers list.
 	"""
 	return webob.exc.HTTPMethodNotAllowed()
-	"""
-	host = CONF.my_ip
-	if not host:
-	    return []
-	return self.db.gets_by_host(host)
-	"""
 
     def show(self,request,id):
 	"""
@@ -100,7 +94,7 @@ class Controller(Base):
 	"""
         query = self.db.get_container(id)
         if query.status == states.RUNNING:
-           LOG.info("already running,ignore...")
+            LOG.info("already running,ignore...")
             return Response(204)
         eventlet.spawn_n(self._manager.start,id)
 
@@ -118,8 +112,9 @@ class Controller(Base):
 
         return Response(204) 
 
-    def reboot(self,request):
-	pass
+    def reboot(self,request,id):
+	"""reboot a container""" 
+        return NotImplemented	
 
     def destroy(self,request,name):
 	"""
@@ -132,28 +127,10 @@ class Controller(Base):
     def commit(self,request,body):
 	repo = body.get('repo') 
 	tag = body.get('tag')
-	eentlet.spawn_n(self.con_api.commit(repo,tag))
+	eventlet.spawn_n(self.con_api.commit(repo,tag))
 
-        return {"status":200} 
+        return Response(200) 
 	
    
-    def get_container_info(self,name):
-        result=self.compute_api.inspect_container(name)
-        container_id = result.json()['Id'][:12]
-        network_settings = result.json()['NetworkSettings']
-        ports=network_settings['Ports'] 
-        private_host = network_settings['IPAddress']
-        network_config=list()
-        for port in ports:
-            private_port = port.rsplit('/')[0] 
-            for item in ports[port]:
-                host_ip=item['HostIp']
-                host_port=item['HostPort']
-            network_config.append("{}:{}->{}".format(host_ip,host_port,private_port))
-        return (container_id,network_config,)
-    
-    
-
- 
 def create_resource():
     return wsgi.Resource(Controller())

@@ -1,4 +1,5 @@
 import requests
+import uuid
 from jae.common import cfg
 from jae.common import log as logging
 
@@ -10,26 +11,22 @@ LOG=logging.getLogger(__name__)
 
 class API(object):
     def __init__(self):
-	self.endpoint = CONF.service_endpoint
+	self.host = Str(CONF.host)
+        self.port = Int(CONF.port)
         self.headers={'Content-Type':'application/json'}
 
     def create(self,name,data):
-        _url = "%s/images/create?name=%s" % \
-               (self.endpoint,name)
-        return requests.post(_url,
-		    data=data)
-	
+	pass	
+
     def inspect(self,name):
-        _url = "%s/images/%s/json" % \
-	       (self.endpoint,name)
-        response=requests.get(_url)
+	response = requests.get("http://%s:%s/images/%s/json" % \
+                                (self.host,self.port,name))
         return response.status_code,response.json()
 
     def build(self,name,data):
-        _url = "%s/build?t=%s" % \
-               (self.endpoint,name)
-        headers={'Content-Type':'application/tar'}
-        response = requests.post(_url,headers=headers,data=data)
+	response = requests.post("http://%s:%s/build?t=%s" % (self.host,self.port,name),
+				 headers={'Content-Type':'application/tar'},
+				 data=data)	
         return response.status_code
 
     def delete(self,repository,tag):
@@ -52,6 +49,12 @@ class API(object):
 	    image_registry_endpoint = image_registry_endpoint.replace("http://","")
 	host = Str(CONF.host)
         port = Int(CONF.port)
-	response=requests.post("%s:%s/v1/images/%s/tag?repo=%s&force=0&tag=latest" 
-                       % (host,port,name,image_registry_endpoint))
-	return response.status_code
+	response=requests.post("http://%s:%s/images/%s/tag?repo=%s/%s&force=0&tag=latest" 
+                       % (host,port,name,image_registry_endpoint,name))
+	return response.status_code,"%s/%s" % (image_registry_endpoint,name)
+
+    def push(self,name):
+	response=requests.post("http://%s:%s/images/%s/push" % \
+                                (self.host,self.port,name),
+				headers={'X-Registry-Auth':uuid.uuid4().hex})
+   	return response.status_code

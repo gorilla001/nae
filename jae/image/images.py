@@ -5,15 +5,16 @@ import os
 import requests
 
 from jae import wsgi
-from jae import db
 from jae import base
 from jae.common import log as logging
 from jae.common.mercu import MercurialControl
 from jae.common import utils
-from jae.common.response import Response
+from jae.common.response import Response, ResponseObject
 from jae.image import driver
+from jae.common import cfg
 
 
+CONF=cfg.CONF
 LOG=logging.getLogger(__name__)
 
 
@@ -38,7 +39,7 @@ class Controller(base.Base):
         branch     = body.get('branch')
         user_id    = body.get('user_id')
         id         = uuid.uuid4().hex
-        self.db.create(dict(
+        self.db.add_image(dict(
                 id=id,
                 name=name,
                 tag="latest",
@@ -57,7 +58,7 @@ class Controller(base.Base):
                          user_id)
 
 
-        return Response(200) 
+        return ResponseObject({"id":id}) 
 
     def _create(self,
 		id,
@@ -66,13 +67,23 @@ class Controller(base.Base):
                 branch,
                 user_id):
         repo_name=os.path.basename(repos)
+	user_home = os.path.join(CONF.static_file_path,user_id)
+	if not os.path.exists(user_home):
+	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):
-            self.mercurial.pull(user_id,repos)
+	    try:
+                self.mercurial.pull(user_id,repos)
+	    except:
+                self.db.update_image(id,status="error")
+		return Response(500)
         else:
-            self.mercurial.clone(user_id,repos)
+	    try:
+                self.mercurial.clone(user_id,repos)
+	    except:
+                self.db.update_image(id,status="error")
+		return Response(500)
         self.mercurial.update(user_id,repos,branch)
-        file_path=utils.get_file_path(user_id,repo_name)
-        tar_path=utils.make_zip_tar(file_path)
+        tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 
 	with open(tar_path,'rb') as data:
 	    status=self.driver.build(name,data)
@@ -80,24 +91,22 @@ class Controller(base.Base):
 	    LOG.error("request URL not Found!")
             return 
 	if status == 200:
-	    tag_status=self.driver.tag(name)
-	    if tag_status == 201:
-	        LOG.info("TAG -job tag %s" % id)
-
+	    """update db entry if successful build"""
             status,json=self.driver.inspect(name)
-	    if status == 200:
-		uuid = json.get('Id')
-            	self.db.update_image(id,
-                                     uuid=uuid,
-                                     status = "ok")
-	    if status == 404:
-            	self.db.update_image(id,
-			       status="error")
-	        LOG.error("image {} create failed!".format(name)) 
-	    if status == 500:
-	        self.db.update_image(id,
-                               status = "500")
-	        LOG.error("image {} create failed!".format(name)) 
+	    uuid = json.get('Id')
+            self.db.update_image(id,uuid=uuid)
+	    """ tag image into repositories if successful build"""
+	    LOG.info("TAG +job tag %s" % id)
+	    tag_status,tag =self.driver.tag(name)
+	    LOG.info("TAG -job tag %s" % id)
+	    if tag_status == 201:
+		"""push image into repositories if successful tag"""
+		LOG.info("PUSH +job push %s" % tag)
+		push_status=self.driver.push(tag)
+		LOG.info("PUSH -job push %s" % tag)
+		if push_status == 200:
+		    """update db entry if successful push"""
+                    self.db.update_image(id,status="ok")
         if status == 500:
 	    self.db.update_image(id,
                            status = "500")

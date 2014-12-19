@@ -134,6 +134,5 @@ class Controller(base.Base):
 	        self.db.update_image(id,status=status)
 	LOG.info("DELETE -job delete %s" % id)
 	    
-	    
 def create_resource():
     return wsgi.Resource(Controller())

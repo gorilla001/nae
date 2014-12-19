@@ -35,7 +35,7 @@ class API(object):
             LOG.error('no registry endpoint found!')
             return 404
 	if not image_registry_endpoint.startswith("http://"):
-	    image_registry_endpoint += "http://"
+	    image_registry_endpoint = "http://" + image_registry_endpoint
 	response=requests.delete("%s/v1/repositories/%s/tags/%s" % \
 				(image_registry_endpoint,repository,tag))
 	return response.status_code

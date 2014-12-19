@@ -6,6 +6,7 @@ import requests
 
 from jae import wsgi
 from jae import db
+from jae import base
 from jae.common import log as logging
 from jae.common.mercu import MercurialControl
 from jae.common import utils
@@ -16,9 +17,8 @@ from jae.image import driver
 LOG=logging.getLogger(__name__)
 
 
-class Controller(object):
+class Controller(base.Base):
     def __init__(self):
-        self.db=db.API()
         self.mercurial=MercurialControl()
         self.driver=driver.API()
 

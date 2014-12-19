@@ -101,10 +101,17 @@ class Controller(Base):
 	self.db_api.update_image(id=id,status="deleting")
         self.image_api.delete_image(_image_id,image_id,f_id)
 	"""
-	query = self.db.get_image(id)
-        self.image_api.delete(id)
-
-	return Response(200) 
+	image_instance = self.db.get_image(id)
+	if not image_instance:
+	    LOG.warning("no such image %s" % id)
+	    return Response(404)
+	image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	response = requests.delete("http://%s/%s" % \
+			(image_service_endpoint,id))
+	return Response(response.status_code) 
 
     def edit(self,request,id):
         query = self.db_api.get_image(id)

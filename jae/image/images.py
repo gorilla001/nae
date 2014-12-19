@@ -80,22 +80,26 @@ class Controller(base.Base):
 	    LOG.error("request URL not Found!")
             return 
 	if status == 200:
+	    tag_status=self.driver.tag(name)
+	    if tag_status == 201:
+	        LOG.info("TAG -job tag %s" % id)
+
             status,json=self.driver.inspect(name)
 	    if status == 200:
 		uuid = json.get('Id')
-            	self.db.update(id,
-                               uuid=uuid,
-                               status = "ok")
+            	self.db.update_image(id,
+                                     uuid=uuid,
+                                     status = "ok")
 	    if status == 404:
-            	self.db.update(id,
+            	self.db.update_image(id,
 			       status="error")
 	        LOG.error("image {} create failed!".format(name)) 
 	    if status == 500:
-	        self.db.update(id,
+	        self.db.update_image(id,
                                status = "500")
 	        LOG.error("image {} create failed!".format(name)) 
         if status == 500:
-	    self.db.update(id,
+	    self.db.update_image(id,
                            status = "500")
 	    LOG.error("image {} create failed!".format(name)) 
 
@@ -109,10 +113,12 @@ class Controller(base.Base):
     def _delete(self,id):
 	LOG.info("DELETE +job delete %s" % id)
 	image_instance = self.db.get_image(id)
-	if not image_instance.uuid:
+	if image_instance:
+	    repository = image_instance.name
+	    tag = image_instance.tag
 	    self.db.update_image(id,
 		       status="deleting")
-	    status = self.driver.delete(image_instance.uuid)
+	    status = self.driver.delete(repository,tag)
 	    if status in (200,404):
 	        self.db.delete_image(id)
 	    if status in (409,500):

@@ -1,0 +1,6 @@
+
+
+
+
+RUNNING = 'running'
+STOPED  = 'stoped'

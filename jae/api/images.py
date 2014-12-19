@@ -1,5 +1,7 @@
 import webob
 import uuid
+import requests
+from requests import ConnectionError
 from sqlalchemy.exc import IntegrityError
 
 from jae import wsgi
@@ -7,6 +9,7 @@ from jae import image
 from jae.base import Base
 from jae.common.timeutils import isotime
 from jae.common import log as logging
+from jae.common import cfg
 from jae.common import quotas
 from jae.common.exception import BodyEmptyError, ParamNoneError
 from jae.common.response import Response, ResponseObject
@@ -14,6 +17,7 @@ from jae.common.view import View
 from jae.common import utils
 
 
+CONF=cfg.CONF
 LOG=logging.getLogger(__name__)
 
 QUOTAS=quotas.Quotas()
@@ -97,10 +101,7 @@ class Controller(Base):
         return ResponseObject(image) 
 
     def delete(self,request,id):
- 	"""	
-	self.db_api.update_image(id=id,status="deleting")
-        self.image_api.delete_image(_image_id,image_id,f_id)
-	"""
+ 	"""delete image (id)."""
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
@@ -109,8 +110,14 @@ class Controller(Base):
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
 	    return Response(404)
-	response = requests.delete("http://%s/%s" % \
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+	try:
+	    response = requests.delete("%s/%s" % \
 			(image_service_endpoint,id))
+	except ConnectionError,err:
+	     LOG.error(err)
+	     return Response(500)
 	return Response(response.status_code) 
 
     def edit(self,request,id):

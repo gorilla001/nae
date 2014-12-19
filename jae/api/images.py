@@ -1,6 +1,7 @@
 import webob
 import uuid
 import requests
+import json
 from requests import ConnectionError
 from sqlalchemy.exc import IntegrityError
 
@@ -73,7 +74,7 @@ class Controller(Base):
 	    return Response(500) 
 
 	limit = QUOTAS.images or _IMAGE_LIMIT 
-	query = self.db_api.get_images(project_id)
+	query = self.db.get_images(project_id)
 	if len(query) >= limit :
 	    LOG.error("images limit exceed,can not created anymore...")
 	    return Response(500) 
@@ -93,12 +94,18 @@ class Controller(Base):
 	    LOG.error('user_id cannot be None!')
 	    return Response(500) 
 
+	image_service_endpoint = CONF.image_service_endpoint	
+	if not image_service_endpoint:
+	    LOG.error("image service endpoint not found!")
+	    return Response(500)
 	try:
-            image = self._manager.create(body)
+	    print image_service_endpoint
+            image = requests.post(image_service_endpoint, \
+				     headers={'Content-Type':'application/json'}, \
+				     data=json.dumps(body))
 	except:
 	    pass
-
-        return ResponseObject(image) 
+        return ResponseObject(image.json())
 
     def delete(self,request,id):
  	"""delete image (id)."""
@@ -121,7 +128,7 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-        query = self.db_api.get_image(id)
+        query = self.db.get_image(id)
 	name = utils.random_str()
 	port = utils.random_port()
 	kwargs={"Image":query.uuid}
@@ -140,7 +147,7 @@ class Controller(Base):
  	proj_id = request.GET.pop('proj_id')
 
 	img_limit = quotas.get_quotas().get('image_limit')	
-	img_count = self.db_api.get_images(proj_id)
+	img_count = self.db.get_images(proj_id)
 	img_count = len(img_count.fetchall())	
 	if img_count == img_limit :
 	    LOG.info("images limit exceed,can not created anymore...")
@@ -150,7 +157,7 @@ class Controller(Base):
 
     def conflict(self,request):
 	_id=request.environ['wsgiorg.routing_args'][1]['image_id']
-	ctn_info=self.db_api.get_containers_by_image(_id)
+	ctn_info=self.db.get_containers_by_image(_id)
 	ctn_list=[]
 	for item in ctn_info.fetchall():
 		ctn_name=item[2]

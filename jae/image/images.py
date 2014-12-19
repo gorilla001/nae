@@ -109,9 +109,9 @@ class Controller(base.Base):
     def _delete(self,id,uuid):
 	status = self.driver.delete(uuid)
 	if status in (200,404):
-	    self.db.delete(id)
+	    self.db.delete_image(id)
 	if status in (409,500):
-	    self.db.update(id,status=status)
+	    self.db.update_image(id,status=status)
 	    
 	    
 def create_resource():

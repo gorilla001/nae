@@ -19,6 +19,8 @@ LOG=logging.getLogger(__name__)
 
 class Controller(base.Base):
     def __init__(self):
+	super(Controller,self).__init__()
+
         self.mercurial=MercurialControl()
         self.driver=driver.API()
 
@@ -98,20 +100,24 @@ class Controller(base.Base):
 	    LOG.error("image {} create failed!".format(name)) 
 
     def delete(self,request,id):
-	self.db.update(id,
-		       status="deleting")
+	"""delete image by id"""
 	
-	query = self.db.get(id)
-	eventlet.spawn_n(self._delete,id,query.uuid)
+	eventlet.spawn_n(self._delete,id)
 
 	return Response(200)
 
-    def _delete(self,id,uuid):
-	status = self.driver.delete(uuid)
-	if status in (200,404):
-	    self.db.delete(id)
-	if status in (409,500):
-	    self.db.update(id,status=status)
+    def _delete(self,id):
+	LOG.info("DELETE +job delete %s" % id)
+	image_instance = self.db.get_image(id)
+	if not image_instance.uuid:
+	    self.db.update_image(id,
+		       status="deleting")
+	    status = self.driver.delete(image_instance.uuid)
+	    if status in (200,404):
+	        self.db.delete_image(id)
+	    if status in (409,500):
+	        self.db.update_image(id,status=status)
+	LOG.info("DELETE -job delete %s" % id)
 	    
 	    
 def create_resource():

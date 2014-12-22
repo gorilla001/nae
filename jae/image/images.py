@@ -111,6 +111,7 @@ class Controller(base.Base):
 		    """update db entry if successful push."""
                     self.db.update_image(id,status="ok")
 		else:
+                    self.db.update_image(id,status="error")
 		    LOG.info("PUSH -job push %s = ERR" % tag)
         if status == 500:
 	    self.db.update_image(id,status = "error")

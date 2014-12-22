@@ -49,8 +49,8 @@ def random_str(randomlength=8):
     return str
 
 def get_file_path(user_name,repo_name):
-    base_dir = os.path.dirname(__file__)
-    user_dir=os.path.join(base_dir,'files',user_name,repo_name)
+    base_dir = CONF.static_file_path 
+    user_dir=os.path.join(base_dir,user_name,repo_name)
 
     return user_dir 
 

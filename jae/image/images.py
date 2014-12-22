@@ -36,7 +36,7 @@ class Controller(base.Base):
         branch     = body.get('branch')
         user_id    = body.get('user_id')
         id         = uuid.uuid4().hex
-        self.db.create(dict(
+        self.db.add_image(dict(
                 id=id,
                 name=name,
                 tag="latest",

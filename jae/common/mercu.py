@@ -29,6 +29,7 @@ class MercurialControl(object):
         except Exception,error:
             LOG.error('could not clone repo:%s' % repo_path)
             LOG.error(error)
+	    raise 
     def pull(self,user_name,repo_path):
         source = repo_path
         path = os.path.join(self.path,user_name)
@@ -55,4 +56,5 @@ class MercurialControl(object):
                                       rev=branch,clean=True)
         except RepoError as err:
 	    LOG.error(err)
+	    raise
 

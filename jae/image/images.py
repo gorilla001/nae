@@ -86,11 +86,14 @@ class Controller(base.Base):
         tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 
 	with open(tar_path,'rb') as data:
+	    LOG.info("BUILD +job build %s" % name)
 	    status=self.driver.build(name,data)
         if status == 404:
 	    LOG.error("request URL not Found!")
+	    LOG.info("BUILD -job build %s = ERR" % name)
             return 
 	if status == 200:
+	    LOG.info("BUILD -job build %s = OK" % name)
 	    """update db entry if successful build."""
             status,json=self.driver.inspect(name)
 	    uuid = json.get('Id')
@@ -103,13 +106,16 @@ class Controller(base.Base):
 		"""push image into repositories if successful tag."""
 		LOG.info("PUSH +job push %s" % tag)
 		push_status=self.driver.push(tag)
-		LOG.info("PUSH -job push %s" % tag)
 		if push_status == 200:
+		    LOG.info("PUSH -job push %s = OK" % tag)
 		    """update db entry if successful push."""
                     self.db.update_image(id,status="ok")
+		else:
+		    LOG.info("PUSH -job push %s = ERR" % tag)
         if status == 500:
 	    self.db.update_image(id,status = "error")
 	    LOG.error("image {} create failed!".format(name)) 
+	    LOG.info("BUILD -job build %s = ERR" % name)
 
     def delete(self,request,id):
 	"""delete image by id"""

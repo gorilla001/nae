@@ -104,7 +104,8 @@ class Controller(Base):
 				     headers={'Content-Type':'application/json'}, \
 				     data=json.dumps(body))
 	except:
-	    pass
+	    return Response(500) 
+
         return ResponseObject(image.json())
 
     def delete(self,request,id):

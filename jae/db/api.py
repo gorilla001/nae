@@ -194,4 +194,4 @@ def register(values):
         model.save(session=session)
 
 def register_update(id,**values):
-    return model_query(models.Host,id=id).update(value)
+    return model_query(models.Host,id=id).update(values)

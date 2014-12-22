@@ -36,6 +36,7 @@ jae/common/timeutils.py
 jae/common/utils.py
 jae/common/view.py
 jae/container/__init__.py
+jae/container/autostart.py
 jae/container/containers.py
 jae/container/driver.py
 jae/container/manager.py

@@ -124,10 +124,15 @@ class Server(object):
             register host for scheduler.
             """
 	    if self.name == 'container':
+		"""register host."""
 		from jae.container import register
 	    	self._register = register.Register()
             	(self.host, self.port) = self._socket.getsockname()
             	self._register.register(self.host,self.port)
+		"""start containers on this host."""
+		from jae.container import autostart
+		self._start_manager = autostart.StartManager()
+		self._start_manager.start_all()
 
 	def start(self):
 	    dup_socket = self._socket.dup()

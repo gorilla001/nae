@@ -11,6 +11,7 @@ from jae.common import log as logging
 from jae.common import cfg
 from jae.common.exception import BodyEmptyError
 from jae.container import register
+from jae.container import autostart
 
 LOG=logging.getLogger(__name__)
 
@@ -117,6 +118,7 @@ class Server(object):
             self._pool=eventlet.GreenPool(self.pool_size)
             self._wsgi_logger=logging.WSGILogger(logging.getLogger())
 	    self._register = register.Register()
+	    self._start_manager= autostart.StartManager()
 	        
             bind_addr = (host,port)
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
@@ -126,6 +128,9 @@ class Server(object):
 	    """
 	    (self.host, self.port) = self._socket.getsockname()
 	    self._register.register(self.host,self.port)
+
+	    """start all containers on this host."""
+	    self._start_manager.start_all()
 
 	def start(self):
 	    dup_socket = self._socket.dup()

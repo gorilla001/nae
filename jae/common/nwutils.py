@@ -27,6 +27,7 @@ def create_virtual_iface(uuid,addr):
     commands.getstatusoutput("echo NETMASK=%s       >> %s" % (netmask,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
 
 def delete_virtual_iface(uuid):
+    """delete virtual interface and network-script"""
     prefix = CONF.interface_name
     if not prefix:
        raise NetWorkError("no interface specified!")

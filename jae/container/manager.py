@@ -158,7 +158,7 @@ class Manager(base.Base):
 	    LOG.error("no such image %s" % image_uuid)
 	    return
 
-	LOG.info("CREATE -job create %s" % id)
+	LOG.info("CREATE -job create %s = OK" % id)
     def delete(self,id):
 	LOG.info("DELETE +job delete %s" % id)
 	query = self.db.get_container(id)

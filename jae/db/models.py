@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func, PrimaryKeyConstraint, UniqueConstraint
 from sqlalchemy.orm import relationship,backref
 from sqlalchemy.sql import text
 
@@ -19,13 +19,8 @@ class BaseModel(Model):
 	for k,v in values.iteritems():
 	    setattr(self,k,v)
 
-#from sqlalchemy import Table
-#association_table = Table('association',BaseModel.metadata,
-#	Column('project_id',String(32),ForeignKey('projects.id')),
-#	Column('user_id',String(32),ForeignKey('users.id'))
-#)
-class Association(BaseModel):
-    __tablename__ = 'association'
+class ProjectUserAssociation(BaseModel):
+    __tablename__ = 'project_user_association'
     project_id = Column(String(32),ForeignKey('projects.id'),primary_key=True)
     user_id    = Column(String(32),ForeignKey('users.id'),primary_key=True)
 
@@ -37,9 +32,12 @@ class Project(BaseModel):
     desc = Column(String(300),default='')
     created = Column(DateTime, default=func.now())
 
-    users = relationship("association",backref="projects")
-			 
+    users = relationship("User",
+                         secondary="project_user_association",
+                         lazy="joined",
+                         collection_class=set)
 
+ 
 class Image(BaseModel):
     __tablename__ = 'images'
     
@@ -48,7 +46,11 @@ class Image(BaseModel):
     name = Column(String(50)) 
     tag = Column(String(50)) 
     desc = Column(String(300))
-    project_id= Column(String(32))
+    project_id= Column(String(32),ForeignKey('projects.id'))
+    project = relationship("Project",
+                           backref=backref('images',
+                                            uselist=True,
+                                            cascade='delete,all'))
     repos = Column(String(300))
     branch = Column(String(150))
     created = Column(DateTime, default=func.now())
@@ -63,7 +65,11 @@ class Container(BaseModel):
     uuid = Column(String(64))
     name = Column(String(50))
     env = Column(String(30))
-    project_id= Column(String(32))
+    project_id= Column(String(32),ForeignKey('projects.id'))
+    project = relationship("Project",
+                           backref=backref('containers',
+                                            uselist=True,
+                                            cascade='delete,all'))
     repos= Column(String(300))
     branch= Column(String(300))
     image_id = Column(String(32))
@@ -80,15 +86,24 @@ class User(BaseModel):
     name = Column(String(60))
     email = Column(String(150))
     role_id = Column(Integer)
-    project_id= Column(String(32))
     created = Column(DateTime, default=func.now())
+
+    projects = relationship(Project,
+                            secondary="project_user_association",
+			    lazy="joined",
+                            collection_class=set)
 
 class Repos(BaseModel):
     __tablename__ = 'repos'
 
     id = Column(String(32),primary_key=True)
     repo_path = Column(String(300))
-    project_id= Column(String(32))
+    project_id= Column(String(32),ForeignKey('projects.id'))
+    project = relationship("Project",
+                           backref=backref('repos',
+                                            uselist=True,
+                                            cascade='delete,all'))
+
     created = Column(DateTime, default=func.now())
 
 class Network(BaseModel):

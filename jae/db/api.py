@@ -84,17 +84,17 @@ def add_project(values):
         model.update(values)
         model.save(session=session)
 
-def get_projects(user_id):
-    if user_id is None:
-	return model_query(models.Project).\
+def get_projects():
+    return model_query(models.Project).\
 			   all()
-    return model_query(models.User,
-		       id=user_id).\
-                       first() 
 
 def get_project(id):
-    return model_query(models.Project,id=id).\
-		       first()
+#    return model_query(models.Project). \
+#		       options(joinedload('users')). \
+#		       filter_by(id=id).\
+#		       first()
+#
+    return model_query(models.Project,id=id).first()
 
 def delete_project(id):
     return model_query(models.Project,id=id).delete()
@@ -103,12 +103,14 @@ def update_project():
     pass
 ### user api ###
 
-def add_user(values):
+def add_user(values,project):
     session = get_session()
     with session.begin():
-        model=models.User()
-        model.update(values)
-        model.save(session=session)
+        user_ref=models.User()
+        user_ref.update(values)
+        user_ref.projects.add(project)
+        user_ref.save(session=session)
+    return user_ref
 
 def get_users(project_id):
     if project_id is None:
@@ -128,9 +130,9 @@ def delete_user(id):
 def add_repo(values):
     session = get_session()
     with session.begin():
-        model=models.Repos()
-        model.update(values)
-        model.save(session=session)
+        repo_ref=models.Repos()
+        repo_ref.update(values)
+        repo_ref.save(session=session)
     
 def get_repo(id):
     return model_query(models.Repos,id=id).first()

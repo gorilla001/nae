@@ -1,35 +1,36 @@
 import uuid
+import copy
 from sqlalchemy.exc import IntegrityError
 
 from jae import wsgi
-from jae import db
+from jae import base
 from jae.common.timeutils import isotime
+from jae.common.response import Response, ResponseObject
 from jae.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
-class Controller(object):
+class Controller(base.Base):
 
     def __init__(self):
-        self.db_api=db.API()
+	super(Controller,self).__init__()
 
     def index(self,request):
         repos=[]
         project_id = request.GET.get('project_id')
-        query = self.db_api.get_repos(project_id=project_id)
+        query = self.db.get_repos(project_id=project_id)
         for item in query: 
             repo={
                 'id':item.id,
                 'repo_path':item.repo_path,
-		'project_id':item.project_id,
                 'created':isotime(item.created),
                 }
             repos.append(repo)
 
-        return repos 
+        return ResponseObject(repos) 
 
     def show(self,request,id):
-        query = self.db_api.get_repo(id)
+        query = self.db.get_repo(id)
         if query is None:
 	    return {}
         repo={'id':query.id,
@@ -37,25 +38,25 @@ class Controller(object):
               'project_id':query.project_id,
               'created':isotime(query.created)}
 
-	return repo
+	return ResponseObject(repo)
 
     def create(self,request,body):
         project_id=body.get('project_id')
         repo_path=body.get('repo_path')
-
+        project = self.db.get_project(id=project_id)
 	try:
-            self.db_api.add_repo(dict(
+            self.db.add_repo(dict(
 		id = uuid.uuid4().hex,
                 repo_path= repo_path,
-                project_id = project_id))
+                project = copy.deepcopy(project)))
         except IntegrityError,err:
 	    LOG.error(err)
-	    return {"status":500}
+	    return Response(500) 
 
-        return {"status":200}
+        return Response(200) 
 
     def delete(self,request,id):
-        self.db_api.delete_repo(id)
+        self.db.delete_repo(id)
 
         return {"status":200}
 

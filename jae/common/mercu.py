@@ -13,9 +13,9 @@ class MercurialControl(object):
     def __init__(self):
         self._ui = mercurial.ui.ui()
         self.path=CONF.static_file_path
-    def clone(self,user_name,repo_path):
+    def clone(self,user_id,repo_path):
         source = repo_path
-        path = os.path.join(self.path,user_name)
+        path = os.path.join(self.path,user_id)
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
             LOG.debug('clone docker file from %s' % repo_path)

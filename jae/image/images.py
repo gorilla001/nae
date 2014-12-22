@@ -5,20 +5,23 @@ import os
 import requests
 
 from jae import wsgi
-from jae import db
 from jae import base
 from jae.common import log as logging
 from jae.common.mercu import MercurialControl
 from jae.common import utils
-from jae.common.response import Response
+from jae.common.response import Response, ResponseObject
 from jae.image import driver
+from jae.common import cfg
 
 
+CONF=cfg.CONF
 LOG=logging.getLogger(__name__)
 
 
 class Controller(base.Base):
     def __init__(self):
+	super(Controller,self).__init__()
+
         self.mercurial=MercurialControl()
         self.driver=driver.API()
 
@@ -55,7 +58,7 @@ class Controller(base.Base):
                          user_id)
 
 
-        return Response(200) 
+        return ResponseObject({"id":id}) 
 
     def _create(self,
 		id,
@@ -64,13 +67,23 @@ class Controller(base.Base):
                 branch,
                 user_id):
         repo_name=os.path.basename(repos)
+	user_home = os.path.join(CONF.static_file_path,user_id)
+	if not os.path.exists(user_home):
+	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):
-            self.mercurial.pull(user_id,repos)
+	    try:
+                self.mercurial.pull(user_id,repos)
+	    except:
+                self.db.update_image(id,status="error")
+		return Response(500)
         else:
-            self.mercurial.clone(user_id,repos)
+	    try:
+                self.mercurial.clone(user_id,repos)
+	    except:
+                self.db.update_image(id,status="error")
+		return Response(500)
         self.mercurial.update(user_id,repos,branch)
-        file_path=utils.get_file_path(user_id,repo_name)
-        tar_path=utils.make_zip_tar(file_path)
+        tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 
 	with open(tar_path,'rb') as data:
 	    status=self.driver.build(name,data)
@@ -78,41 +91,48 @@ class Controller(base.Base):
 	    LOG.error("request URL not Found!")
             return 
 	if status == 200:
+	    """update db entry if successful build"""
             status,json=self.driver.inspect(name)
-	    if status == 200:
-		uuid = json.get('Id')
-            	self.db.update(id,
-                               uuid=uuid,
-                               status = "ok")
-	    if status == 404:
-            	self.db.update(id,
-			       status="error")
-	        LOG.error("image {} create failed!".format(name)) 
-	    if status == 500:
-	        self.db.update(id,
-                               status = "500")
-	        LOG.error("image {} create failed!".format(name)) 
+	    uuid = json.get('Id')
+            self.db.update_image(id,uuid=uuid)
+	    """ tag image into repositories if successful build"""
+	    LOG.info("TAG +job tag %s" % id)
+	    tag_status,tag =self.driver.tag(name)
+	    LOG.info("TAG -job tag %s" % id)
+	    if tag_status == 201:
+		"""push image into repositories if successful tag"""
+		LOG.info("PUSH +job push %s" % tag)
+		push_status=self.driver.push(tag)
+		LOG.info("PUSH -job push %s" % tag)
+		if push_status == 200:
+		    """update db entry if successful push"""
+                    self.db.update_image(id,status="ok")
         if status == 500:
-	    self.db.update(id,
+	    self.db.update_image(id,
                            status = "500")
 	    LOG.error("image {} create failed!".format(name)) 
 
     def delete(self,request,id):
-	self.db.update(id,
-		       status="deleting")
+	"""delete image by id"""
 	
-	query = self.db.get(id)
-	eventlet.spawn_n(self._delete,id,query.uuid)
+	eventlet.spawn_n(self._delete,id)
 
 	return Response(200)
 
-    def _delete(self,id,uuid):
-	status = self.driver.delete(uuid)
-	if status in (200,404):
-	    self.db.delete(id)
-	if status in (409,500):
-	    self.db.update(id,status=status)
-	    
+    def _delete(self,id):
+	LOG.info("DELETE +job delete %s" % id)
+	image_instance = self.db.get_image(id)
+	if image_instance:
+	    repository = image_instance.name
+	    tag = image_instance.tag
+	    self.db.update_image(id,
+		       status="deleting")
+	    status = self.driver.delete(repository,tag)
+	    if status in (200,404):
+	        self.db.delete_image(id)
+	    if status in (409,500):
+	        self.db.update_image(id,status=status)
+	LOG.info("DELETE -job delete %s" % id)
 	    
 def create_resource():
     return wsgi.Resource(Controller())

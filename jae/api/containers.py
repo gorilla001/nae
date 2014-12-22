@@ -153,9 +153,15 @@ class Controller(Base):
 
     def start(self,request,id):
 	container = self.db.get_container(id)
+	if not container:
+	    LOG.error("nu such container %s" % id)
+	    return Response(404)
 	host = self.db.get_host(container.host_id)
+	if not host:
+	    LOG.error("no such host")
+	    return Response(404)
 	host,port = host.host,host.port
-	response=requests.post("http://%s:%s/containers/%s/start" \
+	response=requests.post("http://%s:%s/v1/containers/%s/start" \
 		      % (host,port,id))
 
 	return Response(response.status_code)
@@ -163,10 +169,18 @@ class Controller(Base):
     def stop(self,request,id):
 	"""send stop request to remote host where container on."""
         container = self.db.get_container(id)
-	host_id = query.host_id
+	if not container:
+	    LOG.error("nu such container %s" % id)
+	    return Response(404)
+
+	host_id = container.host_id
 	host = self.db.get_host(host_id)
+	if not host:
+	    LOG.error("no such host")
+	    return Response(404)
+
 	host,port = host.host,host.port 
-	response = requests.post("http://%s:%s/containers/%s/stop" \
+	response = requests.post("http://%s:%s/v1/containers/%s/stop" \
 		      % (host,port,id))
 
         return Response(response.status_code) 

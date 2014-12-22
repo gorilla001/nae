@@ -67,7 +67,7 @@ def get_containers_by_host(host_id):
 
 def get_container(id):
     return model_query(models.Container,
-		       id=id).one()
+		       id=id).first()
 
 def delete_container(id):
     return model_query(models.Container,
@@ -106,7 +106,7 @@ def get_projects(user_id):
 
 def get_project(id):
     return model_query(models.Project,id=id).\
-		       one()
+		       first()
 
 def delete_project(id):
     return model_query(models.Project,id=id).delete()
@@ -130,7 +130,7 @@ def get_users(project_id):
 
 def get_user(id):
     return model_query(models.User,
-		       id=id).one()
+		       id=id).first()
 
 def delete_user(id):
     return model_query(models.User,id=id).delete()
@@ -145,7 +145,7 @@ def add_repo(values):
         model.save(session=session)
     
 def get_repo(id):
-    return model_query(models.Repos,id=id).one()
+    return model_query(models.Repos,id=id).first()
 
 def get_repos(project_id):
     if project_id is None:
@@ -167,7 +167,7 @@ def add_network(values):
 
 def get_network(id):
     return model_query(models.Network,
-                       id=id).one() 
+                       id=id).first() 
 
 def get_networks(container_id):
     return model_query(models.Network,

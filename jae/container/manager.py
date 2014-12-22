@@ -101,7 +101,8 @@ class Manager(base.Base):
 	          'Image'          : image_uuid,
                   'Volumes'        : {},
                   'VolumesFrom'    : '',
-                  'ExposedPorts'   : port}
+                  'ExposedPorts'   : port,
+		  "RestartPolicy": { "Name": "always" }}
 
 	"""create container."""
 	resp = self.driver.create(name,kwargs)

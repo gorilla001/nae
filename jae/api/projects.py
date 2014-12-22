@@ -4,7 +4,7 @@ from jae import wsgi
 from jae import db
 from jae.common.timeutils import isotime
 from jae.common import log as logging
-from jae.common.view import View
+from jae.common.response import ResponseObject
 
 LOG = logging.getLogger(__name__)
 
@@ -15,25 +15,25 @@ class Controller(object):
     def index(self,request):
         projects=[]
         user_id = request.GET.get('user_id')
-        query = self.db_api.get_projects(user_id=user_id)
-        for item in query:
-            project={
-                'id':item.id,
-                'name':item.name,
-                'desc':item.desc,
-                'created':isotime(item.created),
-             }
-            projects.append(project)
-        return View(projects) 
+        project_instances = self.db_api.get_projects(user_id=user_id)
+        #for instance in project_instances:
+        #    project={
+        #        'id':instance.id,
+        #        'name':instance.name,
+        #        'desc':instance.desc,
+        #        'created':isotime(instance.created)}
+        #    projects.append(project)
+	projects = project_instances.projects	
+        return ResponseObject(projects) 
 
     def show(self,request,id):
-        query = self.db_api.get_project(id)
-	if query is None:
+        project_instance = self.db_api.get_project(id)
+	if project_instance is None:
             return {}
-        project = {"id": query.id,
-                   "name": query.name,
-                   "desc": query.desc,
-                   "created": isotime(query.created)}
+        project = {"id": project_instance.id,
+                   "name": project_instance.name,
+                   "desc": project_instance.desc,
+                   "created": isotime(project_instance.created)}
 
         query=self.db_api.get_repos(project_id=id)
         repos=[]
@@ -87,7 +87,7 @@ class Controller(object):
             users.append(user)
 	project.update({"users":users})
 
-        return View(project) 
+        return ResponseObject(project) 
 
     def create(self,request,body):
         name=body.get('name')
@@ -98,7 +98,7 @@ class Controller(object):
                         name = name,
                         desc = desc))
 
-        return {"status":200}
+        return Response(201) 
         """
         self.db_api.add_user(
             user_id = project_admin,
@@ -115,9 +115,9 @@ class Controller(object):
             self.db_api.delete_project(id)
         except IntegrityError,err:
 	    LOG.error(err)
-	    return {"status":500}
+	    return Response(500) 
 
-        return {"status":200}
+        return Response(201) 
 
     def update(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']

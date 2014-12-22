@@ -76,18 +76,6 @@ def delete_container(id):
 def update_container(id,**value):
     return model_query(models.Container,id=id).update(value)
 
-#def update_container_prefix_and_status(id,prefix,status):
-#    return model_query(models.Container,
-#		       id=id).update({
-#		              'prefix':prefix,
-#		              'status':status})
-#
-#def update_container_status(id,status):
-#    return model_query(models.Container
-#		       id=id).update({
-#		             'status':status})
-# 
-### project api ###
 
 def add_project(values):
     session = get_session()
@@ -100,9 +88,9 @@ def get_projects(user_id):
     if user_id is None:
 	return model_query(models.Project).\
 			   all()
-    return model_query(models.Project,
-		       user_id=user_id).\
-                       all() 
+    return model_query(models.User,
+		       id=user_id).\
+                       first() 
 
 def get_project(id):
     return model_query(models.Project,id=id).\

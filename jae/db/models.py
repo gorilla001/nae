@@ -19,6 +19,16 @@ class BaseModel(Model):
 	for k,v in values.iteritems():
 	    setattr(self,k,v)
 
+#from sqlalchemy import Table
+#association_table = Table('association',BaseModel.metadata,
+#	Column('project_id',String(32),ForeignKey('projects.id')),
+#	Column('user_id',String(32),ForeignKey('users.id'))
+#)
+class Association(BaseModel):
+    __tablename__ = 'association'
+    project_id = Column(String(32),ForeignKey('projects.id'),primary_key=True)
+    user_id    = Column(String(32),ForeignKey('users.id'),primary_key=True)
+
 class Project(BaseModel):
     __tablename__ = 'projects'
    
@@ -27,6 +37,8 @@ class Project(BaseModel):
     desc = Column(String(300),default='')
     created = Column(DateTime, default=func.now())
 
+    users = relationship("association",backref="projects")
+			 
 
 class Image(BaseModel):
     __tablename__ = 'images'

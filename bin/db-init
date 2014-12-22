@@ -7,5 +7,5 @@ from jae.common import cfg
 CONF=cfg.CONF
 
  
-engine = create_engine('mysql://nae:nae@localhost/nae')
+engine = create_engine('mysql://nae:nae@192.168.56.104/nae')
 model.metadata.create_all(engine)

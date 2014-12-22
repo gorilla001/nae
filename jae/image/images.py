@@ -91,25 +91,24 @@ class Controller(base.Base):
 	    LOG.error("request URL not Found!")
             return 
 	if status == 200:
-	    """update db entry if successful build"""
+	    """update db entry if successful build."""
             status,json=self.driver.inspect(name)
 	    uuid = json.get('Id')
             self.db.update_image(id,uuid=uuid)
-	    """ tag image into repositories if successful build"""
+	    """ tag image into repositories if successful build."""
 	    LOG.info("TAG +job tag %s" % id)
 	    tag_status,tag =self.driver.tag(name)
 	    LOG.info("TAG -job tag %s" % id)
 	    if tag_status == 201:
-		"""push image into repositories if successful tag"""
+		"""push image into repositories if successful tag."""
 		LOG.info("PUSH +job push %s" % tag)
 		push_status=self.driver.push(tag)
 		LOG.info("PUSH -job push %s" % tag)
 		if push_status == 200:
-		    """update db entry if successful push"""
+		    """update db entry if successful push."""
                     self.db.update_image(id,status="ok")
         if status == 500:
-	    self.db.update_image(id,
-                           status = "500")
+	    self.db.update_image(id,status = "error")
 	    LOG.error("image {} create failed!".format(name)) 
 
     def delete(self,request,id):

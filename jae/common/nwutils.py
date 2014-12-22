@@ -18,11 +18,13 @@ def create_virtual_iface(uuid,addr):
 	raise NetWorkError("create virtual interface error %s " % output)
 
     vif_file_name = "%s-%s" % ("ifcfg",vif)
-    commands.getstatusoutput("echo DEVICE    = %s       >> %s" % (vif,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo BOOTPROTO = static   >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo ONBOOT    = yes      >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo TYPE      = Ethernet >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo IPADDR    = %s       >> %s" % (addr,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    netmask=CONF.netmask or '255.255.255.0'
+    commands.getstatusoutput("echo DEVICE=%s  >> %s" % (vif,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    commands.getstatusoutput("echo BOOTPROTO=static   >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    commands.getstatusoutput("echo ONBOOT=yes      >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    commands.getstatusoutput("echo TYPE=Ethernet >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    commands.getstatusoutput("echo IPADDR=%s       >> %s" % (addr,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    commands.getstatusoutput("echo NETMASK=%s       >> %s" % (netmask,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
 
 def delete_virtual_iface(uuid):
     prefix = CONF.interface_name

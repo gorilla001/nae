@@ -31,8 +31,9 @@ class Register(object):
 		             port=port))
 	except IntegrityError:
 	    """
-	    already register? just pass.
+	    already register? just update addr if needed.
 	    """
+	    self.db.register_update(id=id,host=host,port=port)
 	    LOG.info('register') 
 
     def get_host(self):

@@ -70,10 +70,14 @@ class Manager(base.Base):
 	    if status == 500:
 		LOG.error("pull failed,internal server error!")
 		return webob.exc.HTTPInternalServerError()
-	    LOG.info("pull image succeed!")
 
 	    """check image again.if failed again,what can I do ???"""
 	    resp = self.driver.inspect_image(image_uuid)
+	    if resp.status_code == 404:
+		msg="pull image failed!"
+		LOG.error(msg)
+		return webob.exc.HTTPNotFound(explanation=msg)
+	    LOG.info("pull image succeed!")
 
         port=resp.json()['Config']['ExposedPorts']
 	kwargs = {'Hostname'       : '',

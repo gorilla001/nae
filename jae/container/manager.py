@@ -249,3 +249,24 @@ class Manager(base.Base):
 	"""
 	self.driver.stop(name)
 	self.driver.delete(name)
+
+    def refresh(self,id):
+        """refresh code in container."""
+        LOG.info("REFRESH +job refresh %s" % id)
+        query = self.db.get_container(id)
+        if query:
+	    user_id = query.user_id
+	    repos   = query.repos
+	    branch  = query.branch 
+            try:
+                self.driver.refresh(user_id=user_id,
+                                         repos=repos,
+                                         branch=branch,
+                                         mercurial=self.mercurial)
+                self.db.update_container(id,status="running")
+  	    except:
+                LOG.info("REFRESH -job refresh %s = ERR" % id)
+                self.db.update_container(id,status="refresh-failed")
+                raise
+            LOG.info("REFRESH -job refresh %s = OK" % id)
+

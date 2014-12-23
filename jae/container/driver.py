@@ -67,3 +67,39 @@ class API(object):
          """delete the container uuid"""
          response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
          return response.status_code
+    
+    def inspect(self,uuid):
+        """inspect a container by uuid."""
+        response = requests.get("http://%s:%s/containers/%s/json" % \
+                               (self.host,self.port,uuid))
+        if response.status_code != 200:
+            return {} 
+        return response.json()
+    def refresh(self,
+                user_id,
+                repos,
+                branch,
+                mercurial):
+        """"refresh code in container."""
+        #response = self.inspect(uuid)
+        #if response:
+        #    host_config = response['HostConfig']
+        #    binds = host_config['Binds']
+        #    if binds:
+        #        code_path = binds[0].rpartition(':')[0]
+        #    else:
+        #        code_path = None
+        #else:
+        #    LOG.warning("inspect container %s error" % uuid)
+        #    return 404 
+        #if code_path:
+        try:
+            mercurial.pull(user_id,repos)   
+        except:
+            raise
+
+        try:
+            mercurial.update(user_id,repos,branch)
+        except:
+            raise
+        

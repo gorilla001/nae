@@ -130,6 +130,17 @@ class Controller(Base):
 	eventlet.spawn_n(self.con_api.commit(repo,tag))
 
         return Response(200) 
+    
+    def refresh(self,id):
+        """refresh code in container."""
+        query = self.db.get_container(id)
+        if not query:
+            LOG.info("container %s not found" % id)
+            return Response(404)
+        eventlet.spawn(self._manager.refresh,id)  
+        
+        return Response(204)
+        
 	
    
 def create_resource():

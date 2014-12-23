@@ -166,6 +166,7 @@ class Controller(Base):
         """edit image online."""
 	#name = utils.random_str()
 	#port = utils.random_port()
+        print 'here here'
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
@@ -173,7 +174,7 @@ class Controller(Base):
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:
-            response=requests.post("%s/%s/edit?name=%s&port=%s" % (image_service_endpoint,id,name,port))
+            response=requests.post("%s/%s/edit" % (image_service_endpoint,id))
         except:
             raise
         #if image_service_endpoint.startswith("http://"):

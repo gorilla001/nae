@@ -67,15 +67,11 @@ class Manager(base.Base):
 	    if status == 404:
 		LOG.error("pull failed,no registry found!")
                 self.db.update_container(id,
-                                         uuid='----',
-                                         fixed_ip='------',
                                          status="error")
 	        return webob.exc.HTTPNotFound()
 	    if status == 500:
 		LOG.error("pull failed,internal server error!")
                 self.db.update_container(id,
-                                         uuid='----',
-                                         fixed_ip='------',
                                          status="error")
 		return webob.exc.HTTPInternalServerError()
 

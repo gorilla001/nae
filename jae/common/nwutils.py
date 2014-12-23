@@ -19,12 +19,14 @@ def create_virtual_iface(uuid,addr):
 
     vif_file_name = "%s-%s" % ("ifcfg",vif)
     netmask=CONF.netmask or '255.255.255.0'
-    commands.getstatusoutput("echo DEVICE=%s  >> %s" % (vif,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo BOOTPROTO=static   >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo ONBOOT=yes      >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo TYPE=Ethernet >> %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo IPADDR=%s       >> %s" % (addr,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
-    commands.getstatusoutput("echo NETMASK=%s       >> %s" % (netmask,os.path.join(NET_SCRIPT_PATH,vif_file_name))) 
+    with open(os.path.join(NET_SCRIPT_PATH,vif_file_name),'w') as vif_file:
+        vif_file.write("DEVICE=%s\n" % vif)
+        vif_file.write("BOOTPROTO=static\n")
+        vif_file.write("ONBOOT=yes\n")
+        vif_file.write("TYPE=Ethernet\n")
+        vif_file.write("IPADDR=%s\n" % addr)
+        vif_file.write("NETMASK=%s\n" % netmask)
+
 
 def delete_virtual_iface(uuid):
     """delete virtual interface and network-script"""
@@ -38,4 +40,10 @@ def delete_virtual_iface(uuid):
     if status != 0:
        raise NetWorkError("delete virtual interface error %s " % output)
     vif_file_name = "%s-%s" % ("ifcfg",vif)
-    commands.getstatusoutput("rm -f %s" % os.path.join(NET_SCRIPT_PATH,vif_file_name))
+    try:
+        os.remove(os.path.join(NET_SCRIPT_PATH,vif_file_name))
+    except OSError,err:
+        if err.errno == 2:
+            pass
+        else:
+	    raise

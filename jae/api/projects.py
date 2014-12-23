@@ -182,12 +182,16 @@ class Controller(base.Base):
         return Response(201) 
 
     def delete(self,request,id):
+        """delete project by `id`"""
+        LOG.info("DELETE +job delete %s" % id)
         try:
             self.db.delete_project(id)
         except IntegrityError,err:
 	    LOG.error(err)
+            LOG.info("DELETE -job delete = ERR")
 	    return Response(500) 
 
+        LOG.info("DELETE -job delete = OK")
         return Response(201) 
 
     def update(self,request):

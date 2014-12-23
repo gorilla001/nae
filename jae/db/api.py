@@ -86,6 +86,7 @@ def add_project(values):
 
 def get_projects():
     return model_query(models.Project).\
+                           order_by(models.Project.created).\
 			   all()
 
 def get_project(id):

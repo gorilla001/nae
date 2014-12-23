@@ -48,7 +48,7 @@ class Image(BaseModel):
     name = Column(String(50)) 
     tag = Column(String(50)) 
     desc = Column(String(300))
-    project_id= Column(String(32),ForeignKey('projects.id'))
+    project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('images',
                                             uselist=True,
@@ -67,7 +67,7 @@ class Container(BaseModel):
     uuid = Column(String(64))
     name = Column(String(50))
     env = Column(String(30))
-    project_id= Column(String(32),ForeignKey('projects.id'))
+    project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('containers',
                                             uselist=True,
@@ -102,7 +102,7 @@ class Repos(BaseModel):
 
     id = Column(String(32),primary_key=True)
     repo_path = Column(String(300))
-    project_id= Column(String(32),ForeignKey('projects.id'))
+    project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('repos',
                                             uselist=True,

@@ -18,8 +18,6 @@ from jae.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
-CONF=cfg.CONF
-
 
 class ResponseSucceed(object):
     def __call__(self): 
@@ -49,13 +47,13 @@ def random_str(randomlength=8):
     return str
 
 def get_file_path(user_name,repo_name):
-    base_dir = CONF.static_file_path 
+    base_dir = "/home" 
     user_dir=os.path.join(base_dir,user_name,repo_name)
 
     return user_dir 
 
 def repo_exist(user_name,repo_name):
-    user_dir=os.path.join(CONF.static_file_path,user_name)
+    user_dir=os.path.join("/home",user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
         return False 

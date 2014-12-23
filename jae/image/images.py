@@ -66,6 +66,7 @@ class Controller(base.Base):
                 repos,
                 branch,
                 user_id):
+        """create container."""
         repo_name=os.path.basename(repos)
 	user_home = os.path.join("/home",user_id)
 	if not os.path.exists(user_home):
@@ -74,14 +75,16 @@ class Controller(base.Base):
 	    try:
                 self.mercurial.pull(user_id,repos)
 	    except:
+                LOG.error("pull %s failed!" % repos)
                 self.db.update_image(id,status="error")
-		return Response(500)
+                raise
         else:
 	    try:
                 self.mercurial.clone(user_id,repos)
 	    except:
+                LOG.error("clone %s failed!" % repos)
                 self.db.update_image(id,status="error")
-		return Response(500)
+                raise
         self.mercurial.update(user_id,repos,branch)
         tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 

@@ -12,7 +12,7 @@ LOG=logging.getLogger(__name__)
 class MercurialControl(object):
     def __init__(self):
         self._ui = mercurial.ui.ui()
-        self.path=CONF.static_file_path
+        self.path="/home"
     def clone(self,user_id,repo_path):
         source = repo_path
         path = os.path.join(self.path,user_id)
@@ -41,7 +41,7 @@ class MercurialControl(object):
             mercurial.commands.pull(self._ui,
                                     repo,
                                     source=source)
-        except Exception,error:
+        except:
             LOG.error('could not pull repo:%s' % repo_path)
             LOG.error(error)
 	    raise

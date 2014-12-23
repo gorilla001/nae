@@ -67,7 +67,7 @@ class Controller(base.Base):
                 branch,
                 user_id):
         repo_name=os.path.basename(repos)
-	user_home = os.path.join(CONF.static_file_path,user_id)
+	user_home = os.path.join("/home",user_id)
 	if not os.path.exists(user_home):
 	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):

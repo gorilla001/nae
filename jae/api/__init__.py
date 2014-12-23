@@ -10,10 +10,10 @@ class APIRouter(wsgi.Router):
     def __init__(self):
 
         self.mapper=routes.Mapper()
-	self._setup_route()
+	self._setup_routes()
 	super(APIRouter,self).__init__(self.mapper)
 
-    def _setup_route(self):
+    def _setup_routes(self):
         self.mapper.resource('container','containers',
 			     controller=containers.create_resource(),
 			     member={'start':'POST',

@@ -131,7 +131,7 @@ class Controller(Base):
 
         return Response(200) 
     
-    def refresh(self,id):
+    def refresh(self,request,id):
         """refresh code in container."""
         query = self.db.get_container(id)
         if not query:

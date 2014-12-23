@@ -16,16 +16,17 @@ class API(object):
 
     def create(self,name,kwargs):
 	"""
-	create a container with name name,and kwargs.
+	create a container with `name` and `kwargs`.
 	"""
-        response = requests.post("http://%s:%s/containers/create?name=%s" % (self.host,self.port,name),
+        response = requests.post("http://%s:%s/containers/create?name=%s" \
+                              % (self.host,self.port,name),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))
 	return response
 
     def inspect_image(self,uuid):
         """
-        inspect image info according to uuid.
+        inspect image info according to `uuid`.
         """
 
         response = requests.get("http://%s:%s/images/%s/json" % \
@@ -81,18 +82,6 @@ class API(object):
                 branch,
                 mercurial):
         """"refresh code in container."""
-        #response = self.inspect(uuid)
-        #if response:
-        #    host_config = response['HostConfig']
-        #    binds = host_config['Binds']
-        #    if binds:
-        #        code_path = binds[0].rpartition(':')[0]
-        #    else:
-        #        code_path = None
-        #else:
-        #    LOG.warning("inspect container %s error" % uuid)
-        #    return 404 
-        #if code_path:
         try:
             mercurial.pull(user_id,repos)   
         except:

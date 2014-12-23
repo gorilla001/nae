@@ -2,7 +2,7 @@ import webob
 import uuid
 import requests
 import json
-from requests import ConnectionError
+from requests.exceptions import ConnectionError, ConnectTimeout, MissingSchema, InvalidSchema
 from sqlalchemy.exc import IntegrityError
 
 from jae import wsgi
@@ -80,15 +80,18 @@ class Controller(Base):
 	    LOG.error("images limit exceed,can not created anymore...")
 	    return Response(500) 
 
-        name = body.get('name') or utils.random_str()
-        desc = body.get('desc') or ''
+        name = body.get('name',utils.random_str())
+        desc = body.get('desc','')
 
         repos = body.get('repos')
 	if not repos:
 	    LOG.error('repos cannot be None!')
 	    return Response(500) 
 
-	branch = body.get('branch') or 'default'
+	branch = body.get('branch')
+        if not branch:
+            LOG.error("branch cannot be None!")
+            return Response(500)
 
         user_id = body.get('user_id')
 	if not user_id:
@@ -101,9 +104,19 @@ class Controller(Base):
 	    return Response(500)
 	try:
             image = requests.post(image_service_endpoint, \
-				     headers={'Content-Type':'application/json'}, \
-				     data=json.dumps(body))
-	except:
+				  headers={'Content-Type':'application/json'}, \
+				  data=json.dumps(body))
+        except ConnectionError:
+            LOG.error("Connect to remote server Error")
+	    return Response(500) 
+	except ConnectTimeout:
+            LOG.error("Connect to remote server Timeout.")
+	    return Response(500) 
+        except MissingSchema:
+            LOG.error("The URL schema (e.g. http or https) is missing.")
+	    return Response(500) 
+        except InvalidSchema:
+            LOG.error("The URL schema is invalid.")
 	    return Response(500) 
 
         return ResponseObject(image.json())

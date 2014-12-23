@@ -122,7 +122,12 @@ class Controller(base.Base):
 	    LOG.info("BUILD -job build %s = ERR" % name)
 
     def delete(self,request,id):
-	"""delete image by id"""
+	"""
+        Delete image by id.
+        
+        :param request: `wsgi.Request` object
+        :param id     : image id
+        """
 	
 	eventlet.spawn_n(self._delete,id)
 

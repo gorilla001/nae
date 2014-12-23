@@ -38,6 +38,8 @@ class Controller(Base):
             container = {
                     'id':item.id,
                     'name':item.name,
+                    'repos': item.repos,
+                    'branch': item.branch,
 		    'network':item.fixed_ip,
                     'created':timeutils.isotime(item.created),
                     'status':item.status,
@@ -140,6 +142,13 @@ class Controller(Base):
 	return ResponseObject(instance)
 
     def delete(self,request,id):
+        """
+        send delete `request` to remote server for deleting.
+        if failed,excepiton will be occured.
+
+        :param request: `wsgi.Request`
+        :param id: container idenfier
+        """ 
         container = self.db.get_container(id)
 	if not container:
 	    return Response(200)
@@ -150,6 +159,7 @@ class Controller(Base):
 	    return Response(404)
 
 	host,port = host.host,host.port
+        #FIXME: exception should be catched?
 	response = requests.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
         return Response(response.status_code) 
@@ -207,19 +217,44 @@ class Controller(Base):
         return Response(200) 
 
     def refresh(self,request,id):
-        """refresh code in container."""
+        """
+        refresh code in container. refresh request will be 
+        send to remote container server for refreshing.
+        if send request failed,exception will occured.
+        is it necessary to catch the exception? I don't
+        know. 
+
+        :param request: `wsgi.Request` object
+        :param id     : container idenfier
+        """
+        """check if this container is really exists,
+           otherwise return 404 not found"""
+
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
 	    return Response(404)
         
+        """get host id from container info,
+           if host id is None,return 404"""
+
 	host_id = container.host_id
+        if not host_id:
+            LOG.error("container %s has no host_id" % id)
+	    return Response(404)
+        
+        """get host instance by `host_id`,
+           if host instance is None,return 404"""
 	host = self.db.get_host(host_id)
 	if not host:
 	    LOG.error("no such host")
 	    return Response(404)
-	
+
+        """get ip address and port for host instance."""	
 	host,port = host.host,host.port 
+          
+        """make post request to the host where container on."""
+        #FIXME: exception shoud be catch?
 	response = requests.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))
 

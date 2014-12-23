@@ -66,9 +66,17 @@ class Manager(base.Base):
 	    status = self.driver.pull_image(repository,tag)
 	    if status == 404:
 		LOG.error("pull failed,no registry found!")
+                self.db.update_container(id,
+                                         uuid='----',
+                                         fixed_ip='------',
+                                         status="error")
 	        return webob.exc.HTTPNotFound()
 	    if status == 500:
 		LOG.error("pull failed,internal server error!")
+                self.db.update_container(id,
+                                         uuid='----',
+                                         fixed_ip='------',
+                                         status="error")
 		return webob.exc.HTTPInternalServerError()
 
 	    """check image again.if failed again,what can I do ???"""
@@ -189,7 +197,8 @@ class Manager(base.Base):
         try:
             nwutils.delete_virtual_iface(query.uuid[:8])
         except:
-            raise
+            LOG.warning("delete virtual interface error")  
+
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):

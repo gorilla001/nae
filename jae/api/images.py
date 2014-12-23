@@ -109,7 +109,7 @@ class Controller(Base):
         return ResponseObject(image.json())
 
     def delete(self,request,id):
- 	"""delete image (id)."""
+ 	"""delete image from registry."""
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
@@ -129,7 +129,6 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-        query = self.db.get_image(id)
 	name = utils.random_str()
 	port = utils.random_port()
 	kwargs={"Image":query.uuid}

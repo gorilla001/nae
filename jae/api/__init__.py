@@ -27,7 +27,8 @@ class APIRouter(wsgi.Router):
 				     'stop':'POST',
                                      'reboot':'POST',
 				     'commit':'POST',
-                                     'destroy':'POST'})
+                                     'destroy':'POST',
+                                     'edit':'GET'})
         self.mapper.connect('/baseimages',
                         controller=images.create_resource(),
                         action='baseimage',

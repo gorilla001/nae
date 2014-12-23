@@ -134,7 +134,7 @@ class Manager(base.Base):
 	    repo_name = os.path.basename(repos)
             path=os.path.join(CONF.static_file_path,'files')
             source_path = os.path.join(path,user_id,repo_name)
-            dest_path = "/mnt"
+            dest_path = "/home/jm/www"
             kwargs = {
                 'Binds':['%s:%s' % (source_path,dest_path)],
                 'Dns':[CONF.dns],

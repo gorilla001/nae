@@ -123,8 +123,8 @@ class Controller(Base):
 
 	user_key = body.get('user_key') or ''
 
-        zone_id = body.get('zone')
-        if not zone:
+        zone_id = body.get('zone_id')
+        if not zone_id:
             zone_id = 0 # 0 for BJ
 	
 	try:

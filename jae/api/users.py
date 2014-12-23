@@ -35,7 +35,8 @@ class Controller(base.Base):
 	query = self.db.get_user(id)	
         if query is None:
             LOG.error("no such user %s" % id)
-	    return {}
+	    return ResponseObject({'projects':[]}) 
+
         projects_list = []
         project_instances = query.projects
         for project in project_instances:

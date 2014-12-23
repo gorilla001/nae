@@ -85,7 +85,7 @@ class User(BaseModel):
     __tablename__ = 'users'
 
     id = Column(String(32),primary_key=True)
-    name = Column(String(60))
+    name = Column(String(60),unique=True, nullable=False)
     email = Column(String(150))
     role_id = Column(Integer)
     created = Column(DateTime, default=func.now())

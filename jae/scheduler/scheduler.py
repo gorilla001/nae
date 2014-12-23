@@ -19,7 +19,8 @@ class SimpleScheduler(driver.Scheduler):
     very simple scheduler scheduling by the quantity of the containers.
     """
     def __init__(self):
-	self.filter = filters.StatusFilter()
+	self._status_filter = filters.StatusFilter()
+        self._zone_filter   = filters.ZoneFilter()
 
 	super(SimpleScheduler,self).__init__()
 	
@@ -30,9 +31,23 @@ class SimpleScheduler(driver.Scheduler):
                      repos,
                      branch,
 		     env,
-		     user_key):
+		     user_key,
+                     zone_id):
 	"""schedule the instance for creation and handle creating the DB entry."""
 
+        """
+        get zone where container will be in.
+        #FIXME zone should be get from database by zone_id
+        #TODO  add get_zone(zone_id) 
+        """
+        if zone_id == 0:
+            self.zone = 'BJ'
+        elif zone_id == 1:
+            self.zone = 'CD' 
+        else:
+            self.zone = 'BJ' 
+
+        """filter and weighted hosts"""
 	weighted_hosts = self._scheduler()
 	for host in weighted_hosts:
 	    print host.addr,host.port,host.weight
@@ -49,13 +64,7 @@ class SimpleScheduler(driver.Scheduler):
 	""" the unique container uuid"""
         db_id         = uuid.uuid4().hex
 
-	""" get fixed ip from ip resource pool
-	fixed_ip = self.network.get_fixed_ip()
-
-	print fixed_ip
-	body['fixed_ip'] = fixed_ip
-	"""
-
+        
 	"""generate container name"""
 	name   = os.path.basename(repos) + '-' + branch
         query  = self.db.get_containers()
@@ -124,12 +133,16 @@ class SimpleScheduler(driver.Scheduler):
     def _filter_hosts(self,hosts):
 	filtered_hosts = []
 	for host in hosts:
-	    if self._passes_filters(host):
-		filtered_hosts.append(host)
+	    if self._passes_zone_filter(host):
+                if self._passes_status_filter(host):
+		    filtered_hosts.append(host)
 	return filtered_hosts
 
-    def _passes_filters(self,host):
-	return self.filter.host_passes(host)
+    def _passes_zone_filter(self,host):
+	return self._zone_filter.host_passes(host,self.zone)
+
+    def _passes_status_filter(self,host):
+        return self._status_filter.host_passes(host)
 
     def get_weight(self,host_id):
 	containers = self.db.get_containers_by_host(host_id)
@@ -148,23 +161,6 @@ class SimpleScheduler(driver.Scheduler):
 		   user_id,
 		   host_id):
 	"""creating db entry for creation"""
-	"""
-	db_id      = body.get('db_id')
-	image_id   = body.get('image_id')
-        image_uuid = body.get('image_uuid')
-        repository = body.get('repository')
-        tag        = body.get('tag')
-        env        = body.get('env')
-        project_id = body.get('project_id')
-        repos      = body.get('repos')
-        branch     = body.get('branch')
-        app_type   = body.get('app_type')
-        user_id    = body.get('user_id')
-        user_key   = body.get('user_key')
-        host_id    = body.get('host_id')
-	name	   = body.get('name')
-	fixed_ip   = body.get('fixed_ip')
-	"""
         self.db.add_container(dict(
                 id=db_id,
                 name=name,

@@ -122,6 +122,10 @@ class Controller(Base):
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
 	user_key = body.get('user_key') or ''
+
+        zone_id = body.get('zone')
+        if not zone:
+            zone_id = 0 # 0 for BJ
 	
 	try:
 	    instance = self._scheduler.run_instance(project_id,
@@ -130,7 +134,8 @@ class Controller(Base):
 						    repos,
 						    branch,
 						    env,
-						    user_key)
+						    user_key,
+                                                    zone_id)
 	except:
 	    raise 
 	    

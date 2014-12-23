@@ -55,6 +55,17 @@ class Controller(base.Base):
 	return ResponseObject(user) 
 
     def create(self,request,body):
+        """
+        add user db entry for specified project.
+       
+        NOTE(nmg):`project` isa `project instance` which
+                   get from db. you must insert a `project
+                   instance` object in model `User`'s `projects`
+                   attribute.and deepcoy is used for disattach session
+                   which `project` attached.
+        FIXME(nmg):this is ugly,try to fixed it.
+        """ 
+        
         name=body.get('name')
         email=body.get('email')
         role_id=body.get('role_id')

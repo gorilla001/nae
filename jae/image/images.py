@@ -3,6 +3,7 @@ import uuid
 import eventlet
 import os
 import requests
+import copy
 
 from jae import wsgi
 from jae import base
@@ -32,6 +33,7 @@ class Controller(base.Base):
         return webob.exc.HTTPMethodNotAllowed()
 	
     def create(self,request,body):
+        """create image."""
         name       = body.get('name')
         desc       = body.get('desc')
         project_id = body.get('project_id')
@@ -39,17 +41,24 @@ class Controller(base.Base):
         branch     = body.get('branch')
         user_id    = body.get('user_id')
         id         = uuid.uuid4().hex
+
+        project = self.db.get_project(project_id)
+        if not project:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)
+
+        """add db entry first."""
         self.db.add_image(dict(
                 id=id,
                 name=name,
                 tag="latest",
                 desc=desc,
-                project_id=project_id,
+                project=copy.deepcopy(project),
                 repos = repos,
                 branch = branch,
                 user_id = user_id,
                 status = 'building'))
-
+        """create image ina greenthread."""
         eventlet.spawn_n(self._create,
                          id,
                          name,
@@ -57,7 +66,7 @@ class Controller(base.Base):
                          branch,
                          user_id)
 
-
+        """retrun the created image id."""
         return ResponseObject({"id":id}) 
 
     def _create(self,

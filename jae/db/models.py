@@ -110,6 +110,7 @@ class Repos(BaseModel):
 
     created = Column(DateTime, default=func.now())
 
+"""not used anymore.
 class Network(BaseModel):
     __tablename__ = 'networks'
 
@@ -120,6 +121,7 @@ class Network(BaseModel):
     private_port = Column(String(30))
     container_id = Column(String(32))
     created = Column(DateTime, default=func.now())
+"""
 
 class Host(BaseModel):
     __tablename__ = 'hosts'

@@ -2,7 +2,8 @@ import webob
 import uuid
 import requests
 import json
-from requests.exceptions import ConnectionError, ConnectTimeout, MissingSchema, InvalidSchema
+#from requests.exceptions import ConnectionError, ConnectTimeout, MissingSchema, InvalidSchema
+from requests import exceptions
 from sqlalchemy.exc import IntegrityError
 
 from jae import wsgi
@@ -32,22 +33,42 @@ class Controller(Base):
     def index(self,request):
         images=[]
         project_id=request.GET.get('project_id')
-        query = self.db.get_images(project_id)
-        if query is not None:
-            for item in query:
-                image={'id':item.id,
-                       'uuid':item.uuid,
-                       'name':item.name,
-		       'tag':item.tag,
-                       'desc':item.desc,
-                       'project_id':item.project_id,
-                       'created':isotime(item.created),
-                       'user_id':item.user_id,
-                       'status' : item.status}
-                images.append(image)
+        if not project_id:
+            LOG.error("project_id cannot be None")
+            return Response(404)
+        project_instance = self.db.get_project(project_id)
+        if project_instance  is None:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)  
+        for image_instance in project_instance.images:
+            image={'id':image_instance.id,
+                   'uuid':image_instance.uuid,
+                   'name':image_instance.name,
+		   'tag':image_instance.tag,
+                   'desc':image_instance.desc,
+                   'project_id':image_instance.project_id,
+                   'created':isotime(image_instance.created),
+                   'user_id':image_instance.user_id,
+                   'status' : image_instance.status}
+            images.append(image)
+
+        #query = self.db.get_images(project_id)
+        #if query is not None:
+        #    for item in query:
+        #        image={'id':item.id,
+        #               'uuid':item.uuid,
+        #               'name':item.name,
+	#	       'tag':item.tag,
+        #               'desc':item.desc,
+        #               'project_id':item.project_id,
+        #               'created':isotime(item.created),
+        #               'user_id':item.user_id,
+        #               'status' : item.status}
+        #        images.append(image)
         return ResponseObject(images) 
 
     def show(self,request,id):
+        """get image detail by image `id`"""
 	image = {}
         query = self.db.get_image(id)
 	if query is not None:
@@ -106,16 +127,16 @@ class Controller(Base):
             image = requests.post(image_service_endpoint, \
 				  headers={'Content-Type':'application/json'}, \
 				  data=json.dumps(body))
-        except ConnectionError:
+        except exceptions.ConnectionError:
             LOG.error("Connect to remote server Error")
 	    return Response(500) 
-	except ConnectTimeout:
+	except exceptions.ConnectTimeout:
             LOG.error("Connect to remote server Timeout.")
 	    return Response(500) 
-        except MissingSchema:
+        except exceptions.MissingSchema:
             LOG.error("The URL schema (e.g. http or https) is missing.")
 	    return Response(500) 
-        except InvalidSchema:
+        except exceptions.InvalidSchema:
             LOG.error("The URL schema is invalid.")
 	    return Response(500) 
 

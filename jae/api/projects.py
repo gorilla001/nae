@@ -28,9 +28,12 @@ class Controller(base.Base):
         return ResponseObject(projects) 
 
     def show(self,request,id):
+        """show project details for `id`"""
         project_instance = self.db.get_project(id)
 	if project_instance is None:
             return {}
+
+        """get project user list."""
 	user_list = [] 
 	for user_instance in project_instance.users:
             user = { "id": user_instance.id, 
@@ -39,6 +42,8 @@ class Controller(base.Base):
                      "role_id": user_instance.role_id,
                      "created" : isotime(user_instance.created)} 
             user_list.append(user)
+
+        """"get project repo list."""
  	repo_list =[]
 	for repo_instance in project_instance.repos:
 	    repo = { "id":repo_instance.id,
@@ -46,13 +51,28 @@ class Controller(base.Base):
                      "created": isotime(repo_instance.created)}
             repo_list.append(repo)
 
+        """"get project image list."""
+        image_list = []
+        for image_instance in project_instance.images:
+            image={'id':image_instance.id,
+                   'uuid':image_instance.uuid,
+                   'name':image_instance.name,
+		   'tag':image_instance.tag,
+                   'desc':image_instance.desc,
+                   'project_id':image_instance.project_id,
+                   'created':isotime(image_instance.created),
+                   'user_id':image_instance.user_id,
+                   'status' : image_instance.status}
+            image_list.append(image)
+
         project = {"id": project_instance.id,
                    "name": project_instance.name,
                    "desc": project_instance.desc,
                    "created": isotime(project_instance.created),
 		   "users" : user_list,
-                   "repos" : repo_list}
-
+                   "repos" : repo_list,
+                   "images": image_list}
+        
         #query=self.db_api.get_repos(project_id=id)
         #repos=[]
         #for item in query:
@@ -110,8 +130,15 @@ class Controller(base.Base):
     def create(self,request,body):
         """add project."""
         name=body.get('name')
-        desc=body.get('desc')
+        if not name:
+	    LOG.error("project name must be provided")
+            return Response(505)
+
+        desc=body.get('desc','')
+
+        """generate project id."""
         project_id = uuid.uuid4().hex
+
         self.db.add_project(dict(
 			id = project_id,
                         name = name,
@@ -119,7 +146,13 @@ class Controller(base.Base):
         """add admin."""
 	admin = body.get('admin')
 	email = body.get('email')
+        """
+        get project instance from db by `project_id`
+        is it odd,right?
+        """
         project = self.db.get_project(project_id)
+
+        """add db entry."""
         self.db.add_user(dict(
 		id = uuid.uuid4().hex,
                 name = admin,
@@ -128,16 +161,25 @@ class Controller(base.Base):
                 project = copy.deepcopy(project))
 
         """add base image."""
-        #self.db.add_image(dict(
-	#	id=id,
-	#	uuid = uuid,
-	#	name=name,
-	#	tag=tag,
-	#	desc
+        image_id = body.get('image_id')
+        base_image = self.db.get_base_image(image_id)
+        if base_image is not None:
+            image_uuid = base_image.uuid
+            name = base_image.repository
+            tag  = base_image.tag
+            desc = base_image.desc
+            image_id = uuid.uuid4().hex
+            self.db.add_image(dict(
+		id=image_id,
+		uuid = image_uuid,
+		name=name,
+		tag=tag,
+		desc=desc,
+                project=copy.deepcopy(project),
+                status="ok"))
 
+        #FIXME: return ?
         return Response(201) 
-        """
-                """ 
 
     def delete(self,request,id):
         try:

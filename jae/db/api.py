@@ -16,9 +16,9 @@ def model_query(model,**kwargs):
 def add_image(values):
     session = get_session()
     with session.begin():
-	model=models.Image()
-	model.update(values)
-	model.save(session=session)	
+	image_ref=models.Image()
+	image_ref.update(values)
+	image_ref.save(session=session)	
 
 def get_images(project_id):
     if project_id is None:
@@ -190,3 +190,7 @@ def register_update(id,**values):
 ### base images ###
 def get_base_images():
     return model_query(models.BaseImage).all()
+
+def get_base_image(image_id):
+    return model_query(models.BaseImage,
+                       id = image_id).first()

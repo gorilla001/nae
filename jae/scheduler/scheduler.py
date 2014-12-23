@@ -1,6 +1,7 @@
 import requests
 import uuid
 import os
+import copy
 
 from requests import ConnectionError
 from operator import attrgetter
@@ -161,11 +162,15 @@ class SimpleScheduler(driver.Scheduler):
 		   user_id,
 		   host_id):
 	"""creating db entry for creation"""
+        project = self.db.get_project(project_id)
+        if not project:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)
         self.db.add_container(dict(
                 id=db_id,
                 name=name,
                 env=env,
-                project_id=project_id,
+                project=copy.deepcopy(project),
                 repos=repos,
                 branch=branch,
                 image_id=image_id,

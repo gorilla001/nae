@@ -34,14 +34,24 @@ class Controller(base.Base):
     def show(self,request,id):
 	query = self.db.get_user(id)	
         if query is None:
+            LOG.error("no such user %s" % id)
 	    return {}
+        projects_list = []
+        project_instances = query.projects
+        for project in project_instances:
+            project = {"id": project.id,
+                       "name": project.name,
+                       "desc": project.desc,
+                       "created": isotime(project.created)}
+            projects_list.append(project)
+
         user={'id':query.id,
               'name':query.name,
               'email':query.email,
               'role_id':query.role_id,
-	      'project_id':query.project_id,
+	      'projects':projects_list,
               'created':isotime(query.created)}
-	return user 
+	return ResponseObject(user) 
 
     def create(self,request,body):
         name=body.get('name')

@@ -16,6 +16,7 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
+        """show all repos by project id."""
         repos=[]
         project_id = request.GET.get('project_id')
         query = self.db.get_repos(project_id=project_id)
@@ -30,6 +31,7 @@ class Controller(base.Base):
         return ResponseObject(repos) 
 
     def show(self,request,id):
+        """show repos info by repos id."""
         query = self.db.get_repo(id)
         if query is None:
 	    return {}
@@ -41,6 +43,7 @@ class Controller(base.Base):
 	return ResponseObject(repo)
 
     def create(self,request,body):
+        """create repos by body dict."""
         project_id=body.get('project_id')
         repo_path=body.get('repo_path')
         project = self.db.get_project(id=project_id)
@@ -56,9 +59,10 @@ class Controller(base.Base):
         return Response(200) 
 
     def delete(self,request,id):
+        """delete repos by id."""
         self.db.delete_repo(id)
 
-        return {"status":200}
+        return Response(200) 
 
 def create_resource():
     return wsgi.Resource(Controller())

@@ -54,6 +54,7 @@ class Controller(Base):
             image = {'id' : query.id,
                      'uuid' : query.uuid,
                      'name' : query.name,
+                     'repos' : query.repos,
 		     'tag' : query.tag,
                      'desc' : query.desc,
                      'project_id' : query.project_id,
@@ -99,7 +100,6 @@ class Controller(Base):
 	    LOG.error("image service endpoint not found!")
 	    return Response(500)
 	try:
-	    print image_service_endpoint
             image = requests.post(image_service_endpoint, \
 				     headers={'Content-Type':'application/json'}, \
 				     data=json.dumps(body))
@@ -170,6 +170,17 @@ class Controller(Base):
 		ctn_list.append(ctn)
 	LOG.debug(ctn_list)
 	return ctn_list
+
+    def baseimage(self,request):
+        base_image_list=[]
+        image_instances = self.db.get_base_images()
+        for instance in image_instances:
+             image = {"id":instance.id,
+                      "repository": instance.repository,
+                      "tag": instance.tag}
+             base_image_list.append(image)
+        return ResponseObject(base_image_list)
+                       
 	
 def create_resource():
     return wsgi.Resource(Controller())

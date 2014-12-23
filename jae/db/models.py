@@ -21,8 +21,8 @@ class BaseModel(Model):
 
 class ProjectUserAssociation(BaseModel):
     __tablename__ = 'project_user_association'
-    project_id = Column(String(32),ForeignKey('projects.id'),primary_key=True)
-    user_id    = Column(String(32),ForeignKey('users.id'),primary_key=True)
+    project_id = Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'),primary_key=True)
+    user_id    = Column(String(32),ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
 
 class Project(BaseModel):
     __tablename__ = 'projects'
@@ -35,7 +35,9 @@ class Project(BaseModel):
     users = relationship("User",
                          secondary="project_user_association",
                          lazy="joined",
-                         collection_class=set)
+                         collection_class=set,
+                         cascade="all,delete-orphan",
+                         single_parent=True)
 
  
 class Image(BaseModel):
@@ -91,7 +93,9 @@ class User(BaseModel):
     projects = relationship(Project,
                             secondary="project_user_association",
 			    lazy="joined",
-                            collection_class=set)
+                            collection_class=set,
+                            cascade="all,delete-orphan",
+                            single_parent=True)
 
 class Repos(BaseModel):
     __tablename__ = 'repos'
@@ -123,3 +127,13 @@ class Host(BaseModel):
     id = Column(String(32),primary_key=True)
     host = Column(String(20))
     port = Column(Integer)
+
+class BaseImage(BaseModel):
+    __tablename__ = 'baseimages'
+    id = Column(String(32),primary_key=True)
+    uuid = Column(String(64))
+    repository = Column(String(50)) 
+    tag = Column(String(50)) 
+    desc = Column(String(300),default='base image')
+    created = Column(DateTime, default=func.now())
+     

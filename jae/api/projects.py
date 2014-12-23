@@ -1,20 +1,21 @@
 import uuid
+import copy
 from sqlalchemy.exc import IntegrityError
 from jae import wsgi
-from jae import db
+from jae import base
 from jae.common.timeutils import isotime
 from jae.common import log as logging
 from jae.common.response import Response, ResponseObject
 
 LOG = logging.getLogger(__name__)
 
-class Controller(object):
+class Controller(base.Base):
     def __init__(self):
-        self.db_api=db.API()
+	super(Controller,self).__init__()
 
     def index(self,request):
         projects=[]
-        project_instances = self.db_api.get_projects()
+        project_instances = self.db.get_projects()
 	if project_instances:
 	    for instance in project_instances:
                 project={
@@ -27,7 +28,7 @@ class Controller(object):
         return ResponseObject(projects) 
 
     def show(self,request,id):
-        project_instance = self.db_api.get_project(id)
+        project_instance = self.db.get_project(id)
 	if project_instance is None:
             return {}
 	user_list = [] 
@@ -107,30 +108,40 @@ class Controller(object):
         return ResponseObject(project) 
 
     def create(self,request,body):
-	print 'body',body
+        """add project."""
         name=body.get('name')
         desc=body.get('desc')
-
-        self.db_api.add_project(dict(
-			id = uuid.uuid4().hex,
+        project_id = uuid.uuid4().hex
+        self.db.add_project(dict(
+			id = project_id,
                         name = name,
                         desc = desc))
+        """add admin."""
+	admin = body.get('admin')
+	email = body.get('email')
+        project = self.db.get_project(project_id)
+        self.db.add_user(dict(
+		id = uuid.uuid4().hex,
+                name = admin,
+                email = email,
+                role_id = 0),
+                project = copy.deepcopy(project))
+
+        """add base image."""
+        #self.db.add_image(dict(
+	#	id=id,
+	#	uuid = uuid,
+	#	name=name,
+	#	tag=tag,
+	#	desc
 
         return Response(201) 
         """
-        self.db_api.add_user(
-            user_id = project_admin,
-            user_name = '',
-            user_email = admin_email,
-            project_id = project_id,
-            role_id = 1, # 0 for admin
-            created = created_time,
-        )
-        """ 
+                """ 
 
     def delete(self,request,id):
         try:
-            self.db_api.delete_project(id)
+            self.db.delete_project(id)
         except IntegrityError,err:
 	    LOG.error(err)
 	    return Response(500) 
@@ -143,7 +154,7 @@ class Controller(object):
         project_desc = request.GET['desc']
         project_members = request.GET['members']
         project_hgs = request.GET['hgs']
-        self.db_api.update_project(
+        self.db.update_project(
                 project_id = project_id,
                 project_name = project_name,
                 project_desc = project_desc,
@@ -151,9 +162,9 @@ class Controller(object):
                 project_hgs = '',
                 )
         members_list = str(project_members).split()
-        self.db_api.delete_users(project_id)
+        self.db.delete_users(project_id)
         for member in members_list:
-            self.db_api.add_user(
+            self.db.add_user(
                     project_id = project_id,
                     user_id = member,
                     user_name = '',
@@ -161,9 +172,9 @@ class Controller(object):
 
                 )
         repo_list = str(project_hgs).split()
-        self.db_api.delete_repos(project_id)
+        self.db.delete_repos(project_id)
         for hg in hg_list:
-            self.db_api.add_repo(
+            self.db.add_repo(
                     project_id = project_id,
                     repo_name = repo,
                     image_id = ''

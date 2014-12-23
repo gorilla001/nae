@@ -118,12 +118,13 @@ def get_users(project_id):
     return model_query(models.User,
 		       project_id=project_id).all()
 
-def get_user(id):
+def get_user(name):
     return model_query(models.User,
-		       id=id).first()
+		       name=name).first()
 
 def delete_user(id):
-    return model_query(models.User,id=id).delete()
+    return model_query(models.User,
+                       id=id).delete()
 
 ### repo api ###
 
@@ -185,3 +186,7 @@ def register(values):
 
 def register_update(id,**values):
     return model_query(models.Host,id=id).update(values)
+
+### base images ###
+def get_base_images():
+    return model_query(models.BaseImage).all()

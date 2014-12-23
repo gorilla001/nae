@@ -28,6 +28,11 @@ class APIRouter(wsgi.Router):
                                      'reboot':'POST',
 				     'commit':'POST',
                                      'destroy':'POST'})
+        self.mapper.connect('/baseimages',
+                        controller=images.create_resource(),
+                        action='baseimage',
+                        conditions={'method':['GET']})
+			     
         self.mapper.resource('project','projects',
 			     controller=projects.create_resource())
 

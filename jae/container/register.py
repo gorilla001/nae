@@ -24,16 +24,20 @@ class Register(object):
 	"""
 	id = uuid.uuid1().hex[-12:]
 
+        zone = CONF.current_zone:
+        if not zone:
+            zone = 'BJ'
 	try:
             self.db.register(dict(
 		             id=id,
 		             host=host,
-		             port=port))
+		             port=port,
+                             zone=zone))
 	except IntegrityError:
 	    """
 	    already register? just update addr if needed.
 	    """
-	    self.db.register_update(id=id,host=host,port=port)
+	    self.db.register_update(id=id,host=host,port=port,zone=zone)
 	    LOG.info('register') 
 
     def get_host(self):

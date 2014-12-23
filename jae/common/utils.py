@@ -32,7 +32,7 @@ def init():
     Daemon().initDaemon()
  
 def random_port():
-	port_range=config.PortRange.strip("'").split(':')	
+	port_range=[4000,65535]	
 	random_port = random.randint(int(port_range[0]),int(port_range[1]))
 		
 	return random_port

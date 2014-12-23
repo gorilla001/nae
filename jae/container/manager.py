@@ -162,6 +162,10 @@ class Manager(base.Base):
 	if resp.status_code == 404:
 	    LOG.error("no such image %s" % image_uuid)
 	    return
+        if resp.status_code == 409:
+	    self.db.update_container(id,status='error')
+            LOG.error("CONFLICT!!!")
+            return
 
 	LOG.info("CREATE -job create %s = OK" % id)
     def delete(self,id):

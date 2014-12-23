@@ -24,7 +24,7 @@ class Register(object):
 	"""
 	id = uuid.uuid1().hex[-12:]
 
-        zone = CONF.current_zone:
+        zone = CONF.current_zone
         if not zone:
             zone = 'BJ'
 	try:

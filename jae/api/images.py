@@ -163,16 +163,32 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-	name = utils.random_str()
-	port = utils.random_port()
-	kwargs={"Image":query.uuid}
-	self.image_api.edit(kwargs,name,port)
-	
-	return {
-		"url":"http://{}:{}".format(config.docker_host,port),
-		"name":name,
-		}
-
+        """edit image online."""
+	#name = utils.random_str()
+	#port = utils.random_port()
+	image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+        try:
+            response=requests.post("%s/%s/edit?name=%s&port=%s" % (image_service_endpoint,id,name,port))
+        except:
+            raise
+        #if image_service_endpoint.startswith("http://"):
+        #    image_service_endpoint=image_service_endpoint.replace("http://","")
+        #response = {"url":"http://%s:%s" % (image_service_endpoint,port),
+        #            "name": name}
+        return ResponseObject(response.json())
+#	     kwargs={"Image":query.uuid}
+#	     self.image_api.edit(kwargs,name,port)
+#	
+#	return {
+#		"url":"http://{}:{}".format(config.docker_host,port),
+#		"name":name,
+#		}
+#
     def commit(self,request):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')

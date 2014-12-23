@@ -6,10 +6,11 @@ class APIRouter(wsgi.Router):
     def __init__(self):
 
         self.mapper=routes.Mapper()
-	self._setup_route()
+	self._setup_routes()
 	super(APIRouter,self).__init__(self.mapper)
 
-    def _setup_route(self):
+    def _setup_routes(self):
 
         self.mapper.resource('image','images',
-                             controller=images.create_resource())
+                             controller=images.create_resource(),
+                             member={'edit':'POST'})

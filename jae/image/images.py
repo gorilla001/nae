@@ -156,6 +156,71 @@ class Controller(base.Base):
 	    if status in (409,500):
 	        self.db.update_image(id,status=status)
 	LOG.info("DELETE -job delete %s" % id)
-	    
+    
+    def edit(self,request,id):
+	name = utils.random_str()
+	port = utils.random_port()
+        response = {"url":"http://%s:%s" % ('192.168.56.104',port),
+                    "name": name}
+        return ResponseObject(response) 
+        
+        #image_instance = self.db.get_image(id)
+#    def _edit(self):
+#	 data = {
+#            'Hostname' : '',
+#            'User'     : '',
+#            'Memory'   : '',
+#            'MemorySwap' : '',
+#            'AttachStdin' : False,
+#            'AttachStdout' : False,
+#            'AttachStderr': False,
+#            'PortSpecs' : [],
+#            'Tty'   : True,
+#            'OpenStdin' : True,
+#            'StdinOnce' : False,
+#            'Env':[],
+#            'Cmd':["/opt/webssh/term.js/example/index.js"],
+#            'Dns' : None,
+#            'Image' : None,
+#            'Volumes' : {},
+#            'VolumesFrom' : '',
+#            'ExposedPorts': {
+#                        "17698/tcp": {},
+#                        }
+#
+#        }
+#        data.update(kwargs)
+#        _url = "{}/containers/create?name={}".format(self.url,name)
+#        headers={'Content-Type':'application/json'}
+#        resp = requests.post(_url,data=json.dumps(data),headers=headers)
+#        if resp.status_code == 201:
+#                data = {
+#                        'Binds':[],
+#                        'Links':[],
+#                        'LxcConf':{},
+#                        'PublishAllPorts':False,
+#                        'PortBindings':{
+#                                "17698/tcp": [
+#                                        {
+#                                            "HostIp":config.docker_host,
+#                                            "HostPort":"{}".format(port),
+#                                        }
+#                                ]
+#                        },
+#                        "Cmd":["/opt/webssh/term.js/example/index.js"],
+#                        'Privileged':False,
+#                        'Dns':[],
+#                        'VolumesFrom':[],
+#                        'CapAdd':[],
+#                        'CapDrop':[],
+#                }
+#                ctn_id = resp.json()['Id']
+#                _url="{}/containers/{}/start".format(self.url,ctn_id)
+#                headers={'Content-Type':'application/json'}
+#                result=requests.post(_url,data=json.dumps(data),headers=headers)
+#                if result.status_code != 204:
+#                    LOG.debug("start for-image-edit container failed")
+#        else:
+#	   LOG.debug("create for-image-edit container failed") 
 def create_resource():
     return wsgi.Resource(Controller())

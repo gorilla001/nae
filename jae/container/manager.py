@@ -132,7 +132,7 @@ class Manager(base.Base):
                 PB[key] = nt_list
 
 	    repo_name = os.path.basename(repos)
-            path=os.path.join(CONF.static_file_path,'files')
+            path="/home"
             source_path = os.path.join(path,user_id,repo_name)
             dest_path = "/home/jm/www"
             kwargs = {

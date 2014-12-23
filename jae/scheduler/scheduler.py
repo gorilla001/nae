@@ -175,7 +175,6 @@ class SimpleScheduler(driver.Scheduler):
                 image_id=image_id,
                 user_id=user_id,
                 host_id=host_id,
-		##fixed_ip=fixed_ip,
                 status="building"))
     def cleanup_db(self,id):
 	"""

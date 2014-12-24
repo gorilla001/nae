@@ -176,6 +176,20 @@ class Controller(Base):
             raise
         return ResponseObject(response.json())
 
+    def destroy(self,request,id):
+        """destroy temporary containers for image online edit."""
+        image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+        try:
+            response=requests.get("%s/%s/destroy" % (image_service_endpoint,id))
+        except:
+            raise
+        return ResponseObject(response.json())
+
     def commit(self,request):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')

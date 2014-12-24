@@ -24,7 +24,8 @@ class APIRouter(wsgi.Router):
                                      'refresh':'POST'})
         self.mapper.resource('image',
                              'images',
-			     controller=images.create_resource())
+			     controller=images.create_resource(),
+                             member={'destroy':'POST'})
 
         self.mapper.connect('/baseimages',
                         controller=images.create_resource(),

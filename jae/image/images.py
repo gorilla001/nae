@@ -103,6 +103,12 @@ class Controller(base.Base):
                    (http_host,port),
                    "name": name}
         return ResponseObject(response) 
+
+    def destroy(self,request,id):
+        """destroy temporary container for image edit."""
+        eventlet.spawn_n(self._manager.destroy,id)
+      
+        return Response(200)
 	 
 def create_resource():
     return wsgi.Resource(Controller())

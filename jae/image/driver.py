@@ -15,8 +15,53 @@ class API(object):
         self.port = Int(CONF.port)
         self.headers={'Content-Type':'application/json'}
 
-    def create(self,name,data):
-	pass	
+    def create(self,name,kwargs):
+	"""create temporary container for image online edit."""
+        data = {'Hostname' : '',
+                 'User'     : '',
+                 'Memory'   : '',
+                 'MemorySwap' : '',
+                 'AttachStdin' : False,
+                 'AttachStdout' : False,
+                 'AttachStderr': False,
+                 'PortSpecs' : [],
+                 'Tty'   : True,
+                 'OpenStdin' : True,
+                 'StdinOnce' : False,
+                 'Env':[],
+                 'Cmd':["/opt/webssh/term.js/example/index.js"],
+                 'Dns' : None,
+                 'Image' : None,
+                 'Volumes' : {},
+                 'VolumesFrom' : '',
+                 'ExposedPorts': {"17698/tcp": {}}}
+        data.update(kwargs)
+        resp = requests.post("http://%s:%s/containers/create?name=%s" % \
+                            (self.host,self.port,name),
+                            headers={'Content-Type':'application/json'},
+                            data=json.dumps(data))
+
+        return resp
+
+    def start(self,host,port,uuid):
+        """start container for image online edit."""
+        data = {'Binds':[],
+                    'Links':[],
+                    'LxcConf':{},
+                    'PublishAllPorts':False,
+                    'PortBindings':{"17698/tcp":[{"HostIp":host,"HostPort":str(port)}]},
+                    'Cmd':["/opt/webssh/term.js/example/index.js"],
+                    'Privileged':False,
+                    'Dns':[],
+                    'VolumesFrom':[],
+                    'CapAdd':[],
+                    'CapDrop':[]}
+        resp = requests.post("http://%s:%s/containers/%s/start" % \
+                                 (self.host,self.port,uuid),
+                                 headers={'Content-Type':'application/json'},
+                                 data=json.dumps(data))
+
+        return resp
 
     def inspect(self,name):
 	response = requests.get("http://%s:%s/images/%s/json" % \

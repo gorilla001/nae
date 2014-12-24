@@ -49,6 +49,7 @@ jae/db/session.py
 jae/image/__init__.py
 jae/image/driver.py
 jae/image/images.py
+jae/image/manager.py
 jae/network/__init__.py
 jae/network/manager.py
 jae/scheduler/__init__.py

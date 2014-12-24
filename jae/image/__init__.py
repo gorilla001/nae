@@ -12,4 +12,5 @@ class APIRouter(wsgi.Router):
     def _setup_routes(self):
 
         self.mapper.resource('image','images',
-                             controller=images.create_resource())
+                             controller=images.create_resource(),
+                             member={'destroy':'POST'})

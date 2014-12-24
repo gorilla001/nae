@@ -109,5 +109,5 @@ class API(object):
 	response=requests.post("http://%s:%s/containers/%s/stop" % \
                               (self.host,self.port,name))
 
-	response=requests.delete("http://%s:%s/containers/%s/stop" % \
+	response=requests.delete("http://%s:%s/containers/%s" % \
                               (self.host,self.port,name))

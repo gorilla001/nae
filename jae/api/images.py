@@ -215,7 +215,7 @@ class Controller(Base):
                     "container_name" : ctn,
                     "id"             : id,
                     "project_id"     : project_id}
-            response=requests.post("%s/%s/commit" % (image_service_endpoint,id),
+            response=requests.post("%s/commit" % image_service_endpoint,
                                    headers={'Content-Type':'application/json'},
                                    data=json.dumps(data))
         except:

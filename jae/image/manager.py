@@ -7,9 +7,8 @@ from jae.common.cfg import Int, Str
 from jae.common import utils
 from jae.common.mercu import MercurialControl 
 
-from jae.container import driver
+from jae.image import driver
 from jae import base 
-from jae.network import manager
 
 
 CONF = cfg.CONF

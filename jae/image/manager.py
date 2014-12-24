@@ -135,9 +135,32 @@ class Manager(base.Base):
 
     def commit(self,image_id,repository,tag,container_name):
         """commit image for online edit.""" 
+        LOG.info("COMMIT +job commit %s" % container_name)
         resp = self.driver.commit(container_name,repository,tag)
         if resp.status_code == 201:
+            """update image uuid."""
             image_uuid = resp.json()['Id'] 
-            self.db.update_images(id=image_id,
+            self.db.update_image(id=image_id,
+                                  uuid=image_uuid)
+            """commit ok,tag the image to repository."""
+            LOG.info("TAG +job tag image %s to repository" % image_id)
+            status,new_repository = self.driver.tag(repository,tag)
+            if status == 201:
+                LOG.info("TAG -job tag image %s = OK" % image_id)
+                LOG.info("PUSH +job push %s" % tag)
+                push_status = self.driver.push(new_repository,tag)
+                if push_status == 200:
+                    LOG.info("PUSH -job push %s = OK" % tag)
+                    self.db.update_image(id=image_id,status="ok")
+                    LOG.info("COMMIT -job commit %s = OK" % container_name)
+                else:
+                    LOG.info("PUSH -job push %s = ERR" % tag)
+                    self.db.update_image(id=image_id,status="error")
+                     
+        if resp.status_code == 404:
+            image_uuid = resp.json()['Id'] 
+            self.db.update_image(id=image_id,
                                   uuid=image_uuid,
-                                  status="ok")
+                                  status="error")
+            LOG.info("COMMIT -job commit %s = ERR" % container_name)
+        

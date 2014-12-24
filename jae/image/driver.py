@@ -86,7 +86,7 @@ class API(object):
 				(image_registry_endpoint,repository,tag))
 	return response.status_code
 
-    def tag(self,name):
+    def tag(self,name,tag="latest"):
 	image_registry_endpoint = CONF.image_registry_endpoint
         if not image_registry_endpoint:
             LOG.error('no registry endpoint found!')
@@ -95,13 +95,13 @@ class API(object):
 	    image_registry_endpoint = image_registry_endpoint.replace("http://","")
 	host = Str(CONF.host)
         port = Int(CONF.port)
-	response=requests.post("http://%s:%s/images/%s/tag?repo=%s/%s&force=0&tag=latest" 
-                       % (host,port,name,image_registry_endpoint,name))
+	response=requests.post("http://%s:%s/images/%s/tag?repo=%s/%s&force=0&tag=%s" 
+                       % (host,port,name,image_registry_endpoint,name,tag))
 	return response.status_code,"%s/%s" % (image_registry_endpoint,name)
 
-    def push(self,name):
-	response=requests.post("http://%s:%s/images/%s/push" % \
-                                (self.host,self.port,name),
+    def push(self,name,tag="latest"):
+	response=requests.post("http://%s:%s/images/%s/push?tag=%s" % \
+                                (self.host,self.port,name,tag),
 				headers={'X-Registry-Auth':uuid.uuid4().hex})
    	return response.status_code
 
@@ -112,8 +112,7 @@ class API(object):
 	response=requests.delete("http://%s:%s/containers/%s" % \
                               (self.host,self.port,name))
 
-    def commit(container,repository,tag):
+    def commit(self,container,repository,tag):
         response=requests.post("http://%s:%s/commit?author=&comment=&container=%s&repo=%s&tag=%s" % \
                               (self.host,self.port,container,repository,tag))
         return response
-        pass

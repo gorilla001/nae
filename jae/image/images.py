@@ -86,6 +86,9 @@ class Controller(base.Base):
 
 	    
     def edit(self,request,id):
+        """edit image online.
+        this method is not very correct,change this if you can."""
+
         http_host=request.environ['HTTP_HOST'].rpartition(":")[0]
 	name = utils.random_str()
 	port = utils.random_port()
@@ -93,11 +96,21 @@ class Controller(base.Base):
         if image_instance:
             image_uuid = image_instance.uuid
             kwargs = {"Image":image_uuid}
+            """this method should not be ina greenthread cause 
+               it is beatter to prepare edit before client to 
+               connect.
+            TODO: change this if you can.
+            
             eventlet.spawn_n(self._manager.edit,
                              kwargs,
                              http_host,
                              name,
                              port) 
+            """
+            self._manager.edit(kwargs,
+                               http_host,
+                               name,
+                               port) 
 
         response = {"url":"http://%s:%s" % \
                    (http_host,port),
@@ -133,8 +146,7 @@ class Controller(base.Base):
                          new_image_id,
                          repository,
                          tag,
-                         container_name,
-                         project_id)
+                         container_name)
 
     def destroy(self,request,id):
         """destroy temporary container for image edit."""

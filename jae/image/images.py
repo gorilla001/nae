@@ -104,6 +104,14 @@ class Controller(base.Base):
                    "name": name}
         return ResponseObject(response) 
 
+    def commit(self,request,body):
+        repository = body.get('repository')
+        tag = body.get('tag')
+        id = body.get('id')
+        project_id = body.get('project_id') 
+
+        print repository,tag,id,project_id
+
     def destroy(self,request,id):
         """destroy temporary container for image edit."""
         eventlet.spawn_n(self._manager.destroy,id)

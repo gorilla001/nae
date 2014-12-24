@@ -132,3 +132,12 @@ class Manager(base.Base):
 	destroy a temporary container by a given name.
 	"""
         self.driver.destroy(name)
+
+    def commit(self,image_id,repository,tag,container_name):
+        """commit image for online edit.""" 
+        resp = self.driver.commit(container_name,repository,tag)
+        if resp.status_code == 201:
+            image_uuid = resp.json()['Id'] 
+            self.db.update_images(id=image_id,
+                                  uuid=image_uuid,
+                                  status="ok")

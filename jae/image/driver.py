@@ -111,3 +111,9 @@ class API(object):
 
 	response=requests.delete("http://%s:%s/containers/%s" % \
                               (self.host,self.port,name))
+
+    def commit(container,repository,tag):
+        response=requests.post("http://%s:%s/commit?author=&comment=&container=%s&repo=%s&tag=%s" % \
+                              (self.host,self.port,container,repository,tag))
+        return response
+        pass

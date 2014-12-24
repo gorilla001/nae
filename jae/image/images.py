@@ -107,10 +107,34 @@ class Controller(base.Base):
     def commit(self,request,body):
         repository = body.get('repository')
         tag = body.get('tag')
-        id = body.get('id')
+        image_id = body.get('id')
         project_id = body.get('project_id') 
+        container_name = body.get('container_name')
 
-        print repository,tag,id,project_id
+        project = self.db.get_project(project_id)
+        if not project:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)
+
+        image_instance = self.db.get_image(image_id)
+        if image_instance:
+            new_image_id = uuid.uuid4().hex
+            self.db.add_image(dict(
+                             id=new_image_id,
+                             name=repository,
+                             tag=tag,
+                             desc=image_instance.desc,
+                             project=copy.deepcopy(project),
+                             repos = image_instance.repos,
+                             branch = image_instance.branch,
+                             user_id = image_instance.user_id,
+                             status = 'building'))
+            eventlet.spawn_n(self._manager.commit,
+                         new_image_id,
+                         repository,
+                         tag,
+                         container_name,
+                         project_id)
 
     def destroy(self,request,id):
         """destroy temporary container for image edit."""

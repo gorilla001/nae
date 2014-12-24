@@ -104,3 +104,10 @@ class API(object):
                                 (self.host,self.port,name),
 				headers={'X-Registry-Auth':uuid.uuid4().hex})
    	return response.status_code
+
+    def destroy(self,name):
+	response=requests.post("http://%s:%s/containers/%s/stop" % \
+                              (self.host,self.port,name))
+
+	response=requests.delete("http://%s:%s/containers/%s/stop" % \
+                              (self.host,self.port,name))

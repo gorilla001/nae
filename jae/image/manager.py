@@ -131,5 +131,4 @@ class Manager(base.Base):
 	"""
 	destroy a temporary container by a given name.
 	"""
-	self.driver.stop(name)
-	self.driver.delete(name)
+        self.driver.destroy(name)

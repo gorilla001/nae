@@ -156,6 +156,7 @@ class Manager(base.Base):
                 else:
                     LOG.info("PUSH -job push %s = ERR" % tag)
                     self.db.update_image(id=image_id,status="error")
+            self.driver.destroy(container_name)
                      
         if resp.status_code == 404:
             image_uuid = resp.json()['Id'] 

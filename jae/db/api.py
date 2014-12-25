@@ -2,6 +2,7 @@ from  session import get_session
 import models
 from sqlalchemy.orm import joinedload
 from sqlalchemy import asc
+from sqlalchemy import inspect
 
 
 def model_query(model,**kwargs):
@@ -14,11 +15,13 @@ def model_query(model,**kwargs):
 
 ### image api ###
 
-def add_image(values):
-    session = get_session()
+def add_image(values,project):
+    #session = get_session()
+    session = inspect(project).session
     with session.begin():
 	image_ref=models.Image()
 	image_ref.update(values)
+        image_ref.project = project
 	image_ref.save(session=session)	
 
 def get_images(project_id):
@@ -132,11 +135,13 @@ def delete_user(id):
 
 ### repo api ###
 
-def add_repo(values):
-    session = get_session()
+def add_repo(values,project):
+    #session = get_session()
+    session = inspect(project).session
     with session.begin():
         repo_ref=models.Repos()
         repo_ref.update(values)
+        repo_ref.project=project
         repo_ref.save(session=session)
     
 def get_repo(id):

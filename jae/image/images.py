@@ -56,11 +56,11 @@ class Controller(base.Base):
                 name=name,
                 tag="latest",
                 desc=desc,
-                project=copy.deepcopy(project),
                 repos = repos,
                 branch = branch,
                 user_id = user_id,
-                status = 'building'))
+                status = 'building'),
+                project = project)
 
         eventlet.spawn_n(self._manager.create,
                          id,

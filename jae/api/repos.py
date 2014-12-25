@@ -55,8 +55,8 @@ class Controller(base.Base):
 	try:
             self.db.add_repo(dict(
 		id = uuid.uuid4().hex,
-                repo_path= repo_path,
-                project = copy.deepcopy(project)))
+                repo_path= repo_path),
+                project = project)
         except IntegrityError,err:
 	    LOG.error(err)
 	    return Response(500) 

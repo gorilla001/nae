@@ -45,12 +45,14 @@ def delete_image(id):
 
 ### cotainer api ###
 
-def add_container(values):
-    session = get_session()
+def add_container(values,project):
+    #session = get_session()
+    session=inspect(project).session
     with session.begin():
-        model=models.Container()
-        model.update(values)
-        model.save(session=session)
+        container_ref=models.Container()
+        container_ref.update(values)
+        container_ref.project=project 
+        container_ref.save(session=session)
 
 def get_containers(project_id=None,user_id=None):
     if project_id is None and user_id is None:

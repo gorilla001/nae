@@ -143,40 +143,40 @@ class Controller(base.Base):
 			id = project_id,
                         name = name,
                         desc = desc))
-        """add admin."""
-	admin = body.get('admin')
-	email = body.get('email')
-        """
-        get project instance from db by `project_id`
-        is it odd,right?
-        """
-        project = self.db.get_project(project_id)
+        #"""add admin."""
+	#admin = body.get('admin')
+	#email = body.get('email')
+        #"""
+        #get project instance from db by `project_id`
+        #is it odd,right?
+        #"""
+        #project = self.db.get_project(project_id)
 
-        """add db entry."""
-        self.db.add_user(dict(
-		id = uuid.uuid4().hex,
-                name = admin,
-                email = email,
-                role_id = 0),
-                project = copy.deepcopy(project))
+        #"""add db entry."""
+        #self.db.add_user(dict(
+	#	id = uuid.uuid4().hex,
+        #        name = admin,
+        #        email = email,
+        #        role_id = 0),
+        #        project = copy.deepcopy(project))
 
-        """add base image."""
-        image_id = body.get('image_id')
-        base_image = self.db.get_base_image(image_id)
-        if base_image is not None:
-            image_uuid = base_image.uuid
-            name = base_image.repository
-            tag  = base_image.tag
-            desc = base_image.desc
-            image_id = uuid.uuid4().hex
-            self.db.add_image(dict(
-		id=image_id,
-		uuid = image_uuid,
-		name=name,
-		tag=tag,
-		desc=desc,
-                project=copy.deepcopy(project),
-                status="ok"))
+        #"""add base image."""
+        #image_id = body.get('image_id')
+        #base_image = self.db.get_base_image(image_id)
+        #if base_image is not None:
+        #    image_uuid = base_image.uuid
+        #    name = base_image.repository
+        #    tag  = base_image.tag
+        #    desc = base_image.desc
+        #    image_id = uuid.uuid4().hex
+        #    self.db.add_image(dict(
+	#	id=image_id,
+	#	uuid = image_uuid,
+	#	name=name,
+	#	tag=tag,
+	#	desc=desc,
+        #        project=copy.deepcopy(project),
+        #        status="ok"))
 
         #FIXME: return ?
         return Response(201) 

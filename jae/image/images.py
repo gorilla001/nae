@@ -70,7 +70,7 @@ class Controller(base.Base):
                          branch,
                          user_id) 
 
-        return Response(201)
+        return ResponseObject({"id":id})
 
     def delete(self,request,id):
 	"""
@@ -147,6 +147,8 @@ class Controller(base.Base):
                          repository,
                          tag,
                          container_name)
+        #NOTE(nmg):there may be a bug here.
+        return ResponseObject({"id":new_image_id})
 
     def destroy(self,request,id):
         """destroy temporary container for image edit."""

@@ -101,16 +101,16 @@ class Controller(base.Base):
                connect.
             TODO: change this if you can.
             
+            self._manager.edit(kwargs,
+                               http_host,
+                               name,
+                               port) 
+            """
             eventlet.spawn_n(self._manager.edit,
                              kwargs,
                              http_host,
                              name,
                              port) 
-            """
-            self._manager.edit(kwargs,
-                               http_host,
-                               name,
-                               port) 
 
         response = {"url":"http://%s:%s" % \
                    (http_host,port),
@@ -137,11 +137,11 @@ class Controller(base.Base):
                              name=repository,
                              tag=tag,
                              desc=image_instance.desc,
-                             project=copy.deepcopy(project),
                              repos = image_instance.repos,
                              branch = image_instance.branch,
                              user_id = image_instance.user_id,
-                             status = 'building'))
+                             status = 'building'),
+                             project=project)
             eventlet.spawn_n(self._manager.commit,
                          new_image_id,
                          repository,

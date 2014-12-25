@@ -51,6 +51,7 @@ class Image(BaseModel):
     project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('images',
+                                            lazy="joined",
                                             uselist=True,
                                             cascade='delete,all'))
     repos = Column(String(300))
@@ -70,6 +71,7 @@ class Container(BaseModel):
     project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('containers',
+                                            lazy="joined",
                                             uselist=True,
                                             cascade='delete,all'))
     repos= Column(String(300))
@@ -105,6 +107,7 @@ class Repos(BaseModel):
     project_id= Column(String(32),ForeignKey('projects.id',ondelete='CASCADE'))
     project = relationship("Project",
                            backref=backref('repos',
+                                            lazy='joined',
                                             uselist=True,
                                             cascade='delete,all'))
 

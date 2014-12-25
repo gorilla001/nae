@@ -1,6 +1,8 @@
 import uuid
 import copy
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.util import object_state
+from sqlalchemy import inspect
 
 from jae import wsgi
 from jae import base
@@ -17,9 +19,11 @@ class Controller(base.Base):
     def index(self,request):
         users=[]
         project_id = request.GET.get('project_id')
-        query = self.db.get_users(project_id=project_id)
-	print query
-        for item in query:
+        project = self.db.get_project(project_id)
+        
+        #query = self.db.get_users(project_id=project_id)
+	#print query
+        for item in project.users:
             user={
                 'id':item.id,
                 'name':item.name,
@@ -71,13 +75,22 @@ class Controller(base.Base):
         role_id=body.get('role_id')
         project_id=body.get('project_id')
 	project = self.db.get_project(project_id) 
+        #print type(project)
+        #state = object_state(project)
+        #print state.detached
+        #print state.session
+        session = inspect(project).session 
+        #project = state.session.expunge(project)
+        #print project
+        
         try:
-            user_ref=self.db.add_user(dict(
-		        id = uuid.uuid4().hex,
-                        name = name,
-                        email = email,
-                        role_id = role_id),
-                        project = copy.deepcopy(project))
+            user_ref=self.db.add_user(session,
+                        dict(id = uuid.uuid4().hex,
+                             name = name,
+                             email = email,
+                             role_id = role_id),
+                             #project = copy.deepcopy(project))
+                             project = project)
         except IntegrityError,err:
 	    LOG.error(err)
 	    return Response(500) 

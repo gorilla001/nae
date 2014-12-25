@@ -48,8 +48,9 @@ def get_session(autocommit=True,expire_on_commit=False):
     return _MAKER()
 
 def get_maker(engine):
+    """change expire_on_commit=False to expire_on_commit=True"""
     maker= sqlalchemy.orm.sessionmaker(bind=engine,
 					  autocommit=True,
-					  expire_on_commit=False)
+					  expire_on_commit=True)
 
     return maker 

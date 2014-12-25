@@ -19,8 +19,13 @@ class Controller(base.Base):
         """show all repos by project id."""
         repos=[]
         project_id = request.GET.get('project_id')
-        query = self.db.get_repos(project_id=project_id)
-        for item in query: 
+        project = self.db.get_project(project_id)
+        if not project:
+            LOG.error("no such project %s" % project_id)
+            return Response(404)
+
+        #query = self.db.get_repos(project_id=project_id)
+        for item in project.repos: 
             repo={
                 'id':item.id,
                 'repo_path':item.repo_path,

@@ -163,31 +163,67 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-	name = utils.random_str()
-	port = utils.random_port()
-	kwargs={"Image":query.uuid}
-	self.image_api.edit(kwargs,name,port)
-	
-	return {
-		"url":"http://{}:{}".format(config.docker_host,port),
-		"name":name,
-		}
+        """edit image online."""
+	image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+        try:
+            response=requests.get("%s/%s/edit" % (image_service_endpoint,id))
+        except:
+            raise
+        return ResponseObject(response.json())
+
+    def destroy(self,request,id):
+        """destroy temporary containers for image online edit."""
+        image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+        try:
+            response=requests.post("%s/%s/destroy" % (image_service_endpoint,id))
+        except:
+            raise
+        return ResponseObject(response.json())
 
     def commit(self,request):
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')
 	ctn = request.GET.pop('ctn')
 	id = request.GET.pop('id')
- 	proj_id = request.GET.pop('proj_id')
+ 	project_id = request.GET.pop('proj_id')
 
-	img_limit = quotas.get_quotas().get('image_limit')	
-	img_count = self.db.get_images(proj_id)
-	img_count = len(img_count.fetchall())	
-	if img_count == img_limit :
-	    LOG.info("images limit exceed,can not created anymore...")
-	    return { "status":100 }
+        limit = QUOTAS.images or _IMAGE_LIMIT 
+	query = self.db.get_images(project_id)
+	if len(query) >= limit :
+	    LOG.error("images limit exceed,can not created anymore...")
+	    return Response(500) 
 
-	self.image_api.commit(repo,tag,ctn,id)
+        image_service_endpoint = CONF.image_service_endpoint
+	if not image_service_endpoint:
+	    LOG.error("no image service endpoint found!")
+	    return Response(404)
+	if not image_service_endpoint.startswith("http://"):
+	    image_service_endpoint += "http://"
+        try:
+            data = {"repository"     : repo,
+                    "tag"            : tag,
+                    "container_name" : ctn,
+                    "id"             : id,
+                    "project_id"     : project_id}
+            response=requests.post("%s/commit" % image_service_endpoint,
+                                   headers={'Content-Type':'application/json'},
+                                   data=json.dumps(data))
+        except:
+            raise
+        return ResponseObject(response.json())
+
+        
+	#self.image_api.commit(repo,tag,ctn,id)
 
     def conflict(self,request):
 	_id=request.environ['wsgiorg.routing_args'][1]['image_id']

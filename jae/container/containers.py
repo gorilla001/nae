@@ -22,7 +22,7 @@ class Controller(Base):
 	super(Controller,self).__init__()
 
         self._manager=manager.Manager()
-        self.mercurial = MercurialControl()
+        #self.mercurial = MercurialControl()
 
     def index(self,request):
 	"""

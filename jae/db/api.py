@@ -1,6 +1,7 @@
 from  session import get_session
 import models
 from sqlalchemy.orm import joinedload
+from sqlalchemy import asc
 
 
 def model_query(model,**kwargs):
@@ -22,9 +23,12 @@ def add_image(values):
 
 def get_images(project_id):
     if project_id is None:
-	return model_query(models.Image).all()
+	return model_query(models.Image).\
+               order_by(asc(models.Image.created)).\
+               all()
     return model_query(models.Image,
-		       project_id=project_id).all()
+		       project_id=project_id).\
+                      order_by(asc(models.Image.created)).all()
 
 def get_image(id):
     return model_query(models.Image,id=id).first()

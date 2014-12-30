@@ -95,7 +95,7 @@ def make_zip_tar(path):
 
     return "/tmp/%s.tar.gz" % _str
 def make_user_home(user_name,user_key):
-    path = CONF.static_file_path or "/tmp"
+    path = "/home" 
     user_home = os.path.join(path,user_name)
     if not os.path.exists(user_home):
         os.mkdir(user_home)

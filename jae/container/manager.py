@@ -59,29 +59,31 @@ class Manager(base.Base):
 	"""create new container use mount of args."""
 
 	LOG.info("CREATE +job create %s" % id)
+        """
 	resp = self.driver.inspect_image(image_uuid)
 	if resp.status_code == 404:
 	    LOG.error("inspect error,no such image?")
-	    LOG.info("pull image %s from registry..." % image_id)
-	    status = self.driver.pull_image(repository,tag)
-	    if status == 404:
-		LOG.error("pull failed,no registry found!")
-                self.db.update_container(id,
-                                         status="error")
-	        return webob.exc.HTTPNotFound()
-	    if status == 500:
-		LOG.error("pull failed,internal server error!")
-                self.db.update_container(id,
-                                         status="error")
-		return webob.exc.HTTPInternalServerError()
+        """
+	LOG.info("pull image %s from registry..." % image_id)
+	status = self.driver.pull_image(repository,tag)
+	if status == 404:
+	    LOG.error("pull failed,no registry found!")
+            self.db.update_container(id,
+                                     status="error")
+	    return webob.exc.HTTPNotFound()
+	if status == 500:
+	    LOG.error("pull failed,internal server error!")
+            self.db.update_container(id,
+                                     status="error")
+	    return webob.exc.HTTPInternalServerError()
 
-	    """check image again.if failed again,what can I do ???"""
-	    resp = self.driver.inspect_image(image_uuid)
-	    if resp.status_code == 404:
-		msg="pull image failed!"
-		LOG.error(msg)
-		return webob.exc.HTTPNotFound(explanation=msg)
-	    LOG.info("pull image succeed!")
+	"""check image again.if failed again,what can I do ???"""
+	resp = self.driver.inspect_image(image_uuid)
+	if resp.status_code == 404:
+	    msg="pull image failed!"
+	    LOG.error(msg)
+	    return webob.exc.HTTPNotFound(explanation=msg)
+	LOG.info("pull image succeed!")
 
         port=resp.json()['Config']['ExposedPorts']
 	kwargs = {'Hostname'       : '',

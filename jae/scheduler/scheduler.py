@@ -170,14 +170,13 @@ class SimpleScheduler(driver.Scheduler):
                 id=db_id,
                 name=name,
                 env=env,
-                #project=copy.deepcopy(project),
-                project=project,
                 repos=repos,
                 branch=branch,
                 image_id=image_id,
                 user_id=user_id,
                 host_id=host_id,
-                status="building"))
+                status="building"),
+                project=project)
     def cleanup_db(self,id):
 	"""
 	remove record from db.

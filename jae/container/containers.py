@@ -122,7 +122,7 @@ class Controller(Base):
 	"""
         eventlet.spawn_n(self._manager.destroy,name)
 
-        return {"status":200} 
+        return Response(200) 
 
     def commit(self,request,body):
 	repo = body.get('repo') 

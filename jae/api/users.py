@@ -1,5 +1,6 @@
 import uuid
 import copy
+import webob.exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.util import object_state
 from sqlalchemy import inspect
@@ -100,8 +101,9 @@ class Controller(base.Base):
     
     def delete(self,request,id):
         self.db.delete_user(id)
-
-        return Response(200) 
+        """return webob.exc.HTTPNoContent() seems more better."""
+        ##return Response(200) 
+        return webob.exc.HTTPNoContent()
 
 def create_resource():
     return wsgi.Resource(Controller())

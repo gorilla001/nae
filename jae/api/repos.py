@@ -1,5 +1,6 @@
 import uuid
 import copy
+import webob.exc
 from sqlalchemy.exc import IntegrityError
 
 from jae import wsgi
@@ -67,7 +68,9 @@ class Controller(base.Base):
         """delete repos by id."""
         self.db.delete_repo(id)
 
-        return Response(200) 
+        """return webob.exc.HTTPNoContent seems more better."""
+        ##return Response(200) 
+        return webob.exc.HTTPNoContent()
 
 def create_resource():
     return wsgi.Resource(Controller())

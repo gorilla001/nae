@@ -12,7 +12,7 @@ LOG=logging.getLogger(__name__)
 class MercurialControl(object):
     def __init__(self):
         self._ui = mercurial.ui.ui()
-        self.path="/home"
+        self.path=os.path.expandvars('$HOME')
     def clone(self,user_id,repo_path):
         source = repo_path
         path = os.path.join(self.path,user_id)

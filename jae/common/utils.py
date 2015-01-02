@@ -17,6 +17,7 @@ from jae.common import cfg
 from jae.common import log as logging
 
 LOG = logging.getLogger(__name__)
+CONF=cfg.CONF
 
 
 class ResponseSucceed(object):
@@ -47,13 +48,14 @@ def random_str(randomlength=8):
     return str
 
 def get_file_path(user_name,repo_name):
-    base_dir = "/home" 
+    base_dir = os.path.expandvars('$HOME')
     user_dir=os.path.join(base_dir,user_name,repo_name)
 
     return user_dir 
 
 def repo_exist(user_name,repo_name):
-    user_dir=os.path.join("/home",user_name)
+    #user_dir=os.path.join("/home",user_name)
+    user_dir=os.path.join(os.path.expandvars('$HOME'),user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
         return False 
@@ -95,7 +97,8 @@ def make_zip_tar(path):
 
     return "/tmp/%s.tar.gz" % _str
 def make_user_home(user_name,user_key):
-    path = "/home" 
+    #path = "/home" 
+    path = os.path.expandvars('$HOME')
     user_home = os.path.join(path,user_name)
     if not os.path.exists(user_home):
         os.mkdir(user_home)
@@ -123,8 +126,8 @@ def prepare_config_file(home,repo,env):
 
 class Daemon():
     def __init__(self):
-        self.stdout="/var/log/jaecpn/jaecpn.log"
-        self.stderr="/var/log/jaecpn/jaecpn.log"
+        self.stdout=CONF.log_file
+        self.stderr=CONF.log_file
     def initDaemon(self):
         try:
             pid = os.fork()
@@ -134,7 +137,8 @@ class Daemon():
             LOG.error("fork error")
             sys.exit(1)
 
-        os.chdir(os.path.dirname(__file__))
+        #os.chdir(os.path.dirname(__file__))
+        os.chdir(os.path.expandvars('$HOME'))
         os.setsid()
         os.umask(0)
 

@@ -134,7 +134,8 @@ class Manager(base.Base):
                 PB[key] = nt_list
 
 	    repo_name = os.path.basename(repos)
-            path="/home"
+            #path="/home"
+            path=os.path.expandvars('$HOME')
             source_path = os.path.join(path,user_id,repo_name)
             dest_path = "/home/jm/www"
             kwargs = {
@@ -200,6 +201,7 @@ class Manager(base.Base):
             nwutils.delete_virtual_iface(query.uuid[:8])
         except:
             LOG.warning("delete virtual interface error")  
+            raise
 
 	LOG.info("DELETE -job delete %s" % id)
 

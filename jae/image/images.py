@@ -89,7 +89,11 @@ class Controller(base.Base):
         """edit image online.
         this method is not very correct,change this if you can."""
 
+        """if HTTP_HOST is localhost,this will be failed,so use
+        CONF.host instead.
         http_host=request.environ['HTTP_HOST'].rpartition(":")[0]
+        """
+        http_host=CONF.host
 	name = utils.random_str()
 	port = utils.random_port()
         image_instance = self.db.get_image(id)

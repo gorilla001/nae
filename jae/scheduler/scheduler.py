@@ -8,6 +8,7 @@ from operator import attrgetter
 from jae.common import exception
 from jae.common import log as logging
 from jae.common.response import ResponseObject,Response
+from jae.common import utils
 
 from jae.scheduler import driver
 from jae.scheduler import filters
@@ -67,11 +68,12 @@ class SimpleScheduler(driver.Scheduler):
 
         
 	"""generate container name"""
-	name   = os.path.basename(repos) + '-' + branch
-        query  = self.db.get_containers()
-        count  = len(query)
-        suffix = count +1
-        name   = name + '-' + str(suffix).zfill(8)
+	#name   = os.path.basename(repos) + '-' + branch
+        #query  = self.db.get_containers()
+        #count  = len(query)
+        #suffix = count +1
+        #name   = name + '-' + str(suffix).zfill(8)
+        name = name = self.get_random_name()
 	"""
 	insert db a record for instance create.
 	"""
@@ -182,3 +184,5 @@ class SimpleScheduler(driver.Scheduler):
 	remove record from db.
 	"""
 	self.db.delete_container(id)	
+    def get_random_name(self):
+        return utils.random_str(10)

@@ -18,6 +18,8 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
+        """Get users by `project_id`."""
+        
         users=[]
         project_id = request.GET.get('project_id')
         project = self.db.get_project(project_id)
@@ -37,6 +39,7 @@ class Controller(base.Base):
         return ResponseObject(users)
 
     def show(self,request,id):
+        """Get user detail according `id`"""
 	query = self.db.get_user(id)	
         if query is None:
             LOG.error("no such user %s" % id)

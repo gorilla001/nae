@@ -12,7 +12,7 @@ class BaseParser(object):
     
     def parse(self,conf):
 	"""
-	Fixme
+        The config parse method.
 	"""
         for line in conf:
 	    self.lineno += 1	

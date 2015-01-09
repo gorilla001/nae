@@ -1,4 +1,6 @@
+from jae.common import log as logging
 
+LOG=logging.getLogger(__name__)
 
 
 
@@ -34,7 +36,7 @@ class PeriodicTaskMeta(type):
                     continue
  
                 """A periodic interval of zero indicates that this task should be 
-                   run on default interval to avoid running too frequently""
+                   run on default interval to avoid running too frequently"""
                 if task._periodic_interval == 0:
 		    task._periodic_interval = DEFAULT_INTERVAL 
 

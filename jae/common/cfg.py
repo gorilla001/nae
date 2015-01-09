@@ -21,6 +21,7 @@ class Str(str):
 class ConfigParser(BaseParser):
     def __init__(self):
 	super(ConfigParser, self).__init__()
+
         self._opts = {}
 
     def __call__(self,conf):

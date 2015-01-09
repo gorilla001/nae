@@ -134,6 +134,10 @@ class Controller(Base):
         if not zone_id:
             zone_id=0	
 
+        """Call the scheduler to decide which host the container will 
+           be run on.
+        """
+        # TODO(nmg): This should be modified to use rpc call not function call. 
 	try:
 	    instance = self._scheduler.run_instance(project_id,
 						    user_id,

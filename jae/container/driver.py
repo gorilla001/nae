@@ -18,6 +18,7 @@ class API(object):
 	"""
 	create a container with `name` and `kwargs`.
 	"""
+        # TODO(nmg): exceptions should be catched.
         response = requests.post("http://%s:%s/containers/create?name=%s" \
                               % (self.host,self.port,name),
 				 headers = {'Content-Type':'application/json'},
@@ -29,6 +30,7 @@ class API(object):
         inspect image info according to `uuid`.
         """
 
+        # TODO(nmg): exceptions should be catched.
         response = requests.get("http://%s:%s/images/%s/json" % \
 		                 (self.host,self.port,uuid))
 	return response
@@ -46,6 +48,7 @@ class API(object):
 	url = "http://%s:%s/images/create" % (host,port)
 	from_image = image_registry_endpoint + "/" + "%s:%s" % (repository,tag)	
 	
+        # TODO(nmg): exceptions should be catched.
 	response = requests.post("%s?fromImage=%s" % (url,from_image))
         return response.status_code
 
@@ -53,6 +56,7 @@ class API(object):
 	"""
 	start a container with kwargs specified by uuid.
 	"""
+        # TODO(nmg): exceptions should be catched.
 	response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))
@@ -61,16 +65,19 @@ class API(object):
 
     def stop(self,uuid):
          """stop the container specified by uuid"""
+        # TODO(nmg): exceptions should be catched.
          response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
          return response.status_code
 
     def delete(self,uuid):
          """delete the container uuid"""
+        # TODO(nmg): exceptions should be catched.
          response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
          return response.status_code
     
     def inspect(self,uuid):
         """inspect a container by uuid."""
+        # TODO(nmg): exceptions should be catched.
         response = requests.get("http://%s:%s/containers/%s/json" % \
                                (self.host,self.port,uuid))
         if response.status_code != 200:

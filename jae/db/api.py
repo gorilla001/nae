@@ -113,7 +113,8 @@ def update_project():
     pass
 ### user api ###
 
-def add_user(session,values,project):
+def add_user(values,project):
+    session = inspect(project).session
     with session.begin():
         user_ref=models.User()
         user_ref.update(values)

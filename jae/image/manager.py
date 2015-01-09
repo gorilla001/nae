@@ -49,7 +49,8 @@ class Manager(base.Base):
 
 	LOG.info("BUILD +job build %s" % name)
         repo_name=os.path.basename(repos)
-	user_home = os.path.join("/home",user_id)
+	#user_home = os.path.join("/home",user_id)
+        user_home = os.path.join(os.path.expandvars('$HOME'),user_id)
 	if not os.path.exists(user_home):
 	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):

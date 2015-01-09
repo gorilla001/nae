@@ -9,6 +9,7 @@ from jae.common import quotas
 from jae.common import cfg
 from jae.common import timeutils
 from jae.scheduler import scheduler
+from jae.common import exception
 from jae.base import Base
 
 CONF=cfg.CONF
@@ -16,6 +17,8 @@ CONF=cfg.CONF
 LOG=logging.getLogger(__name__)
 
 QUOTAS=quotas.Quotas()
+
+EMPTY_STRING=""
 
 class Controller(Base):
     def __init__(self):
@@ -123,10 +126,14 @@ class Controller(Base):
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	user_key = body.get('user_key','')
+	user_key = body.get('user_key')
+        if not user_key:
+            user_key=EMPTY_STRING
 
-        zone_id = body.get('zone_id',0)
-	
+        zone_id = body.get('zone_id')
+        if not zone_id:
+            zone_id=0	
+
 	try:
 	    instance = self._scheduler.run_instance(project_id,
 						    user_id,
@@ -136,7 +143,7 @@ class Controller(Base):
 						    env,
 						    user_key,
                                                     zone_id)
-	except:
+	except exception.NoValidHost:
 	    raise 
 	    
 	return ResponseObject(instance)
@@ -159,7 +166,7 @@ class Controller(Base):
 	    return Response(404)
 
 	host,port = host.host,host.port
-        #FIXME: exception should be catched?
+        # FIXME: try to catch exceptions and dealing with it. 
 	response = requests.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
         return Response(response.status_code) 

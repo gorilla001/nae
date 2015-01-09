@@ -1,5 +1,6 @@
 import uuid
 import copy
+import webob.exc
 from sqlalchemy.exc import IntegrityError
 from jae import wsgi
 from jae import base
@@ -192,7 +193,9 @@ class Controller(base.Base):
 	    return Response(500) 
 
         LOG.info("DELETE -job delete = OK")
-        return Response(201) 
+        """return webob.exc.HTTPNoContent() seems more better."""
+        #return Response(201) 
+        return webob.exc.HTTPNoContent()
 
     def update(self,request):
         project_id=request.environ['wsgiorg.routing_args'][1]['id']

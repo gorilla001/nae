@@ -45,12 +45,17 @@ class Controller(Base):
 	    LOG.error("no such container")
 	    return webob.exc.HttpNotFound()
 
-        eventlet.spawn_n(self._manager.delete,id)
+        #eventlet.spawn_n(self._manager.delete,id)
+        try:
+            self._process_task(self._manager.delete,id)
+        except:
+            raise
 
         return Response(200) 
 
     def create(self,request,body):
 	"""create new container and start it."""
+        # FIXME(nmg): try to do this with a pythonic way.
 
 	id	   = body.get('db_id')
 	name       = body.get('name')
@@ -72,20 +77,38 @@ class Controller(Base):
         user_key   = body.get('user_key')
 	fixed_ip   = body.get('fixed_ip')
 
-	eventlet.spawn_n(self._manager.create,	
-			 id,
-			 name,
-			 image_id,
-		 	 image_uuid,
-			 repository,
-			 tag,
-			 repos,
-			 branch,
-			 app_type,
-			 env,
-			 user_key,
-			 fixed_ip,
-			 user_id)	
+        try:
+	    #eventlet.spawn_n(self._manager.create,	
+	    #		 id,
+	    #		 name,
+	    #		 image_id,
+	    #	 	 image_uuid,
+	    #		 repository,
+	    #		 tag,
+	    #		 repos,
+	    #		 branch,
+	    #		 app_type,
+	    #		 env,
+	    #		 user_key,
+	    #		 fixed_ip,
+	    #		 user_id)	
+            self._process_task(self._manager.create,
+                         id,
+                         name,
+                         image_id,
+                         image_uuid,
+                         repository,
+                         tag,
+                         repos,
+                         branch,
+                         app_type,
+                         env,
+                         user_key,
+                         fixed_ip,
+                         user_id)
+        except:
+ 	    raise
+
 	return Response(201) 
 
     def start(self,request,id):
@@ -96,7 +119,12 @@ class Controller(Base):
         if query.status == states.RUNNING:
             LOG.info("already running,ignore...")
             return Response(204)
-        eventlet.spawn_n(self._manager.start,id)
+        #eventlet.spawn_n(self._manager.start,id)
+        # FIXME(nmg)
+        try:
+            self._process_task(self._manager.start,id)
+        except:
+            raise
 
         return Response(204)
 
@@ -108,7 +136,12 @@ class Controller(Base):
         if query.status == states.STOPED:
             LOG.info("already stoped,ignore...")
             return Response(204)
-	eventlet.spawn_n(self._manager.stop,id)
+	#eventlet.spawn_n(self._manager.stop,id)
+        # FIXME(nmg)
+        try:
+	    self._process_task(self._manager.stop,id)
+        except:
+            raise
 
         return Response(204) 
 
@@ -120,14 +153,25 @@ class Controller(Base):
 	"""
 	destroy a temporary container by a given name.
 	"""
-        eventlet.spawn_n(self._manager.destroy,name)
+        #eventlet.spawn_n(self._manager.destroy,name)
+        # FIXME(nmg)
+        try:
+            self._process_task(self._manager.destroy,name)
+        except:
+            raise
 
-        return {"status":200} 
+        return Response(200) 
 
     def commit(self,request,body):
+        """commit container to image."""
+        # FIXME(nmg)
 	repo = body.get('repo') 
 	tag = body.get('tag')
-	eventlet.spawn_n(self.con_api.commit(repo,tag))
+	#eventlet.spawn_n(self.con_api.commit(repo,tag))
+        try:
+            self._process_task(self._manager.commit(repo,tag))
+        except:
+            raise
 
         return Response(200) 
     
@@ -137,9 +181,23 @@ class Controller(Base):
         if not query:
             LOG.info("container %s not found" % id)
             return Response(404)
-        eventlet.spawn(self._manager.refresh,id)  
+        # FIXME(nmg) 
+        #eventlet.spawn(self._manager.refresh,id)  
+        try:
+            self._process_task(self._manager.refresh,id)
+        except:
+            raise
         
         return Response(204)
+
+    @staticmethod
+    def _process_task(func,*args):
+        """generate a eventlet greenthread to process the task."""
+        # FIXME(nmg)
+        try:
+            eventlet.spawn_n(func,*args)
+        except:
+           raise
         
 	
    

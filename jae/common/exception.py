@@ -10,12 +10,17 @@ __all__ = ['BodyEmptyError',
            'NetWorkError',
 ]
 
+class BaseException(Exception):
+    msg = "A unknown exception occurred."
+    def __init__(self,message=None):
+        if not message:
+            message = self.msg
 
-class BodyEmptyError(Exception):
-    def __init__(self,message):
-        self.msg = message
-    def __str__(self):
-        return self.msg
+        super(BaseException,self).__init__(message)
+
+
+class BodyEmptyError(BaseException):
+    msg = "Body can not be None."
 
 class ParamNoneError(Exception):
     def __init__(self,param):
@@ -46,19 +51,11 @@ class ParseError(Exception):
         return 'at line %d, %s: %r' % (self.lineno, self.msg, self.line)
 
 
-class NoValidHost(Exception):
-    def __init__(self,message):
-	self.msg = message
-
-    def __str__(self):
-	return self.msg
+class NoValidHost(BaseException):
+    msg = "No container node available." 
 
 class NoValidIPAddress(Exception):
-    def __init__(self,message):
-	self.msg = message
-
-    def __str__(self):
-	return self.msg
+    msg = "No IPAddress left."
 
 class NetWorkError(Exception):
     def __init__(self,msg):

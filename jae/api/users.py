@@ -71,26 +71,17 @@ class Controller(base.Base):
         FIXME(nmg):this is ugly,try to fixed it.
         """ 
         
-        name=body.get('name')
-        email=body.get('email')
-        role_id=body.get('role_id')
-        project_id=body.get('project_id')
+        name=body.get("name","")
+        email=body.get("email","")
+        role_id=body.get("role_id","")
+        project_id=body.get("project_id","")
 	project = self.db.get_project(project_id) 
-        #print type(project)
-        #state = object_state(project)
-        #print state.detached
-        #print state.session
-        session = inspect(project).session 
-        #project = state.session.expunge(project)
-        #print project
         
         try:
-            user_ref=self.db.add_user(session,
-                        dict(id = uuid.uuid4().hex,
+            user_ref=self.db.add_user(dict(id = uuid.uuid4().hex,
                              name = name,
                              email = email,
                              role_id = role_id),
-                             #project = copy.deepcopy(project))
                              project = project)
         except IntegrityError,err:
 	    LOG.error(err)

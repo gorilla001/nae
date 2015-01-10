@@ -27,8 +27,16 @@ class Manager(base.Base):
 	self.mercurial = MercurialControl()
 	self.network = manager.NetworkManager()
 
+    def service_init(self):
+        """There will be three things doing here:
+              1. Register host in db.
+              2. Start containers on this node if necessary.
+              3. Create rpc producers and consumers. 
+           You must do these things before service start.
+        """
+        return NotImplementedError()
     
-    def prepare_start(self,
+    def _prepare_start(self,
 		      user,
                       key,
                       repos,
@@ -37,10 +45,19 @@ class Manager(base.Base):
         user_home=utils.make_user_home(user,key)
         repo_name=os.path.basename(repos)
         if utils.repo_exist(user_home,repo_name):
-            self.mercurial.pull(user,repos)
+            try:
+                self.mercurial.pull(user,repos)
+            except:
+                raise
         else:
-            self.mercurial.clone(user,repos)
-        self.mercurial.update(user,repos,branch)
+            try:
+                self.mercurial.clone(user,repos)
+            except:
+                raise
+        try:
+            self.mercurial.update(user,repos,branch)
+        except:
+            raise
 
     def create(self,
                 id,
@@ -148,7 +165,10 @@ class Manager(base.Base):
 	    """
 	    prepare to start container.
 	    """
-	    self.prepare_start(user_id,ssh_key,repos,branch)
+            try:
+	        self._prepare_start(user_id,ssh_key,repos,branch)
+            except:
+                raise
 
 	    """
 	    start container and update db status.

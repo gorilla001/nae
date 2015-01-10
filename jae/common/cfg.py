@@ -44,8 +44,10 @@ class ConfigParser(BaseParser):
 CONF=ConfigParser()
 
 def parse_config():
-    return CONF('/etc/jae/jae.conf')
-
+    try:
+        return CONF('/etc/jae/jae.conf')
+    except:
+        raise
 
 if __name__ == '__main__':
     CONF('/etc/jae/jae.conf')

@@ -100,7 +100,11 @@ class Controller(base.Base):
 
     
     def delete(self,request,id):
-        self.db.delete_user(id)
+        """delete user by `id`"""
+        try:
+            self.db.delete_user(id)
+        except:
+            raise
         """return webob.exc.HTTPNoContent() seems more better."""
         ##return Response(200) 
         return webob.exc.HTTPNoContent()

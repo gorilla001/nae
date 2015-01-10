@@ -39,8 +39,8 @@ class SimpleScheduler(driver.Scheduler):
 
         """
         get zone where container will be in.
-        #FIXME zone should be get from database by zone_id
-        #TODO  add get_zone(zone_id) 
+        # FIXME: zone should be get from database by zone_id
+        # TODO:  add get_zone(zone_id) 
         """
         if zone_id == 0:
             self.zone = 'BJ'

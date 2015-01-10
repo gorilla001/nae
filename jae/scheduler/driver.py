@@ -9,7 +9,16 @@ class Scheduler(object):
 	self.db = db.API()
 	self.network = manager.NetworkManager()
 
-    def run_instance():
+    def run_instance(self,
+                     project_id,
+                     user_id,
+                     image_id,
+                     repos,
+                     branch,
+                     env,
+                     user_key,
+                     zone_id):
+        """Must override run_instance method for scheduler to work."""
 	msg = "Driver must implement run_instance"
 	raise NotImplementedError(msg)
 

@@ -9,6 +9,7 @@ from jae.common import quotas
 from jae.common import cfg
 from jae.common import timeutils
 from jae.scheduler import scheduler
+from jae.common import exception
 from jae.base import Base
 
 CONF=cfg.CONF
@@ -142,7 +143,7 @@ class Controller(Base):
 						    env,
 						    user_key,
                                                     zone_id)
-	except:
+	except exception.NoValidHost:
 	    raise 
 	    
 	return ResponseObject(instance)
@@ -165,7 +166,7 @@ class Controller(Base):
 	    return Response(404)
 
 	host,port = host.host,host.port
-        #FIXME: exception should be catched?
+        # FIXME: try to catch exceptions and dealing with it. 
 	response = requests.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
         return Response(response.status_code) 

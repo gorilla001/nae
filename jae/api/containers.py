@@ -114,13 +114,13 @@ class Controller(Base):
 	    msg = "post request has no body?"
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
-	project_id = body.get('project_id')
+	project_id = body.pop('project_id')
 	if not project_id:
 	    msg = "project id must be provided."
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	image_id = body.get('image_id')
+	image_id = body.pop('image_id')
 	if image_id == "-1":
 	    msg = "invalid image id -1."
 	    LOG.error(msg)
@@ -131,7 +131,7 @@ class Controller(Base):
             LOG.error(msg)
             return webob.exc.HTTPBadRequest(explanation=msg)
 
-	user_id = body.get('user_id')
+	user_id = body.pop('user_id')
 	if not user_id:
 	    msg = "user id must be provided."
 	    LOG.error(msg)
@@ -144,29 +144,29 @@ class Controller(Base):
 	    LOG.error(msg)
 	    return webob.exc.HTTPForbidden(explanation=msg)
 
-	repos = body.get('repos')
+	repos = body.pop('repos')
 	if not repos:
 	    msg = "repos must be provided"
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanaiton=msg)
 
-	branch = body.get('branch')
+	branch = body.pop('branch')
 	if not branch:
 	    msg = "branch must be provided"
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanaiton=msg)
 
-	env = body.get('env')
+	env = body.pop('env')
 	if not env:
 	    msg = "env must be provided"
 	    LOG.error(msg)
 	    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	user_key = body.get('user_key')
+	user_key = body.pop('user_key')
         if not user_key:
             user_key=EMPTY_STRING
 
-        zone_id = body.get('zone_id')
+        zone_id = body.pop('zone_id')
         if not zone_id:
             zone_id=0	
 

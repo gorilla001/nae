@@ -29,7 +29,19 @@ class Controller(Base):
 
     def index(self,request):
 	"""
-        return containers list.
+        List all containers on all container nodes according to `project_id`
+        and `user_id`.
+        
+        This method returns a dictionary list and each dict contains the following keys:
+            - id 
+            - name 
+            - repos
+            - branch
+            - network
+            - created
+            - status
+
+        If no container found, a empty list will be returned.
 	"""
         containers=[]
 
@@ -51,6 +63,27 @@ class Controller(Base):
         return ResponseObject(containers)
 
     def show(self,request,id):
+        """
+        Show the container info according by container's id `id`.
+
+        This method returns a dictionary with following keys:
+            - id
+            - name
+            - uuid
+            - env
+            - project_id
+            - repos
+            - branch
+            - image_id
+            - network
+            - created
+            - user_id
+            - host_id
+            - status
+         
+        If no container found, a empty dictionary will returned.
+        """
+
 	container={}
         query= self.db.get_container(id)
         if query is not None:
@@ -74,6 +107,9 @@ class Controller(Base):
 
     
     def create(self,request,body=None):
+        """
+        Create container.
+        """
 	if not body:
 	    msg = "post request has no body?"
 	    LOG.error(msg)

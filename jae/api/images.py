@@ -17,6 +17,7 @@ from jae.common.exception import BodyEmptyError, ParamNoneError
 from jae.common.response import Response, ResponseObject
 from jae.common.view import View
 from jae.common import utils
+from jae.common import client
 
 
 CONF=cfg.CONF
@@ -29,6 +30,8 @@ _IMAGE_LIMIT = 12
 class Controller(Base):
     def __init__(self):
 	super(Controller,self).__init__()
+
+        self.http=client.HTTPClient()
 
     def index(self,request):
         images=[]
@@ -124,7 +127,7 @@ class Controller(Base):
 	    LOG.error("image service endpoint not found!")
 	    return Response(500)
 	try:
-            image = requests.post(image_service_endpoint, \
+            image = self.http.post(image_service_endpoint, \
 				  headers={'Content-Type':'application/json'}, \
 				  data=json.dumps(body))
         except exceptions.ConnectionError:
@@ -155,7 +158,7 @@ class Controller(Base):
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
 	try:
-	    response = requests.delete("%s/%s" % \
+	    response = self.http.delete("%s/%s" % \
 			(image_service_endpoint,id))
 	except ConnectionError,err:
 	     LOG.error(err)
@@ -171,7 +174,7 @@ class Controller(Base):
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:
-            response=requests.get("%s/%s/edit" % (image_service_endpoint,id))
+            response=self.http.get("%s/%s/edit" % (image_service_endpoint,id))
         except:
             raise
         return ResponseObject(response.json())
@@ -185,7 +188,7 @@ class Controller(Base):
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:
-            response=requests.post("%s/%s/destroy" % (image_service_endpoint,id))
+            response=self.http.post("%s/%s/destroy" % (image_service_endpoint,id))
         except:
             raise
         return ResponseObject(response.json())
@@ -215,7 +218,7 @@ class Controller(Base):
                     "container_name" : ctn,
                     "id"             : id,
                     "project_id"     : project_id}
-            response=requests.post("%s/commit" % image_service_endpoint,
+            response=self.http.post("%s/commit" % image_service_endpoint,
                                    headers={'Content-Type':'application/json'},
                                    data=json.dumps(data))
         except:

@@ -10,6 +10,7 @@ from jae.common import cfg
 from jae.common import timeutils
 from jae.scheduler import scheduler
 from jae.common import exception
+from jae.common import client
 from jae.base import Base
 
 CONF=cfg.CONF
@@ -26,6 +27,8 @@ class Controller(Base):
 
 	if not CONF.default_scheduler:
 	    self._scheduler=scheduler.SimpleScheduler()
+
+        self.http=client.HTTPClient()
 
     def index(self,request):
 	"""
@@ -207,7 +210,7 @@ class Controller(Base):
 
 	host,port = host.host,host.port
         # FIXME: try to catch exceptions and dealing with it. 
-	response = requests.delete("http://%s:%s/v1/containers/%s" \
+	response = self.http.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
         return Response(response.status_code) 
 
@@ -221,8 +224,9 @@ class Controller(Base):
 	    LOG.error("no such host")
 	    return Response(404)
 	host,port = host.host,host.port
-	response=requests.post("http://%s:%s/v1/containers/%s/start" \
-		      % (host,port,id))
+        
+        response=self.http.post("http://%s:%s/v1/containers/%s/start" \
+                       %(host,port,id))
 
 	return Response(response.status_code)
 
@@ -240,7 +244,7 @@ class Controller(Base):
 	    return Response(404)
 
 	host,port = host.host,host.port 
-	response = requests.post("http://%s:%s/v1/containers/%s/stop" \
+	response = self.http.post("http://%s:%s/v1/containers/%s/stop" \
 		      % (host,port,id))
 
         return Response(response.status_code) 
@@ -250,18 +254,13 @@ class Controller(Base):
 
     def destroy(self,request,body):
 	"""send destroy request to remote host."""
- 	id=body.get('id')	
-        eventlet.spawn_n(self.con_api.destroy(id))
 
-        return Response(200) 
+        return NotImplementedError()
 
     def commit(self,request,body):
 	"""send commit request to remote host."""
-	repo = body.get('repo') 
-	tag = body.get('tag')
-	eventlet.spawn_n(self.con_api.commit(repo,tag))
 
-        return Response(200) 
+        return NotImplementedError() 
 
     def refresh(self,request,id):
         """
@@ -302,7 +301,7 @@ class Controller(Base):
           
         """make post request to the host where container on."""
         #FIXME: exception shoud be catch?
-	response = requests.post("http://%s:%s/v1/containers/%s/refresh" \
+	response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))
 
         return Response(response.status_code) 

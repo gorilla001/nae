@@ -20,6 +20,7 @@ jae/api/repos.py
 jae/api/users.py
 jae/common/__init__.py
 jae/common/cfg.py
+jae/common/client.py
 jae/common/daemon.py
 jae/common/driver.py
 jae/common/exception.py
@@ -28,6 +29,7 @@ jae/common/log.py
 jae/common/mercu.py
 jae/common/nwutils.py
 jae/common/parser.py
+jae/common/periodic_task.py
 jae/common/quotas.py
 jae/common/response.py
 jae/common/states.py

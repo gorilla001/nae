@@ -23,6 +23,10 @@ class Manager(base.Base):
 	self.driver = driver.API()
 	self.mercurial = MercurialControl()
 
+
+    def service_init(self):
+        """Create rpc producer and customers here."""
+        return NotImplementedError()
     
     def prepare_start(self,
 		      user,

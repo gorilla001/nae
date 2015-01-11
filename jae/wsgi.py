@@ -9,7 +9,6 @@ from paste.deploy import loadapp
 
 from jae.common import log as logging
 from jae.common import cfg
-from jae.common.exception import BodyEmptyError
 
 LOG=logging.getLogger(__name__)
 

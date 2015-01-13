@@ -3,6 +3,7 @@ import json
 
 from jae.common import cfg
 from jae.common.cfg import Int, Str
+from jae.common import client
 
 CONF=cfg.CONF
 
@@ -11,15 +12,26 @@ _DEFAULT_DOCKER_PORT = 4234
 
 class API(object):
     def __init__(self):
-	self.host = Str(CONF.host) or _DEFAULT_DOCKER_HOST 
-	self.port = Int(CONF.port) or _DEFAULT_DOCKER_PORT 	
+        self.host = _DEFAULT_DOCKER_HOST 
+        if not CONF.host:
+            self.host = Str(CONF.host)
+
+        self.port = _DEFAULT_DOCKER_PORT
+        if not CONF.port:
+            self.port = Int(CONF.port)
+
+        self.http = client.HTTPClient()
 
     def create(self,name,kwargs):
 	"""
 	create a container with `name` and `kwargs`.
 	"""
         # TODO(nmg): exceptions should be catched.
-        response = requests.post("http://%s:%s/containers/create?name=%s" \
+        #response = requests.post("http://%s:%s/containers/create?name=%s" \
+        #                      % (self.host,self.port,name),
+	#			 headers = {'Content-Type':'application/json'},
+	#			 data = json.dumps(kwargs))
+        response = self.http.post("http://%s:%s/containers/create?name=%s" \
                               % (self.host,self.port,name),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))
@@ -31,7 +43,9 @@ class API(object):
         """
 
         # TODO(nmg): exceptions should be catched.
-        response = requests.get("http://%s:%s/images/%s/json" % \
+        #response = requests.get("http://%s:%s/images/%s/json" % \
+	#	                 (self.host,self.port,uuid))
+        response = self.http.get("http://%s:%s/images/%s/json" % \
 		                 (self.host,self.port,uuid))
 	return response
 
@@ -49,7 +63,8 @@ class API(object):
 	from_image = image_registry_endpoint + "/" + "%s:%s" % (repository,tag)	
 	
         # TODO(nmg): exceptions should be catched.
-	response = requests.post("%s?fromImage=%s" % (url,from_image))
+	#response = requests.post("%s?fromImage=%s" % (url,from_image))
+	response = self.http.post("%s?fromImage=%s" % (url,from_image))
         return response.status_code
 
     def start(self,uuid,kwargs):
@@ -57,7 +72,10 @@ class API(object):
 	start a container with kwargs specified by uuid.
 	"""
         # TODO(nmg): exceptions should be catched.
-	response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
+	#response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
+	#			 headers = {'Content-Type':'application/json'},
+	#			 data = json.dumps(kwargs))
+	response = self.http.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
 				 headers = {'Content-Type':'application/json'},
 				 data = json.dumps(kwargs))
 				
@@ -65,20 +83,24 @@ class API(object):
 
     def stop(self,uuid):
          """stop the container specified by uuid"""
-        # TODO(nmg): exceptions should be catched.
-         response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
+         #TODO(nmg): exceptions should be catched.
+         #response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
+         response = self.http.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
          return response.status_code
 
     def delete(self,uuid):
          """delete the container uuid"""
-        # TODO(nmg): exceptions should be catched.
-         response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
+         #TODO(nmg): exceptions should be catched.
+         #response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
+         response = self.http.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
          return response.status_code
     
     def inspect(self,uuid):
         """inspect a container by uuid."""
         # TODO(nmg): exceptions should be catched.
-        response = requests.get("http://%s:%s/containers/%s/json" % \
+        #response = requests.get("http://%s:%s/containers/%s/json" % \
+        #                       (self.host,self.port,uuid))
+        response = self.http.get("http://%s:%s/containers/%s/json" % \
                                (self.host,self.port,uuid))
         if response.status_code != 200:
             return {} 

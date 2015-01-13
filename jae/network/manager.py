@@ -24,12 +24,13 @@ class NetworkManager(Base):
 	try:
 	    return str(FIXED_RANGE[0])	
 	except IndexError:
-	    raise exception.NoValidIPAddress(msg='ip resource used up')
+	    raise exception.NoValidIPAddress(msg='Ip resource has used up :(.')
 
     def get_fixed_range(self):
 	ip_resource_pool = CONF.ip_resource_pool 	
 	if not ip_resource_pool:
-	    raise exception.NoValidIPAddress(msg='ip resource pool is None')
+	    raise exception.NoValidIPAddress(msg='Ip resource pool is None,
+                                                  You must specified a ip resource range.')
 	
 	start,_,end=ip_resource_pool.rpartition("-")
 

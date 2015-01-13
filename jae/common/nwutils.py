@@ -17,7 +17,6 @@ def create_virtual_iface(uuid,addr):
     if not prefix:
 	raise NetWorkError("no interface specified!")
     vif = "%s:%s" % (prefix,uuid)
-    #status,output = commands.getstatusoutput('ifconfig %s %s' % (vif,addr))
     status = os.system('ifconfig %s %s' % (vif,addr))
     if status != 0:
 	raise NetWorkError("create virtual interface error %s " % output)
@@ -27,7 +26,6 @@ def create_virtual_iface(uuid,addr):
     if not netmask:
         netmak=DEFAULT_NET_MASK
 
-    #with open(os.path.join(NET_SCRIPT_PATH,vif_file_name),'w') as vif_file:
     with open(os.path.join(TEMP_PATH,vif_file_name),'w') as vif_file:
         vif_file.write("DEVICE=%s\n" % vif)
         vif_file.write("BOOTPROTO=static\n")
@@ -46,7 +44,6 @@ def delete_virtual_iface(uuid):
     if len(uuid) > 8:
        uuid = uuid[:8]
     vif = "%s:%s" % (prefix,uuid)
-    #status,output = commands.getstatusoutput('ifconfig %s down' % vif)
     status=os.system('ifconfig %s down' % vif)
     if status != 0:
        raise NetWorkError("delete virtual interface error %s " % output)

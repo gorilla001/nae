@@ -14,11 +14,12 @@ class MercurialControl(object):
         self._ui = mercurial.ui.ui()
         self.path=os.path.expandvars('$HOME')
     def clone(self,user_id,repo_path):
+        """Clone repository from specified path `repo_path`"""
         source = repo_path
         path = os.path.join(self.path,user_id)
         dest = os.path.join(path,os.path.basename(repo_path)) 
         try:
-            LOG.debug('clone docker file from %s' % repo_path)
+            LOG.debug('Clone docker file from %s' % repo_path)
             mercurial.commands.clone(self._ui,
                            str(source),
                            str(dest),
@@ -27,10 +28,11 @@ class MercurialControl(object):
                            rev=False,
                            noupdate=False)
         except Exception,error:
-            LOG.error('could not clone repo:%s' % repo_path)
+            LOG.error('Could not clone repo:%s' % repo_path)
             LOG.error(error)
 	    raise 
     def pull(self,user_name,repo_path):
+        """Pull repository from `repo_path` if have cloned it."""
         source = repo_path
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,
@@ -42,10 +44,11 @@ class MercurialControl(object):
                                     repo,
                                     source=source)
         except:
-            LOG.error('could not pull repo:%s' % repo_path)
+            LOG.error('Could not pull repo:%s' % repo_path)
             LOG.error(error)
 	    raise
     def update(self,user_name,repo_path,branch=None):
+        """Update repo to branch."""
         path = os.path.join(self.path,user_name)
         local_repo_path = os.path.join(path,os.path.basename(repo_path)) 
         repo=mercurial.hg.repository(self._ui,
@@ -55,6 +58,7 @@ class MercurialControl(object):
                                       repo,
                                       rev=branch,clean=True)
         except RepoError as err:
+            LOG.error('Could not update repo %s to branch %s' % (repo_path),branch)
 	    LOG.error(err)
 	    raise
 

@@ -8,26 +8,27 @@ CONF=cfg.CONF
 _ENGINE=None
 _MAKER=None
 
+
+DEFAULT_POOL_SIZE = 100
+DEFAULT_POOL_RECYCLE = 3600
+
 def get_engine():
     global _ENGINE
     if _ENGINE is None:
         connection = CONF.db_connection 
         url = sqlalchemy.engine.url.make_url(connection)
 
+        echo = False
         if CONF.sql_show:
 	    echo = Bool(CONF.echo)
-        else:
-	    echo = False
 
+        pool_size = DEFAULT_POOL_SIZE 
 	if CONF.pool_size:
 	    pool_size = Int(CONF.pool_size)
-	else:
-	    pool_size = 100
 	
+        poll_recycle = DEFAULT_POOL_RECYCLE
 	if CONF.pool_recycle:
 	    pool_recycle = Int(CONF.pool_recycle)
-	else:
-	    pool_recycle = 3600
 
 	engine_args = {
 	    "echo":echo,

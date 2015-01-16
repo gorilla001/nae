@@ -17,7 +17,16 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
-        """show all repos by project id."""
+        """
+        List all repos by `project_id`.
+   
+        This method returns a dictionary list and each dict contains the following keys:
+            - id
+            - repo_path
+            - created
+         
+        If no repos was found, a empty list will be returned.
+        """
         repos=[]
         project_id = request.GET.get('project_id')
         project = self.db.get_project(project_id)
@@ -25,7 +34,6 @@ class Controller(base.Base):
             LOG.error("no such project %s" % project_id)
             return Response(404)
 
-        #query = self.db.get_repos(project_id=project_id)
         for item in project.repos: 
             repo={
                 'id':item.id,
@@ -37,7 +45,17 @@ class Controller(base.Base):
         return ResponseObject(repos) 
 
     def show(self,request,id):
-        """show repos info by repos id."""
+        """
+        Show the repo detail according repo `id`.
+ 
+        This method returns a dictionary with following keys:
+            - id
+            - repo_path
+            - project_id
+            - created
+
+        If no repos was found, a empty dictionary will be returned.
+        """
         query = self.db.get_repo(id)
         if query is None:
 	    return {}
@@ -50,8 +68,8 @@ class Controller(base.Base):
 
     def create(self,request,body):
         """create repos by body dict."""
-        project_id=body.get('project_id')
-        repo_path=body.get('repo_path')
+        project_id=body.pop('project_id')
+        repo_path=body.pop('repo_path')
         project = self.db.get_project(id=project_id)
 	try:
             self.db.add_repo(dict(
@@ -66,10 +84,12 @@ class Controller(base.Base):
 
     def delete(self,request,id):
         """delete repos by id."""
-        self.db.delete_repo(id)
+        try:
+            self.db.delete_repo(id)
+        except:
+            raise
 
         """return webob.exc.HTTPNoContent seems more better."""
-        ##return Response(200) 
         return webob.exc.HTTPNoContent()
 
 def create_resource():

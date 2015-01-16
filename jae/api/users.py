@@ -24,8 +24,6 @@ class Controller(base.Base):
         project_id = request.GET.get('project_id')
         project = self.db.get_project(project_id)
         
-        #query = self.db.get_users(project_id=project_id)
-	#print query
         for item in project.users:
             user={
                 'id':item.id,

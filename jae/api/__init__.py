@@ -14,6 +14,10 @@ class APIRouter(wsgi.Router):
 	super(APIRouter,self).__init__(self.mapper)
 
     def _setup_routes(self):
+        """
+        The following `mapper.resource` will generated the following routes:
+        """
+        
         self.mapper.resource('container','containers',
 			     controller=containers.create_resource(),
 			     member={'start':'POST',
@@ -33,10 +37,11 @@ class APIRouter(wsgi.Router):
                              conditions={'method':['POST']})
 
                             
-        self.mapper.connect('/baseimages',
-                        controller=images.create_resource(),
-                        action='baseimage',
-                        conditions={'method':['GET']})
+        """Not used anymore."""
+        #self.mapper.connect('/baseimages',
+        #                controller=images.create_resource(),
+        #                action='baseimage',
+        #                conditions={'method':['GET']})
 			     
         self.mapper.resource('project','projects',
 			     controller=projects.create_resource())

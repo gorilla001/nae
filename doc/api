@@ -1,0 +1,133 @@
+The API Document:
+
+1. Projects
+
+    1.1 List projects.
+
+        GET /projects
+
+        Example request:
+
+            GET /projects?user_id=6f5b9133f89645468682ce4aaa7d79af HTTP/1.1
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            [ ]
+
+        Query Parameters:
+
+            user_id - The user_id which the project belong to.
+
+        Status Codes:
+
+            200 - no error 
+            500 - internal server error
+            
+2. Members
+
+    2.1 List members.
+
+        GET /members
+
+        Example request:
+
+            GET /members?project_id=39da95f45bb04214afcfd561d0e69850 HTTP/1.1
+
+        Example response:
+   
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            { }
+
+        Query Parameters:
+
+            project_id - The project id which the members belong to.
+
+        Status Codes:
+
+            200 - no error
+            500 - internal server error
+
+3. Repos
+
+    3.1 List repos.
+
+        GET /repos
+
+        Example request:
+
+            GET /repos?project_id=39da95f45bb04214afcfd561d0e69850 HTTP/1.1
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            { }
+
+        Query Parameters:
+
+            project_id - The project id which the repos belong to.
+
+        Status Codes:
+
+            200 - no error
+            500 - internal server error
+
+4. Images
+
+    4.1 List images.
+
+        GET /images
+
+        Example request:
+   
+            GET /images?project_id=39da95f45bb04214afcfd561d0e69850 HTTP/1.1
+
+        Example response:
+   
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            { }
+
+        Query Parameters:
+
+            project_id - The project id which the images belong to.
+
+        Status Codes:
+
+            200 - no error
+            500 - internal server error
+
+5. Containers
+
+    5.1 List containers.
+
+        GET /containers
+
+        Example request:
+
+            GET /containers?project_id=39da95f45bb04214afcfd561d0e69850&user_id=6f5b9133f89645468682ce4aaa7d79af
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            { }
+
+        Query Parameters:
+
+            project_id - The project id which the containers belong to.
+            user_id    - The user id which the containers belong to.
+
+        Status Codes:
+
+            200 - no error
+            500 - internal server error
+

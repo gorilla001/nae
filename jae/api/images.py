@@ -38,11 +38,11 @@ class Controller(Base):
         project_id=request.GET.get('project_id')
         if not project_id:
             LOG.error("project_id cannot be None")
-            return Response(404)
+            return webob.exc.HTTPNotFound() 
         project_instance = self.db.get_project(project_id)
         if project_instance  is None:
             LOG.error("no such project %s" % project_id)
-            return Response(404)  
+            return webob.exc.HTTPNotFound()  
         for image_instance in project_instance.images:
             image={'id':image_instance.id,
                    'uuid':image_instance.uuid,
@@ -91,18 +91,18 @@ class Controller(Base):
     def create(self,request,body=None):
 	if not body:
 	    LOG.error('body cannot be empty!')
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
 
         project_id = body.get('project_id')
 	if not project_id:
 	    LOG.error('project_id cannot be None!')
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
 
 	limit = QUOTAS.images or _IMAGE_LIMIT 
 	query = self.db.get_images(project_id)
 	if len(query) >= limit :
 	    LOG.error("images limit exceed,can not created anymore...")
-	    return Response(500) 
+	    return webob.exc.HTTPMethodNotAllowed() 
 
         name = body.get('name',utils.random_str())
         desc = body.get('desc','')
@@ -110,38 +110,38 @@ class Controller(Base):
         repos = body.get('repos')
 	if not repos:
 	    LOG.error('repos cannot be None!')
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
 
 	branch = body.get('branch')
         if not branch:
             LOG.error("branch cannot be None!")
-            return Response(500)
+            return webob.exc.HTTPBadRequest() 
 
         user_id = body.get('user_id')
 	if not user_id:
 	    LOG.error('user_id cannot be None!')
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
 
 	image_service_endpoint = CONF.image_service_endpoint	
 	if not image_service_endpoint:
 	    LOG.error("image service endpoint not found!")
-	    return Response(500)
+	    return webob.exc.HTTPNotFound() 
 	try:
             image = self.http.post(image_service_endpoint, \
 				  headers={'Content-Type':'application/json'}, \
 				  data=json.dumps(body))
         except exceptions.ConnectionError:
             LOG.error("Connect to remote server Error")
-	    return Response(500) 
+	    return webob.exc.HTTPInternalServerError() 
 	except exceptions.ConnectTimeout:
             LOG.error("Connect to remote server Timeout.")
-	    return Response(500) 
+	    return webob.exc.HTTPRequestTimeout() 
         except exceptions.MissingSchema:
             LOG.error("The URL schema (e.g. http or https) is missing.")
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
         except exceptions.InvalidSchema:
             LOG.error("The URL schema is invalid.")
-	    return Response(500) 
+	    return webob.exc.HTTPBadRequest() 
 
         return ResponseObject(image.json())
 
@@ -150,11 +150,11 @@ class Controller(Base):
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
 	try:
@@ -162,7 +162,7 @@ class Controller(Base):
 			(image_service_endpoint,id))
 	except ConnectionError,err:
 	     LOG.error(err)
-	     return Response(500)
+	     return webob.exc.HTTPInternalServerError() 
 	return Response(response.status_code) 
 
     def edit(self,request,id):
@@ -170,7 +170,7 @@ class Controller(Base):
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:
@@ -184,7 +184,7 @@ class Controller(Base):
         image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:
@@ -204,12 +204,12 @@ class Controller(Base):
 	query = self.db.get_images(project_id)
 	if len(query) >= limit :
 	    LOG.error("images limit exceed,can not created anymore...")
-	    return Response(500) 
+	    return webob.exc.HTTPMethodNotAllowed() 
 
         image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
         try:

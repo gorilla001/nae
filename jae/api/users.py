@@ -86,9 +86,9 @@ class Controller(base.Base):
                              project = project)
         except IntegrityError,err:
 	    LOG.error(err)
-	    return Response(500) 
+	    return webob.exc.HTTPInternalServerError() 
         
-        return Response(200) 
+        return webob.exc.HTTPCreated() 
 
     
     def delete(self,request,id):
@@ -98,7 +98,6 @@ class Controller(base.Base):
         except:
             raise
         """return webob.exc.HTTPNoContent() seems more better."""
-        ##return Response(200) 
         return webob.exc.HTTPNoContent()
 
 def create_resource():

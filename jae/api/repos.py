@@ -32,7 +32,7 @@ class Controller(base.Base):
         project = self.db.get_project(project_id)
         if not project:
             LOG.error("no such project %s" % project_id)
-            return Response(404)
+            return webob.exc.HTTPNotFound() 
 
         for item in project.repos: 
             repo={
@@ -78,9 +78,9 @@ class Controller(base.Base):
                 project = project)
         except IntegrityError,err:
 	    LOG.error(err)
-	    return Response(500) 
+	    return webob.exc.HTTPInternalServerError() 
 
-        return Response(200) 
+        return webob.exc.HTTPCreated() 
 
     def delete(self,request,id):
         """delete repos by id."""

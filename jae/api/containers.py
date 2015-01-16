@@ -201,12 +201,12 @@ class Controller(Base):
         """ 
         container = self.db.get_container(id)
 	if not container:
-	    return Response(200)
+	    return webob.exc.HTTPOk() 
 	host_id = container.host_id
 	host = self.db.get_host(host_id)	
 	if not host:
 	    LOG.error("no such host %s" % host_id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 
 	host,port = host.host,host.port
         # FIXME: try to catch exceptions and dealing with it. 
@@ -218,11 +218,11 @@ class Controller(Base):
 	container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	host = self.db.get_host(container.host_id)
 	if not host:
 	    LOG.error("no such host")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 	host,port = host.host,host.port
         
         response=self.http.post("http://%s:%s/v1/containers/%s/start" \
@@ -235,13 +235,13 @@ class Controller(Base):
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 
 	host_id = container.host_id
 	host = self.db.get_host(host_id)
 	if not host:
 	    LOG.error("no such host")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 
 	host,port = host.host,host.port 
 	response = self.http.post("http://%s:%s/v1/containers/%s/stop" \
@@ -279,7 +279,7 @@ class Controller(Base):
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
         
         """get host id from container info,
            if host id is None,return 404"""
@@ -287,14 +287,14 @@ class Controller(Base):
 	host_id = container.host_id
         if not host_id:
             LOG.error("container %s has no host_id" % id)
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
         
         """get host instance by `host_id`,
            if host instance is None,return 404"""
 	host = self.db.get_host(host_id)
 	if not host:
 	    LOG.error("no such host")
-	    return Response(404)
+	    return webob.exc.HTTPNotFound() 
 
         """get ip address and port for host instance."""	
 	host,port = host.host,host.port 

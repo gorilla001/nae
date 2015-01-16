@@ -144,43 +144,9 @@ class Controller(base.Base):
 			id = project_id,
                         name = name,
                         desc = desc))
-        #"""add admin."""
-	#admin = body.get('admin')
-	#email = body.get('email')
-        #"""
-        #get project instance from db by `project_id`
-        #is it odd,right?
-        #"""
-        #project = self.db.get_project(project_id)
-
-        #"""add db entry."""
-        #self.db.add_user(dict(
-	#	id = uuid.uuid4().hex,
-        #        name = admin,
-        #        email = email,
-        #        role_id = 0),
-        #        project = copy.deepcopy(project))
-
-        #"""add base image."""
-        #image_id = body.get('image_id')
-        #base_image = self.db.get_base_image(image_id)
-        #if base_image is not None:
-        #    image_uuid = base_image.uuid
-        #    name = base_image.repository
-        #    tag  = base_image.tag
-        #    desc = base_image.desc
-        #    image_id = uuid.uuid4().hex
-        #    self.db.add_image(dict(
-	#	id=image_id,
-	#	uuid = image_uuid,
-	#	name=name,
-	#	tag=tag,
-	#	desc=desc,
-        #        project=copy.deepcopy(project),
-        #        status="ok"))
 
         #FIXME: return ?
-        return Response(201) 
+        return webob.exc.HTTPOk() 
 
     def delete(self,request,id):
         """delete project by `id`"""
@@ -194,42 +160,9 @@ class Controller(base.Base):
 
         LOG.info("DELETE -job delete = OK")
         """return webob.exc.HTTPNoContent() seems more better."""
-        #return Response(201) 
         return webob.exc.HTTPNoContent()
 
-    def update(self,request):
-        project_id=request.environ['wsgiorg.routing_args'][1]['id']
-        project_name = request.GET['name']
-        project_desc = request.GET['desc']
-        project_members = request.GET['members']
-        project_hgs = request.GET['hgs']
-        self.db.update_project(
-                project_id = project_id,
-                project_name = project_name,
-                project_desc = project_desc,
-                project_members = '',
-                project_hgs = '',
-                )
-        members_list = str(project_members).split()
-        self.db.delete_users(project_id)
-        for member in members_list:
-            self.db.add_user(
-                    project_id = project_id,
-                    user_id = member,
-                    user_name = '',
-                    created = utils.human_readable_time(time.time()),
-
-                )
-        repo_list = str(project_hgs).split()
-        self.db.delete_repos(project_id)
-        for hg in hg_list:
-            self.db.add_repo(
-                    project_id = project_id,
-                    repo_name = repo,
-                    image_id = ''
-                    )
-
-        return {"status":"200"}
+     
 
 def create_resource():
     return wsgi.Resource(Controller()) 

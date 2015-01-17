@@ -2,6 +2,7 @@ import uuid
 import copy
 import webob.exc
 from sqlalchemy.exc import IntegrityError
+from jsonschema import validate
 
 from jae import wsgi
 from jae import base
@@ -59,25 +60,51 @@ class Controller(base.Base):
         query = self.db.get_repo(id)
         if query is None:
 	    return {}
-        repo={'id':query.id,
-              'repo_path':query.repo_path,
-              'project_id':query.project_id,
-              'created':isotime(query.created)}
+        repo = {
+            'id':query.id,
+            'repo_path':query.repo_path,
+            'project_id':query.project_id,
+            'created':isotime(query.created)
+        }
 
 	return ResponseObject(repo)
 
     def create(self,request,body):
         """create repos by body dict."""
+        schema = {
+            "type": "object",
+            "properties": {
+                "project_id" : { "type": "string",
+                                 "minLength": 64,
+                                 "maxLength": 64,
+                                 "pattern": "^[a-zA-Z0-9]*$",
+                 },
+                "repo_path" : { "type": "string",
+                                "minLength": 1,
+                                "maxLength": 255
+                }
+             },
+             "required" : ["project_id","repo_path"]
+        }
+        try:
+            validate(body,schema)
+        except:
+            raise
+
         project_id=body.pop('project_id')
         repo_path=body.pop('repo_path')
+
         project = self.db.get_project(id=project_id)
+        if not project:
+            LOG.error("Add repos: no such project %s" % project_id)
+            return webob.exc.HTTPNotFound()
 	try:
             self.db.add_repo(dict(
 		id = uuid.uuid4().hex,
                 repo_path= repo_path),
                 project = project)
-        except IntegrityError,err:
-	    LOG.error(err)
+        except IntegrityError as ex:
+	    LOG.error(ex)
 	    return webob.exc.HTTPInternalServerError() 
 
         return webob.exc.HTTPCreated() 

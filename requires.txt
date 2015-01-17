@@ -10,3 +10,4 @@ netifaces
 repoze.lru
 mercurial
 netaddr
+jsonschema

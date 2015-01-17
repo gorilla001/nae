@@ -2,6 +2,8 @@ import uuid
 import copy
 import webob.exc
 from sqlalchemy.exc import IntegrityError
+from jsonschema import validate
+
 from jae import wsgi
 from jae import base
 from jae.common.timeutils import isotime
@@ -130,20 +132,37 @@ class Controller(base.Base):
 
     def create(self,request,body):
         """add project."""
-        name=body.get('name')
-        if not name:
-	    LOG.error("project name must be provided")
-            return Response(505)
+        #name=body.get('name')
+        #if not name:
+	#    LOG.error("project name must be provided")
+        #    return Response(505)
 
-        desc=body.get('desc','')
+        #desc=body.get('desc','')
+        schema = { 
+            "type": "object",
+            "properties": {
+                 "name": {"type": "string","minLength":1,"maxLength":255},
+                 "desc": {"type": "string"},
+             }
+        }
+        try:
+            validate(body,schema)
+        except:
+            raise
+
+        name = body.pop("name")
+        desc = body.pop("desc")
 
         """generate project id."""
         project_id = uuid.uuid4().hex
 
-        self.db.add_project(dict(
+        try:
+            self.db.add_project(dict(
 			id = project_id,
                         name = name,
                         desc = desc))
+        except:
+            raise
 
         #FIXME: return ?
         return webob.exc.HTTPOk() 

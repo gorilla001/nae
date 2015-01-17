@@ -4,6 +4,7 @@ import webob.exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.util import object_state
 from sqlalchemy import inspect
+import jsonschema
 
 from jae import wsgi
 from jae import base
@@ -72,6 +73,35 @@ class Controller(base.Base):
         FIXME(nmg):this is ugly,try to fixed it.
         """ 
         
+        schema = {
+            "type": "object",
+            "properties": {
+                "name" : { 
+                    "type":"string", 
+                    "minLength": 1, 
+                    "maxLength": 255
+                },
+                "email": { 
+                    "type":"string"
+                    "pattern": "^.*@.*$",
+                },
+                "role_id": { 
+                    "enum" : [ 0, 1, 2 ]
+                },
+                "project_id" : {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-z0-9]*$",
+                 } 
+             }
+        }
+        try:
+            jsonschema.validate(body,schema)
+        except jsonschema.exceptions.ValidationError as ex:
+            LOG.error(ex)
+            return webob.exc.HTTPBadRequest()
+
         name=body.get("name","")
         email=body.get("email","")
         role_id=body.get("role_id","")

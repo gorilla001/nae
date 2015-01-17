@@ -130,17 +130,17 @@ class Controller(Base):
             image = self.http.post(image_service_endpoint, \
 				  headers={'Content-Type':'application/json'}, \
 				  data=json.dumps(body))
-        except exceptions.ConnectionError:
-            LOG.error("Connect to remote server Error")
+        except exceptions.ConnectionError as ex:
+            LOG.error("Connect to remote server Error %s" % ex)
 	    return webob.exc.HTTPInternalServerError() 
-	except exceptions.ConnectTimeout:
-            LOG.error("Connect to remote server Timeout.")
+	except exceptions.ConnectTimeout as ex:
+            LOG.error("Connect to remote server Timeout. %s " % ex)
 	    return webob.exc.HTTPRequestTimeout() 
-        except exceptions.MissingSchema:
-            LOG.error("The URL schema (e.g. http or https) is missing.")
+        except exceptions.MissingSchema as ex:
+            LOG.error("The URL schema (e.g. http or https) is missing. %s" % ex)
 	    return webob.exc.HTTPBadRequest() 
-        except exceptions.InvalidSchema:
-            LOG.error("The URL schema is invalid.")
+        except exceptions.InvalidSchema as ex:
+            LOG.error("The URL schema is invalid. %s" % ex)
 	    return webob.exc.HTTPBadRequest() 
 
         return ResponseObject(image.json())

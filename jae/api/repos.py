@@ -2,7 +2,6 @@ import uuid
 import copy
 import webob.exc
 from sqlalchemy.exc import IntegrityError
-from jsonschema import validate
 
 from jae import wsgi
 from jae import base
@@ -87,7 +86,7 @@ class Controller(base.Base):
              "required" : ["project_id","repo_path"]
         }
         try:
-            validate(body,schema)
+            self.validator(body,schema)
         except:
             raise
 

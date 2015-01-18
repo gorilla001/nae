@@ -97,7 +97,7 @@ class Controller(base.Base):
              }
         }
         try:
-            jsonschema.validate(body,schema)
+            self.validator(body,schema)
         except jsonschema.exceptions.ValidationError as ex:
             LOG.error(ex)
             return webob.exc.HTTPBadRequest()

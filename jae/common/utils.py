@@ -86,6 +86,9 @@ def cd_change(tmp_location):
             os.chdir(cd)
 
 def make_zip_tar(path):
+    docker_file = os.path.join(path,'Dockerfile')
+    if not os.path.isfile(docker_file):
+        path = generate_docker_file()
     _str=random_str()
     tar = tarfile.open("/tmp/%s.tar.gz" % _str,"w:gz")
     with cd_change(path):
@@ -96,6 +99,16 @@ def make_zip_tar(path):
     tar.close()
 
     return "/tmp/%s.tar.gz" % _str
+
+def generate_docker_file():
+    _str=random_str()
+    temp_path = "/tmp/%s" % _str
+    os.mkdir(temp_path)
+    LOG.info("temp_path:%s" % temp_path)
+    with open(os.path.join(temp_path,"Dockerfile"),'w') as docker_file:
+        docker_file.write("FROM centos6.4:php\n")
+        docker_file.write("EXPOSE 80 22\n")
+    return temp_path
 def make_user_home(user_name,user_key):
     #path = "/home" 
     path = os.path.expandvars('$HOME')

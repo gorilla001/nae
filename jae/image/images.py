@@ -95,7 +95,7 @@ class Controller(base.Base):
         """
         http_host=CONF.host
 	name = utils.random_str()
-	port = utils.random_port()
+	port = 17698 
         image_instance = self.db.get_image(id)
         if image_instance:
             image_uuid = image_instance.uuid

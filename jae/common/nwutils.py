@@ -17,7 +17,7 @@ def create_virtual_iface(uuid,addr):
     if not prefix:
 	raise NetWorkError("no interface specified!")
     vif = "%s:%s" % (prefix,uuid)
-    status = os.system('ifconfig %s %s' % (vif,addr))
+    status,output = commands.getstatusoutput('sudo ifconfig %s %s' % (vif,addr))
     if status != 0:
 	raise NetWorkError("create virtual interface error %s " % output)
 
@@ -33,7 +33,7 @@ def create_virtual_iface(uuid,addr):
         vif_file.write("TYPE=Ethernet\n")
         vif_file.write("IPADDR=%s\n" % addr)
         vif_file.write("NETMASK=%s\n" % netmask)
-    os.system("mv %s %s" % (os.path.join(TEMP_PATH,vif_file_name),NET_SCRIPT_PATH))
+    os.system("sudo mv %s %s" % (os.path.join(TEMP_PATH,vif_file_name),NET_SCRIPT_PATH))
 
 
 def delete_virtual_iface(uuid):
@@ -44,12 +44,12 @@ def delete_virtual_iface(uuid):
     if len(uuid) > 8:
        uuid = uuid[:8]
     vif = "%s:%s" % (prefix,uuid)
-    status=os.system('ifconfig %s down' % vif)
+    status,output = commands.getstatusoutput('sudo ifconfig %s down' % vif)
     if status != 0:
        raise NetWorkError("delete virtual interface error %s " % output)
     vif_file_name = "%s-%s" % ("ifcfg",vif)
     try:
-        os.remove(os.path.join(NET_SCRIPT_PATH,vif_file_name))
+        os.system("sudo rm -f %s" % (os.path.join(NET_SCRIPT_PATH,vif_file_name)))
     except:
         """raise all errors"""
         raise

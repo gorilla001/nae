@@ -4,8 +4,10 @@ import json
 from jae.common import cfg
 from jae.common.cfg import Int, Str
 from jae.common import client
+from jae.common import log as logging
 
 CONF=cfg.CONF
+LOG=logging.getLogger(__name__)
 
 _DEFAULT_DOCKER_HOST = 'localhost'
 _DEFAULT_DOCKER_PORT = 4234

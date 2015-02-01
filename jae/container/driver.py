@@ -45,8 +45,13 @@ class API(object):
         # TODO(nmg): exceptions should be catched.
         #response = requests.get("http://%s:%s/images/%s/json" % \
 	#	                 (self.host,self.port,uuid))
-        response = self.http.get("http://%s:%s/images/%s/json" % \
+        try:
+            response = self.http.get("http://%s:%s/images/%s/json" % \
 		                 (self.host,self.port,uuid))
+        except requests.ConnectionError: 
+            LOG.error("Connect to %s:%s failed" % (self.host,self.port))
+            raise
+            
 	return response
 
     def pull_image(self,repository,tag):

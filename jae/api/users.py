@@ -82,7 +82,7 @@ class Controller(base.Base):
                     "maxLength": 255
                 },
                 "email": { 
-                    "type":"string"
+                    "type":"string",
                     "pattern": "^.*@.*$",
                 },
                 "role_id": { 

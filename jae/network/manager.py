@@ -29,8 +29,8 @@ class NetworkManager(Base):
     def get_fixed_range(self):
 	ip_resource_pool = CONF.ip_resource_pool 	
 	if not ip_resource_pool:
-	    raise exception.NoValidIPAddress(msg='Ip resource pool is None,
-                                                  You must specified a ip resource range.')
+	    raise exception.NoValidIPAddress(msg="""Ip resource pool is None,
+                                                  You must specified a ip resource range.""")
 	
 	start,_,end=ip_resource_pool.rpartition("-")
 

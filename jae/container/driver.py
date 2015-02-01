@@ -15,11 +15,11 @@ _DEFAULT_DOCKER_PORT = 4234
 class API(object):
     def __init__(self):
         self.host = _DEFAULT_DOCKER_HOST 
-        if not CONF.host:
+        if CONF.host:
             self.host = Str(CONF.host)
 
         self.port = _DEFAULT_DOCKER_PORT
-        if not CONF.port:
+        if CONF.port:
             self.port = Int(CONF.port)
 
         self.http = client.HTTPClient()

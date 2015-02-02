@@ -3,7 +3,7 @@ import requests
 class HTTPClient(object):
     def __init__(self):
         self._session = None
-        self.timeout = 5
+        self.timeout = 86400 
 
     def get_session(self):
         if not self._session:

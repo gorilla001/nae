@@ -21,9 +21,10 @@ jae/api/users.py
 jae/common/__init__.py
 jae/common/cfg.py
 jae/common/client.py
+jae/common/cmdutils.py
 jae/common/daemon.py
-jae/common/driver.py
 jae/common/exception.py
+jae/common/executils.py
 jae/common/importutils.py
 jae/common/log.py
 jae/common/mercu.py

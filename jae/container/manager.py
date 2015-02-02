@@ -134,33 +134,48 @@ class Manager(base.Base):
 	    self.db.update_container(id,uuid=uuid,status="created")
 
 	    network = self.network.get_fixed_ip() 
-	    try:
-	        nwutils.create_virtual_iface(uuid[:8],network)
-	    except NetWorkError:
-		raise
+	    #try:
+	    #    nwutils.create_virtual_iface(uuid[:8],network)
+	    #except NetWorkError:
+	    #    raise
+	    #self.db.update_container(id,fixed_ip=network)
+
+            #PB={}
+	    #EP=port
+            #for key in EP.keys():
+            #    nt_list=[]
+            #    nt = { "HostIp":network,
+            #           "HostPort":key.rpartition("/")[0]
+            #         }
+            #    nt_list.append(nt)
+            #    PB[key] = nt_list
+
+	    #repo_name = os.path.basename(repos)
+            ##path="/home"
+            #path=os.path.expandvars('$HOME')
+            #source_path = os.path.join(path,user_id,repo_name)
+            #dest_path = "/home/jm/www"
+            #kwargs = {
+            #    'Binds':['%s:%s' % (source_path,dest_path)],
+            #    'Dns':[CONF.dns],
+	    #    'PublishAllPorts':True,
+	    #    'PortBindings':PB
+            #}
+            try:
+                nwutils.inject_fixed_ip(uuid,network) 
+            except:
+                raise
 	    self.db.update_container(id,fixed_ip=network)
 
-            PB={}
-	    EP=port
-            for key in EP.keys():
-                nt_list=[]
-                nt = { "HostIp":network,
-                       "HostPort":key.rpartition("/")[0]
-                     }
-                nt_list.append(nt)
-                PB[key] = nt_list
-
-	    repo_name = os.path.basename(repos)
-            #path="/home"
+            repo_name = os.path.basename(repos)
             path=os.path.expandvars('$HOME')
             source_path = os.path.join(path,user_id,repo_name)
             dest_path = "/home/jm/www"
             kwargs = {
                 'Binds':['%s:%s' % (source_path,dest_path)],
                 'Dns':[CONF.dns],
-		'PublishAllPorts':True,
-		'PortBindings':PB
             }
+
 
 	    """
 	    prepare to start container.

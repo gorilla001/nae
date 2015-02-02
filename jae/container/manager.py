@@ -232,11 +232,11 @@ class Manager(base.Base):
 	else:
            self.db.update_container(id,status="deleting")
            self.db.delete_container(id)
-        try:
-            nwutils.delete_virtual_iface(query.uuid[:8])
-        except:
-            LOG.warning("delete virtual interface error")  
-            raise
+        #try:
+        #    nwutils.delete_virtual_iface(query.uuid[:8])
+        #except:
+        #    LOG.warning("delete virtual interface error")  
+        #    raise
 
 	LOG.info("DELETE -job delete %s" % id)
 

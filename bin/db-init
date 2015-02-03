@@ -6,8 +6,11 @@ from jae.common import cfg
 
 CONF=cfg.CONF
 
+cfg.parse_config()
+ 
  
 engine_url = CONF.db_connection
+
 try:
     engine = create_engine(engine_url)
 except:

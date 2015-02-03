@@ -86,11 +86,11 @@ class Controller(base.Base):
                     "pattern": "^.*@.*$",
                 },
                 "role_id": { 
-                    "enum" : [ 0, 1, 2 ]
+                    "enum" : [ '0', '1', '2' ]
                 },
                 "project_id" : {
                     "type": "string",
-                    "minLength": 64,
+                    "minLength": 32,
                     "maxLength": 64,
                     "pattern": "^[a-zA-z0-9]*$",
                  } 

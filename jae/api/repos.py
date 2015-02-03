@@ -74,7 +74,7 @@ class Controller(base.Base):
             "type": "object",
             "properties": {
                 "project_id" : { "type": "string",
-                                 "minLength": 64,
+                                 "minLength": 32,
                                  "maxLength": 64,
                                  "pattern": "^[a-zA-Z0-9]*$",
                  },

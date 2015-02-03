@@ -133,7 +133,6 @@ class Manager(base.Base):
 	    uuid = resp.json()['Id'] 
 	    self.db.update_container(id,uuid=uuid,status="created")
 
-	    network = self.network.get_fixed_ip() 
 	    #try:
 	    #    nwutils.create_virtual_iface(uuid[:8],network)
 	    #except NetWorkError:
@@ -161,11 +160,6 @@ class Manager(base.Base):
 	    #    'PublishAllPorts':True,
 	    #    'PortBindings':PB
             #}
-            try:
-                nwutils.inject_fixed_ip(uuid,network) 
-            except:
-                raise
-	    self.db.update_container(id,fixed_ip=network)
 
             repo_name = os.path.basename(repos)
             path=os.path.expandvars('$HOME')
@@ -190,6 +184,16 @@ class Manager(base.Base):
 	    """
 	    status = self.driver.start(uuid,kwargs)
 	    if status == 204:
+                """If start container succeed, inject fixed
+                   ip addr to container"""
+	        network = self.network.get_fixed_ip() 
+                try:
+                    nwutils.inject_fixed_ip(uuid,network) 
+                except:
+                    raise
+                """Update container's network"""
+	        self.db.update_container(id,fixed_ip=network)
+                """Update container's status"""
 		self.db.update_container(id,status="running")
 	    if status == 500:
 		LOG.error("start container %s error" % uuid)

@@ -1,10 +1,12 @@
 #import commands
 from jae.common import cfg
+from jae.common import log as logging
 from jae.common.exception import NetWorkError
 import os
 import subprocess
 
 CONF = cfg.CONF
+LOG=logging.getLogger(__name__)
 
 #TEMP_PATH="/tmp"
 
@@ -75,53 +77,64 @@ def inject_fixed_ip(uuid,addr):
        	
     if len(uuid) > 8:
 	uuid = uuid[:8]
-    veth="%s%s" % ("veth",uuid) 
+    uuid_reverse = uuid[::-1]
+    veth_int = "%s%s" % ("veth",uuid_reverse)
+    veth_ext = "%s%s" % ("veth",uuid) 
 
     """First create veth pair: web-int and vethuuid"""
     try:
-        subprocess.check_call("sudo ip link add web-int type veth peer name %s" % veth,shell=True) 
+        LOG.info("Create veth pair: %s and %s" % (veth_int,veth_ext))
+        subprocess.check_call("sudo ip link add %s type veth peer name %s" % (veth_int,veth_ext),shell=True) 
     except subprocess.CalledProcessError:
 	raise
 
     """Second add external veth to bridge `br0`""" 
     try:
-        subprocess.check_call("sudo brctl addif br0 %s" % veth,shell=True)
+        LOG.info("Attach external veth %s to bridge `br0`" % veth_ext)
+        subprocess.check_call("sudo brctl addif br0 %s" % veth_ext,shell=True)
     except subprocess.CalledProcessError:
         raise
 
     """Get container's pid namespace"""
     try:
+        LOG.info("Get container's namespace pid")
         pid=subprocess.check_output("sudo docker inspect --format '{{.State.Pid}}' %s" % uuid,shell=True) 
+	LOG.info("Pid is %s" % pid)
     except subprocess.CalledProcessError:
         raise
 
     """Add internal veth web-int to container"""
     try:
-	subprocess.check_call("sudo ip link set netns %s dev web-int" % pid,shell=True)
+        LOG.info("Attach internal %s to container" % veth_int)
+	subprocess.check_call("sudo ip link set netns %s dev %s" % (pid.strip(),veth_int),shell=True)
     except subprocess.CalledProcessError:
 	raise
 
     """Rename internal veth web-int to eth1"""
     try:
-	subprocess.check_call("sudo nsenter -t %s -n ip link set web-int name eth1" % pid,shell=True)
+        LOG.info("Rename internal veth %s to eth1" % veth_int)
+	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth1" % (pid,veth_int),shell=True)
     except subprocess.CalledProcessError:
 	raise
 
     """Set internal veth to UP"""
     try:
+        LOG.info("UP internal veth eth1")
 	subprocess.check_call("sudo nsenter -t %s -n ip link set eth1 up" % pid,shell=True)
     except subprocess.CalledProcessError:
 	raise
     
     """Set external veth to UP"""
     try:
-	subprocess.check_call("sudo ip link set %s up" % veth,shell=True)
+        LOG.info("UP external %s" % veth_ext)
+	subprocess.check_call("sudo ip link set %s up" % veth_ext,shell=True)
     except subprocess.CalledProcessError:
 	raise
 
     """Set fixed ip to internal veth `eth1`"""
     IP_ADDR="%s/%s" % (addr,DEFAULT_NET_MASK)
     try:
+        LOG.info("Attach fixed IP to internal veth eth1")
 	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth1" % (pid,IP_ADDR),shell=True)
     except subprocess.CalledProcessError:
 	raise

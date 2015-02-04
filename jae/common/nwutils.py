@@ -99,7 +99,7 @@ def inject_fixed_ip(uuid,addr):
     try:
         LOG.info("Get container's namespace pid")
         pid=subprocess.check_output("sudo docker inspect --format '{{.State.Pid}}' %s" % uuid,shell=True) 
-	LOG.info("Pid is %s" % pid)
+	LOG.info("Pid is %s" % pid.strip())
     except subprocess.CalledProcessError:
         raise
 
@@ -113,14 +113,14 @@ def inject_fixed_ip(uuid,addr):
     """Rename internal veth web-int to eth1"""
     try:
         LOG.info("Rename internal veth %s to eth1" % veth_int)
-	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth1" % (pid,veth_int),shell=True)
+	subprocess.check_call("sudo nsenter -t %s -n ip link set %s name eth1" % (pid.strip(),veth_int),shell=True)
     except subprocess.CalledProcessError:
 	raise
 
     """Set internal veth to UP"""
     try:
         LOG.info("UP internal veth eth1")
-	subprocess.check_call("sudo nsenter -t %s -n ip link set eth1 up" % pid,shell=True)
+	subprocess.check_call("sudo nsenter -t %s -n ip link set eth1 up" % pid.strip(),shell=True)
     except subprocess.CalledProcessError:
 	raise
     
@@ -135,6 +135,6 @@ def inject_fixed_ip(uuid,addr):
     IP_ADDR="%s/%s" % (addr,DEFAULT_NET_MASK)
     try:
         LOG.info("Attach fixed IP to internal veth eth1")
-	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth1" % (pid,IP_ADDR),shell=True)
+	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth1" % (pid.strip(),IP_ADDR),shell=True)
     except subprocess.CalledProcessError:
 	raise

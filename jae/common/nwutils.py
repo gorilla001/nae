@@ -58,6 +58,13 @@ DEFAULT_NET_MASK="255.255.255.0"
 #        """raise all errors"""
 #        raise
 
+def get_default_gateway():
+    """Get the default route."""
+    import netifaces
+    gws=netifaces.gateways()
+
+    return gws['default'][netifaces.AF_INET][0]
+
 def inject_fixed_ip(uuid,addr):
     """Inject fixed ip to container instance.This method is similar to `pipework`
        but more simple.
@@ -138,3 +145,12 @@ def inject_fixed_ip(uuid,addr):
 	subprocess.check_call("sudo nsenter -t %s -n ip addr add %s dev eth1" % (pid.strip(),IP_ADDR),shell=True)
     except subprocess.CalledProcessError:
 	raise
+
+    """Set default gateway to br0's gateway"""
+    DEFAULT_GATEWAY=get_default_gateway()
+    try:
+        LOG.info("Set default gateway to %s" % DEFAULT_GATEWAY)
+        subprocess.check_call("sudo nsenter -t %s -n ip route del default" % pid.strip(),shell=True)
+        subprocess.check_call("sudo nsenter -t %s -n ip route add default via %s dev eth1" %(pid.strip(),DEFAULT_GATEWAY),shell=True)
+    except subprocess.CalledProcessError:
+        raise

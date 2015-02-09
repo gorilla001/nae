@@ -34,6 +34,20 @@ class Controller(Base):
         self.http=client.HTTPClient()
 
     def index(self,request):
+        """
+        List all images accorind to `project_id`.
+        This method returns a dictionary list and each dict contains the following keys:
+            - id
+            - uuid
+            - name
+            - tag
+            - desc
+            - project_id
+            - created
+            - user_id
+            - status
+        If no images found, empty list will be returned.
+        """
         images=[]
         project_id=request.GET.get('project_id')
         if not project_id:
@@ -55,23 +69,27 @@ class Controller(Base):
                    'status' : image_instance.status}
             images.append(image)
 
-        #query = self.db.get_images(project_id)
-        #if query is not None:
-        #    for item in query:
-        #        image={'id':item.id,
-        #               'uuid':item.uuid,
-        #               'name':item.name,
-	#	       'tag':item.tag,
-        #               'desc':item.desc,
-        #               'project_id':item.project_id,
-        #               'created':isotime(item.created),
-        #               'user_id':item.user_id,
-        #               'status' : item.status}
-        #        images.append(image)
         return ResponseObject(images) 
 
     def show(self,request,id):
-        """get image detail by image `id`"""
+        """
+        Show the image detail according to `id`.
+
+        :parmas id: the image id
+
+        This method returns a dictionary with the following keys:
+            - id
+            - uuid
+            - name
+            - repos
+            - tag 
+            - desc
+            - project_id
+            - created
+            - user_id
+            - status
+        If no image found, empty dictionary will be returned.    
+        """
 	image = {}
         query = self.db.get_image(id)
 	if query is not None:
@@ -89,6 +107,16 @@ class Controller(Base):
         return ResponseObject(image) 
 
     def create(self,request,body=None):
+        """
+        For creating image, body should not be None and
+        should contains the following params:
+            - project_id  the project's id which the image belong to
+            - name        the image name
+            －desc        the image description
+            - repos       the repos contains `Dockerfile`
+            - branch      the branch
+            - user_id     the user who created the image
+        """ 
 	if not body:
 	    LOG.error('body cannot be empty!')
 	    return webob.exc.HTTPBadRequest() 
@@ -146,7 +174,11 @@ class Controller(Base):
         return ResponseObject(image.json())
 
     def delete(self,request,id):
- 	"""delete image from registry."""
+ 	"""Delete image from registry.
+           This method contains the following two steps:
+           1. delete db entry
+           2. delete image from private image registry
+        """
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
@@ -166,7 +198,8 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-        """edit image online."""
+        """Edit image online.
+           This method not used any more."""
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
@@ -194,6 +227,7 @@ class Controller(Base):
         return ResponseObject(response.json())
 
     def commit(self,request):
+        """Commit container to a New image."""
 	repo = request.GET.pop('repo')
 	tag = request.GET.pop('tag')
 	ctn = request.GET.pop('ctn')
@@ -224,9 +258,6 @@ class Controller(Base):
         except:
             raise
         return ResponseObject(response.json())
-
-        
-	#self.image_api.commit(repo,tag,ctn,id)
 
     def conflict(self,request):
 	_id=request.environ['wsgiorg.routing_args'][1]['image_id']

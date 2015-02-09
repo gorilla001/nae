@@ -46,7 +46,7 @@ class Controller(Base):
             - created
             - status
 
-        If no container found, a empty list will be returned.
+        If no container found, empty list will be returned.
 	"""
         containers=[]
 
@@ -96,7 +96,7 @@ class Controller(Base):
             - host_id
             - status
          
-        If no container found, a empty dictionary will returned.
+        If no container found, empty dictionary will returned.
         """
 
 	container={}

@@ -36,33 +36,6 @@ class Manager(base.Base):
         """
         return NotImplementedError()
     
-    def _prepare_start(self,
-		      user,
-                      uuid,
-                      repos,
-                      branch):
-        """
-        This method contains the following two steps:
-        1. Create container directory for each user if not exists.
-        2. Pull or Clone the codes and update to `branch`.
-        """
-        user_home=utils.make_user_home(user,uuid)
-        repo_name=os.path.basename(repos)
-        if utils.repo_exist(user_home,repo_name):
-            try:
-                self.mercurial.pull(user,repos)
-            except:
-                raise
-        else:
-            try:
-                self.mercurial.clone(user,repos)
-            except:
-                raise
-        try:
-            self.mercurial.update(user,repos,branch)
-        except:
-            raise
-
     def create(self,
                 id,
 		name,
@@ -77,10 +50,13 @@ class Manager(base.Base):
 		ssh_key,
 		fixed_ip,
 		user_id):
-	"""
-           Create new container.
+
+        """Create new container and start it.
+
            There are  steps to do this:
-           1. Pull specified images from docker registry.
+           1. Pull image from docker registry.
+           2. Create container use the specified image.
+           3. Start container.
         """
 
 	LOG.info("CREATE +job create %s" % id)
@@ -255,7 +231,8 @@ class Manager(base.Base):
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):
-	"""start container"""
+	"""Start container according to `id`"""
+
 	LOG.info("START +job start %s" % id)
 	self.db.update_container(id,status="starting") 
 	query = self.db.get_container(id)
@@ -276,7 +253,7 @@ class Manager(base.Base):
 
     def stop(self,id):
 	"""
-	stop container for a given id.
+	Stop container according to `id`.
 	"""
 	LOG.info("STOP +job stop %s" % id)
 	
@@ -292,13 +269,14 @@ class Manager(base.Base):
 
     def destroy(self,name):
 	"""
-	destroy a temporary container by a given name.
+	Destroy a temporary container by a given name.
 	"""
 	self.driver.stop(name)
 	self.driver.delete(name)
 
     def refresh(self,id):
-        """refresh code in container."""
+        """Refresh code in container."""
+
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:
@@ -316,9 +294,3 @@ class Manager(base.Base):
                 self.db.update_container(id,status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
-    def create_container_dir(self,user_id,uuid):
-        """This method created the container directory for each user
-           and each container.
-        """
-        dir = utils.create_container_dir(user_id,uuid)
-        return dir

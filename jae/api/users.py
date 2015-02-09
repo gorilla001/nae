@@ -19,17 +19,7 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
-        """
-        List all users of the project identified by `project_id`.
-        This method returns a disctionary list and
-        echo dictionary contains the following keys:
-            - id      the id of the user
-            - name    the name of the user
-            - email   the email address of the user
-            - role_id the role_id of the user e.g. '0' '1' 
-            - created the created time of the use
-        If no use found, empty list will returned.
-        """
+        """Get users by `project_id`."""
         
         users=[]
         project_id = request.GET.get('project_id')

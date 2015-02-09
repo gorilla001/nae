@@ -95,7 +95,7 @@ class API(object):
 	    image_registry_endpoint = image_registry_endpoint.replace("http://","")
 	host = Str(CONF.host)
         port = Int(CONF.port)
-	response=requests.post("http://%s:%s/images/%s:%s/tag?repo=%s/%s&force=0&tag=%s" 
+	response=requests.post("http://%s:%s/images/%s:%s/tag?repo=%s/%s&force=1&tag=%s" 
                        % (host,port,name,tag,image_registry_endpoint,name,tag))
 	return response.status_code,"%s/%s" % (image_registry_endpoint,name)
 

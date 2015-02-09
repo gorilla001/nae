@@ -215,7 +215,7 @@ class Controller(Base):
         try:
             data = {"repository"     : repo,
                     "tag"            : tag,
-                    "container_name" : ctn,
+                    "container_id" : ctn,
                     "id"             : id,
                     "project_id"     : project_id}
             response=self.http.post("%s/commit" % image_service_endpoint,

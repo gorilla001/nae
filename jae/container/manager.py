@@ -38,11 +38,15 @@ class Manager(base.Base):
     
     def _prepare_start(self,
 		      user,
-                      key,
+                      uuid,
                       repos,
                       branch):
-	"""pull or clone code from repos repos and update to branch branch."""
-        user_home=utils.make_user_home(user,key)
+        """
+        This method contains the following two steps:
+        1. Create container directory for each user if not exists.
+        2. Pull or Clone the codes and update to `branch`.
+        """
+        user_home=utils.make_user_home(user,uuid)
         repo_name=os.path.basename(repos)
         if utils.repo_exist(user_home,repo_name):
             try:
@@ -73,14 +77,15 @@ class Manager(base.Base):
 		ssh_key,
 		fixed_ip,
 		user_id):
-	"""create new container use mount of args."""
+	"""
+           Create new container.
+           There are  steps to do this:
+           1. Pull specified images from docker registry.
+        """
 
 	LOG.info("CREATE +job create %s" % id)
-        """
-	resp = self.driver.inspect_image(image_uuid)
-	if resp.status_code == 404:
-	    LOG.error("inspect error,no such image?")
-        """
+
+        """Pull Specified Imag From Docker Registry."""
 	LOG.info("pull image %s from registry..." % image_id)
 	status = self.driver.pull_image(repository,tag)
 	if status == 404:
@@ -94,7 +99,7 @@ class Manager(base.Base):
                                      status="error")
 	    return webob.exc.HTTPInternalServerError()
 
-	"""check image again.if failed again,what can I do ???"""
+	"""Check if the image was pulled successful."""
 	resp = self.driver.inspect_image(image_uuid)
 	if resp.status_code == 404:
 	    msg="pull image failed!"
@@ -102,6 +107,8 @@ class Manager(base.Base):
 	    return webob.exc.HTTPNotFound(explanation=msg)
 	LOG.info("pull image succeed!")
 
+        """
+        """
         port=resp.json()['Config']['ExposedPorts']
 	kwargs = {'Hostname'       : '',
                   'User'           : '',
@@ -127,57 +134,60 @@ class Manager(base.Base):
                   'ExposedPorts'   : port,
 		  "RestartPolicy": { "Name": "always" }}
 
-	"""create container."""
+	"""Invork docker remote api to create container."""
 	resp = self.driver.create(name,kwargs)
 	if resp.status_code == 201:
+            """Update container status to ``created``"""
 	    uuid = resp.json()['Id'] 
 	    self.db.update_container(id,uuid=uuid,status="created")
 
-	    #try:
-	    #    nwutils.create_virtual_iface(uuid[:8],network)
-	    #except NetWorkError:
-	    #    raise
-	    #self.db.update_container(id,fixed_ip=network)
-
-            #PB={}
-	    #EP=port
-            #for key in EP.keys():
-            #    nt_list=[]
-            #    nt = { "HostIp":network,
-            #           "HostPort":key.rpartition("/")[0]
-            #         }
-            #    nt_list.append(nt)
-            #    PB[key] = nt_list
-
-	    #repo_name = os.path.basename(repos)
-            ##path="/home"
-            #path=os.path.expandvars('$HOME')
-            #source_path = os.path.join(path,user_id,repo_name)
-            #dest_path = "/home/jm/www"
-            #kwargs = {
-            #    'Binds':['%s:%s' % (source_path,dest_path)],
-            #    'Dns':[CONF.dns],
-	    #    'PublishAllPorts':True,
-	    #    'PortBindings':PB
-            #}
-
-            repo_name = os.path.basename(repos)
-            path=os.path.expandvars('$HOME')
-            source_path = os.path.join(path,user_id,repo_name)
-            dest_path = "/home/jm/www"
-            kwargs = {
-                'Binds':['%s:%s' % (source_path,dest_path)],
-                'Dns':[CONF.dns],
-            }
 
 
 	    """
-	    prepare to start container.
+	    Clone or Pull code before container start.
+            This method contains the following two steps:
+            1. Create code and logs directory for each container.
+            2. Clone or Pull the specified code and update to the specified branch.
 	    """
+	    self.db.update_container(id,uuid=uuid,status="init")
+
+            short_uuid = uuid[:12]
+
+            root_path = utils.create_root_path(user_id,short_uuid)
+            log_path = utils.create_log_path(root_path) 
+
+            repo_name=os.path.basename(repos)
+            if utils.repo_exist(root_path,repo_name):
+                try:
+                    self.mercurial.pull(root_path,repos)
+                except:
+                    raise
+            else:
+                try:
+                    self.mercurial.clone(root_path,repos)
+                except:
+                    raise
             try:
-	        self._prepare_start(user_id,ssh_key,repos,branch)
+                self.mercurial.update(root_path,repos,branch)
             except:
                 raise
+    
+
+            www_path = ["/home/www","/home/jm/www"]
+            log_pathes = ["/home/jm/logs","/home/logs"]
+
+            kwargs = {
+                'Binds':
+                     ['%s:%s' % (root_path,www_path[0]),
+                      '%s:%s' % (root_path,www_path[1]),
+                      '%s:%s' % (log_path,log_pathes[0]),
+                      '%s:%s' % (log_path,log_pathes[1]),
+                     ],
+                'Dns':
+                    [
+                      CONF.dns
+                    ],
+            }
 
 	    """
 	    start container and update db status.
@@ -251,22 +261,16 @@ class Manager(base.Base):
 	query = self.db.get_container(id)
 	uuid = query.uuid
 	network = query.fixed_ip
-	image_id = query.image_id
-	image = self.db.get_image(image_id)
-	resp = self.driver.inspect_image(image.uuid)
-        port=resp.json()['Config']['ExposedPorts']
-	PB={}
-        EP=port
-        for key in EP.keys():
-            nt_list=[]
-            nt = { "HostIp":network,
-                   "HostPort":key.rpartition("/")[0]}
-            nt_list.append(nt)
-            PB[key] = nt_list
-	kwargs={"Cmd":["/usr/bin/supervisord"],
-		"PortBindings":PB}
+        kwargs={"Cmd":["/usr/bin/supervisord"]}
 	status = self.driver.start(uuid,kwargs)
 	if status == 204:
+            """If container start succeed, inject fixed_ip
+               to container."""
+            try:
+                nwutils.inject_fixed_ip(uuid,network)
+            except:
+                raise
+            """Update container status to running."""
 	    self.db.update_container(id,status="running")
 	LOG.info("START -job start %s" % id)
 
@@ -312,4 +316,9 @@ class Manager(base.Base):
                 self.db.update_container(id,status="refresh-failed")
                 raise
             LOG.info("REFRESH -job refresh %s = OK" % id)
-
+    def create_container_dir(self,user_id,uuid):
+        """This method created the container directory for each user
+           and each container.
+        """
+        dir = utils.create_container_dir(user_id,uuid)
+        return dir

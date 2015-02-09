@@ -37,7 +37,7 @@ class Controller(base.Base):
 	
     def create(self,request,body):
         """create image."""
-        name       = body.get('name')
+        name       = body.get('name').lower()
         desc       = body.get('desc')
         project_id = body.get('project_id')
         repos      = body.get('repos')
@@ -122,35 +122,54 @@ class Controller(base.Base):
         return ResponseObject(response) 
 
     def commit(self,request,body):
-        repository = body.get('repository')
-        tag = body.get('tag')
-        image_id = body.get('id')
-        project_id = body.get('project_id') 
-        container_name = body.get('container_name')
+        """
+        Commit specified container to named image.
+        if image repository is provided, use the provided repository
+        as the new image's repository, otherwise get the image name
+        by `image_id` for the repoistory.
+        """ 
+        repository   = body.pop('repository')
+        tag          = body.pop('tag')
+        image_id     = body.pop('id')
+        project_id   = body.pop('project_id') 
+        container_id = body.pop('container_id')
 
         project = self.db.get_project(project_id)
         if not project:
             LOG.error("no such project %s" % project_id)
             return Response(404)
 
+        container_instance=self.db.get_container(container_id)
+        if not container_instance:
+            LOG.error("no such container %s" % container_id)
+            return Response(404)
+        container_uuid = container_instance.uuid
+
         image_instance = self.db.get_image(image_id)
-        if image_instance:
-            new_image_id = uuid.uuid4().hex
-            self.db.add_image(dict(
-                             id=new_image_id,
-                             name=repository,
-                             tag=tag,
-                             desc=image_instance.desc,
-                             repos = image_instance.repos,
-                             branch = image_instance.branch,
-                             user_id = image_instance.user_id,
-                             status = 'building'),
-                             project=project)
-            eventlet.spawn_n(self._manager.commit,
-                         new_image_id,
-                         repository,
-                         tag,
-                         container_name)
+        if not image_instance:
+            LOG.error("no such image %s" % image_id)
+            return Response(404)
+
+        """If repository is None, use the image's name as repository."""
+        if not repository:
+            repository = image_instance.name
+
+        new_image_id = uuid.uuid4().hex
+        self.db.add_image(dict(
+                         id=new_image_id,
+                         name=repository,
+                         tag=tag,
+                         desc=image_instance.desc,
+                         repos = image_instance.repos,
+                         branch = image_instance.branch,
+                         user_id = image_instance.user_id,
+                         status = 'building'),
+                         project=project)
+        eventlet.spawn_n(self._manager.commit,
+                     new_image_id,
+                     repository,
+                     tag,
+                     container_uuid)
         #NOTE(nmg):there may be a bug here.
         return ResponseObject({"id":new_image_id})
 

@@ -40,6 +40,7 @@ class Controller(Base):
             - name 
             - repos
             - branch
+            - image
             - network
             - created
             - status
@@ -58,10 +59,20 @@ class Controller(Base):
                     'name':item.name,
                     'repos': item.repos,
                     'branch': item.branch,
+                    'image_id': item.image_id,
 		    'network':item.fixed_ip,
                     'created':timeutils.isotime(item.created),
                     'status':item.status,
                     }
+            container.setdefault("image","")
+            """Get the image name and tag by the `image_id`.
+               if the image not found, use the default."""
+            image_id = item.image_id
+            image_instance = self.db.get_image(image_id)
+            if image_instance:
+                image = "%s:%s" % (image_instance.name,image_instance.tag)
+                container.update({"image":image})
+
             containers.append(container)
         return ResponseObject(containers)
 

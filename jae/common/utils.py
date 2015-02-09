@@ -106,22 +106,43 @@ def generate_docker_file():
     os.mkdir(temp_path)
     LOG.info("temp_path:%s" % temp_path)
     with open(os.path.join(temp_path,"Dockerfile"),'w') as docker_file:
-        docker_file.write("FROM centos6.4:php\n")
+        docker_file.write("FROM centos:6.4\n")
         docker_file.write("EXPOSE 80 22\n")
     return temp_path
-def make_user_home(user_name,user_key):
-    #path = "/home" 
+
+#def make_user_home(user_name,uuid):
+#    """
+#    This method create directory according `user_name` and container short-uuid `uuid`.
+#    The directory looks like this:
+#    >>
+#    >>/home/jae/minguon/76553b387cd5/jaetest
+#    >>/home/jae/minguon/76553b387cd5/logs
+#    >> 
+#    """
+#    path = os.path.expandvars('$HOME')
+#    user_home = os.path.join(path,user_name,uuid)
+#    if not os.path.exists(user_home):
+#        os.mkdir(user_home)
+#    log_dir = os.path.join(path
+#    return user_home
+
+def create_root_path(user_id,uuid):
+    """Create container root directory for each container and
+       each user."""
     path = os.path.expandvars('$HOME')
-    user_home = os.path.join(path,user_name)
-    if not os.path.exists(user_home):
-        os.mkdir(user_home)
-        os.chmod(user_home,stat.S_IRWXU+stat.S_IRGRP+stat.S_IXGRP+stat.S_IROTH+stat.S_IXOTH)
-        ssh_dir = os.path.join(user_home,'.ssh')
-        os.mkdir(ssh_dir)
-        authorized_keys_file = os.path.join(ssh_dir,'authorized_keys')
-        with open(authorized_keys_file,'a') as f:
-            f.write('%s\n' % user_key)
-    return user_home
+    root_path = os.path.join(path,user_id,uuid,"www")
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+
+    return root_path 
+
+def create_log_path(container_dir):
+    """This method created log directory for each container."""
+    log_path = os.path.join(container_dir,"logs")
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
+    return log_path
 
 def change_dir_owner(home,user_name):
     uid = pwd.getpwnam(user_name).pw_uid

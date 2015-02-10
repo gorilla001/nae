@@ -174,8 +174,9 @@ class Controller(Base):
         return ResponseObject(image.json())
 
     def delete(self,request,id):
- 	"""Delete image from registry.
-           This method contains the following two steps:
+ 	"""
+        Delete image from registry.
+        This method contains the following two steps:
            1. delete db entry
            2. delete image from private image registry
         """

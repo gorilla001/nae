@@ -64,7 +64,7 @@ def get_default_gateway():
 
     return gws['default'][netifaces.AF_INET][0]
 
-def inject_fixed_ip(uuid,addr):
+def set_fixed_ip(uuid,addr):
     """Inject fixed ip to container instance.This method is similar to `pipework`
        but more simple.
        Generally contains the following four step:

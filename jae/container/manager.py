@@ -173,10 +173,18 @@ class Manager(base.Base):
                 """If start container succeed, inject fixed
                    ip addr to container"""
 	        network = self.network.get_fixed_ip() 
+                """
+                Add db entry immediately to prevent this fixed ip be used again.
+                """
+                self.db.add_network(dict(container_id=id,fixed_ip=network))
                 try:
-                    nwutils.inject_fixed_ip(uuid,network) 
+                    nwutils.set_fixed_ip(uuid,network) 
                 except:
+                    LOG.error("Set fixed ip %s to container %s failed" % (network,uuid))
+                    """Cleanup db entry for ip reuse"""
+                    self.db.delete_network(id)
                     raise
+
                 """Update container's network"""
 	        self.db.update_container(id,fixed_ip=network)
                 """Update container's status"""
@@ -227,6 +235,8 @@ class Manager(base.Base):
         #except:
         #    LOG.warning("delete virtual interface error")  
         #    raise
+        """Clean db entry for ip reuse."""
+        self.db.delete_network(id)
 
 	LOG.info("DELETE -job delete %s" % id)
 

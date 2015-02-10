@@ -164,17 +164,20 @@ def delete_repo(id):
 def add_network(values):
     session=get_session()
     with session.begin():
-        model=models.Network()
-        model.update(values)
-        model.save(session=session)
+        network_ref=models.Network()
+        network_ref.update(values)
+        network_ref.save(session=session)
+    return network_ref.id
 
 def get_network(id):
     return model_query(models.Network,
                        id=id).first() 
 
-def get_networks(container_id):
-    return model_query(models.Network,
-                      container_id=container_id).all()
+def get_networks():
+    return model_query(models.Network).all()
+
+def delete_network(id):
+    return model_query(models.Network,container_id=id).delete()
 
 
 ### host api ###

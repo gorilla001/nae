@@ -115,6 +115,13 @@ class Repos(BaseModel):
 
     created = Column(DateTime, default=func.now())
 
+class Network(BaseModel):
+    __tablename__ = 'networks'
+    id = Column(Integer,primary_key=True,autoincrement=True)
+    container_id = Column(String(64))
+    fixed_ip = Column(String(32))
+    created = Column(DateTime, default=func.now())
+
 """not used anymore.
 class Network(BaseModel):
     __tablename__ = 'networks'

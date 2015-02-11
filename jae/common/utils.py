@@ -23,15 +23,12 @@ CONF=cfg.CONF
 class ResponseSucceed(object):
     def __call__(self): 
         result=webob.Response(status=200)
-        return result
 
+        return result
 
 def execute(func,*args):
     eventlet.spawn_n(func,*args)
 
-def init():
-    Daemon().initDaemon()
- 
 def random_port():
 	port_range=[4000,65535]	
 	random_port = random.randint(int(port_range[0]),int(port_range[1]))
@@ -54,12 +51,12 @@ def get_file_path(user_name,repo_name):
     return user_dir 
 
 def repo_exist(user_name,repo_name):
-    #user_dir=os.path.join("/home",user_name)
     user_dir=os.path.join(os.path.expandvars('$HOME'),user_name)
     repo_dir=os.path.join(user_dir,repo_name)
     if not os.path.exists(repo_dir):
         return False 
     return True
+
 def human_readable_size(size):
     import humanize
 
@@ -110,22 +107,6 @@ def generate_docker_file():
         docker_file.write("EXPOSE 80 22\n")
     return temp_path
 
-#def make_user_home(user_name,uuid):
-#    """
-#    This method create directory according `user_name` and container short-uuid `uuid`.
-#    The directory looks like this:
-#    >>
-#    >>/home/jae/minguon/76553b387cd5/jaetest
-#    >>/home/jae/minguon/76553b387cd5/logs
-#    >> 
-#    """
-#    path = os.path.expandvars('$HOME')
-#    user_home = os.path.join(path,user_name,uuid)
-#    if not os.path.exists(user_home):
-#        os.mkdir(user_home)
-#    log_dir = os.path.join(path
-#    return user_home
-
 def create_root_path(user_id,uuid):
     """Create container root directory for each container and
        each user."""
@@ -155,42 +136,5 @@ def prepare_config_file(home,repo,env):
         config_file = os.path.join(path,'config-dev')
         os.rename(config_file,os.path.join(path,'config'))
         
-
-
-
-class Daemon():
-    def __init__(self):
-        self.stdout=CONF.log_file
-        self.stderr=CONF.log_file
-    def initDaemon(self):
-        try:
-            pid = os.fork()
-            if pid > 0:
-                sys.exit(0)
-        except OSError,e:
-            LOG.error("fork error")
-            sys.exit(1)
-
-        #os.chdir(os.path.dirname(__file__))
-        os.chdir(os.path.expandvars('$HOME'))
-        os.setsid()
-        os.umask(0)
-
-        try:
-            pid = os.fork()
-            if pid > 0:
-                sys.exit(0)
-        except OSError,e:
-            LOG.error("fork error")
-            sys.exit(1)
-
-        for f in sys.stdout,sys.stderr:
-            f.flush()
-        so = file(self.stdout,'a+')
-        se = file(self.stderr,'a+',0)
-        os.dup2(so.fileno(),sys.stdout.fileno())
-        os.dup2(se.fileno(),sys.stderr.fileno())
-
-
 def uid():
     return uuid.uuid4().hex

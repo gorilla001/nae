@@ -156,10 +156,7 @@ class Manager(base.Base):
                       '%s:%s' % (log_path,log_pathes[0]),
                       '%s:%s' % (log_path,log_pathes[1]),
                      ],
-                'Dns':
-                    [
-                      CONF.dns
-                    ],
+                'Dns':[CONF.dns],
             }
 
 	    """
@@ -174,6 +171,8 @@ class Manager(base.Base):
                 Add db entry immediately to prevent this fixed ip be used again.
                 """
                 self.db.add_network(dict(container_id=id,fixed_ip=network))
+
+                """Set fixed ip to container"""
                 try:
                     nwutils.set_fixed_ip(uuid,network) 
                 except:

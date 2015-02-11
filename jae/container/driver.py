@@ -26,7 +26,7 @@ class API(object):
 
     def create(self,name,kwargs):
 	"""
-	create a container with `name` and `kwargs`.
+	Create a container with `name` and `kwargs`.
 	"""
         # TODO(nmg): exceptions should be catched.
         #response = requests.post("http://%s:%s/containers/create?name=%s" \
@@ -41,7 +41,7 @@ class API(object):
 
     def inspect_image(self,uuid):
         """
-        inspect image info according to `uuid`.
+        Inspect image info according to image `uuid`.
         """
 
         # TODO(nmg): exceptions should be catched.
@@ -58,7 +58,7 @@ class API(object):
 
     def pull_image(self,repository,tag):
 	"""
-	pull image from image registry.
+	Pull image from image registry.
 	"""
 	image_registry_endpoint = CONF.image_registry_endpoint
 	if not image_registry_endpoint:
@@ -76,7 +76,7 @@ class API(object):
 
     def start(self,uuid,kwargs):
 	"""
-	start a container with kwargs specified by uuid.
+	Start a container with kwargs by container `uuid`.
 	"""
         # TODO(nmg): exceptions should be catched.
 	#response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
@@ -89,21 +89,27 @@ class API(object):
 	return response.status_code
 
     def stop(self,uuid):
-         """stop the container specified by uuid"""
+         """
+         Stop the container  by container `uuid`.
+         """
          #TODO(nmg): exceptions should be catched.
          #response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
          response = self.http.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
          return response.status_code
 
     def delete(self,uuid):
-         """delete the container uuid"""
+         """
+         Delete the container by container `uuid`.
+         """
          #TODO(nmg): exceptions should be catched.
          #response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
          response = self.http.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
          return response.status_code
     
     def inspect(self,uuid):
-        """inspect a container by uuid."""
+        """
+        Inspect a container by container `uuid`.
+        """
         # TODO(nmg): exceptions should be catched.
         #response = requests.get("http://%s:%s/containers/%s/json" % \
         #                       (self.host,self.port,uuid))
@@ -117,14 +123,22 @@ class API(object):
                 repos,
                 branch,
                 mercurial):
-        """"refresh code in container."""
+        """
+        Refresh code in container
+        
+        The container code is placed in the following path:
+        >>>/home/jae/{user_id}/{uuid}/www/{repos}<<< 
+        """ 
+        root_path = "/home/jae/%s/%s/www" % (user_id,uuid[:12]) 
+        repo_path = repos
         try:
-            mercurial.pull(user_id,repos)   
+            mercurial.pull(root_path,repo_path)   
         except:
+            LOG.error("Pull code failed for code sync")
             raise
 
         try:
-            mercurial.update(user_id,repos,branch)
+            mercurial.update(root_path,repo_path,branch)
         except:
+            LOG.error("Update code failed for code sync")
             raise
-        

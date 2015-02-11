@@ -25,19 +25,22 @@ class Controller(Base):
 
     def index(self,request):
 	"""
-        return containers list.
+        Return containers list.
 	"""
 	return webob.exc.HTTPMethodNotAllowed()
 
     def show(self,request,id):
 	"""
-	show info for given container id.
+	Show info for given container id.
 	"""
 	return webob.exc.HTTPMethodNotAllowed()
 
     def delete(self,request,id):
 	"""
-	delete container for given container id.
+	Delete container by container id.
+        
+        :params request: `wsgi.Request`
+        :params id     : container id
 	"""
         query = self.db.get_container(id)
 	if not query:
@@ -52,7 +55,7 @@ class Controller(Base):
         return Response(200) 
 
     def create(self,request,body):
-	"""create new container and start it."""
+	"""Create new container and start it."""
         # FIXME(nmg): try to do this with a pythonic way.
 
 	id	   = body.pop('db_id')
@@ -98,8 +101,11 @@ class Controller(Base):
 	return Response(201) 
 
     def start(self,request,id):
-	"""Start container according `id`
-           :params id: the container id
+	"""
+        Start container by `id`
+      
+        :params request: `wsgi.Request`
+        :params      id: the container id
         """
         query = self.db.get_container(id)
         if query.status == states.RUNNING:
@@ -114,8 +120,11 @@ class Controller(Base):
         return Response(204)
 
     def stop(self,request,id):
-	""" Stop container according `id`
-            :params id: the container id
+	""" 
+        Stop container by `id`
+       
+        :params request: `wsgi.Request`
+        :params id: the container id
 	"""
 	query = self.db.get_container(id)
         if query.status == states.STOPED:
@@ -177,12 +186,7 @@ class Controller(Base):
     def _process_task(func,*args):
         """Generate a eventlet greenthread to process the task."""
         # FIXME(nmg)
-        try:
-            eventlet.spawn_n(func,*args)
-        except:
-           raise
-        
-	
+        eventlet.spawn_n(func,*args)
    
 def create_resource():
     return wsgi.Resource(Controller())

@@ -135,7 +135,6 @@ class Controller(Base):
             - zone_id     the zone's id which the container belong to(eg.BJ/CD)
         All the above parmas are not optional and have no default value.
         """
-
         """This schema is used for data validate."""
         schema = {
             "type": "object",
@@ -343,6 +342,9 @@ class Controller(Base):
             - find the host where the container run on
             - send stop request to that host
         If no host found, the request will be droped.
+        
+        :params request: `wsgi.Request`
+        :params id     : container id
         """ 
         container = self.db.get_container(id)
 	if not container:

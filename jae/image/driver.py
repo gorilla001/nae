@@ -17,7 +17,9 @@ class API(object):
         self.headers={'Content-Type':'application/json'}
 
     def create(self,name,kwargs):
-	"""create temporary container for image online edit."""
+	"""
+        Create temporary container for image online edit.
+        """
         data = {'Hostname' : '',
                  'User'     : '',
                  'Memory'   : '',
@@ -65,17 +67,33 @@ class API(object):
         return resp
 
     def inspect(self,name):
+        """
+        Inspect image by image `name`.
+        """
 	response = requests.get("http://%s:%s/images/%s/json" % \
                                 (self.host,self.port,name))
         return response.status_code,response.json()
 
     def build(self,name,data):
+        """
+        Build image with name `name` and data `data`.
+        The `data` must be a tar stream and must contain a ``Dockerfile``
+
+        :params name: image name
+        :params data: tar stream data with ``Dockerfile``
+        """
 	response = requests.post("http://%s:%s/build?t=%s" % (self.host,self.port,name),
 				 headers={'Content-Type':'application/tar'},
 				 data=data)	
         return response.status_code
 
     def delete(self,repository,tag):
+        """
+        Delete image from private image registry
+        
+        :param repository: image repository
+        :param tag       : image tag
+        """
         image_registry_endpoint = CONF.image_registry_endpoint
         if not image_registry_endpoint:
             LOG.error('no registry endpoint found!')
@@ -87,6 +105,12 @@ class API(object):
 	return response.status_code
 
     def tag(self,name,tag="latest"):
+        """
+        Tag image to specified tag.If tag not provided, "latest" will be used.
+
+        :params name: image name
+        :params tag : image tag, default is ``latest``
+        """
 	image_registry_endpoint = CONF.image_registry_endpoint
         if not image_registry_endpoint:
             LOG.error('no registry endpoint found!')
@@ -100,12 +124,23 @@ class API(object):
 	return response.status_code,"%s/%s" % (image_registry_endpoint,name)
 
     def push(self,name,tag="latest"):
+        """
+        Push image to image private registry.
+ 
+        :params name: image name
+        :params tag : image tag,default is latest
+        """
 	response=requests.post("http://%s:%s/images/%s/push?tag=%s" % \
                                 (self.host,self.port,name,tag),
 				headers={'X-Registry-Auth':uuid.uuid4().hex})
    	return response.status_code
 
     def destroy(self,name):
+        """
+        Destroy image by image `name`
+ 
+        :params name: image name
+        """
 	response=requests.post("http://%s:%s/containers/%s/stop" % \
                               (self.host,self.port,name))
 
@@ -113,6 +148,13 @@ class API(object):
                               (self.host,self.port,name))
 
     def commit(self,container,repository,tag):
+        """
+        Commit container to image
+
+        :params container : the container to be commited
+        :params repository: the image repository 
+        :params tag       : the image tag
+        """
         response=requests.post("http://%s:%s/commit?author=&comment=&container=%s&repo=%s&tag=%s" % \
                               (self.host,self.port,container,repository,tag))
         return response

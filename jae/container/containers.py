@@ -1,5 +1,4 @@
 import webob.exc
-import eventlet
 import uuid
 import os
 
@@ -182,11 +181,11 @@ class Controller(Base):
         
         return Response(204)
 
-    @staticmethod
+    #@staticmethod
     def _process_task(func,*args):
         """Generate a eventlet greenthread to process the task."""
         # FIXME(nmg)
-        eventlet.spawn_n(func,*args)
+        self.run_task(func,*args)
    
 def create_resource():
     return wsgi.Resource(Controller())

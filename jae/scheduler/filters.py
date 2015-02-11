@@ -8,7 +8,7 @@ LOG = logging.getLogger(__name__)
 
 class StatusFilter(object):
     """
-    very simple filter filters host by its status.
+    Very simple filter filters host by its status.
     if service on the host is up return true
     else return false.
     """
@@ -34,7 +34,7 @@ class StatusFilter(object):
 
 class ZoneFilter(base.Base):
     """
-    very simple filter filters host by its zone.
+    Very simple filter filters host by its zone.
     if host is in zone zone return true
     else return false.
     """

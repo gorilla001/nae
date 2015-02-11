@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 
 class SimpleScheduler(driver.Scheduler):
     """
-    very simple scheduler scheduling by the quantity of the containers.
+    Very simple scheduler scheduling by the quantity of the containers.
     """
     def __init__(self):
 	self._status_filter = filters.StatusFilter()
@@ -35,10 +35,11 @@ class SimpleScheduler(driver.Scheduler):
 		     env,
 		     user_key,
                      zone_id):
-	"""schedule the instance for creation and handle creating the DB entry."""
+	"""
+        Schedule the instance for creation and handle creating the DB entry."""
 
         """
-        get zone where container will be in.
+        Get zone where container will be in.
         # FIXME: zone should be get from database by zone_id
         # TODO:  add get_zone(zone_id) 
         """
@@ -49,7 +50,7 @@ class SimpleScheduler(driver.Scheduler):
         else:
             self.zone = 'BJ' 
 
-        """filter and weighted hosts"""
+        """Filter and weighted hosts"""
 	weighted_hosts = self._scheduler()
 	for host in weighted_hosts:
 	    print host.addr,host.port,host.weight
@@ -60,22 +61,17 @@ class SimpleScheduler(driver.Scheduler):
 
 	host,port = weighted_host.addr,weighted_host.port
 
-	""" the host id where the container will be on."""
+	""" The host id where the container will be on."""
 	host_id = weighted_host.id
 
-	""" the unique container uuid"""
+	""" The unique container uuid"""
         db_id         = uuid.uuid4().hex
 
         
-	"""generate container name"""
-	#name   = os.path.basename(repos) + '-' + branch
-        #query  = self.db.get_containers()
-        #count  = len(query)
-        #suffix = count +1
-        #name   = name + '-' + str(suffix).zfill(8)
+	"""Generate container name"""
         name = name = self.get_random_name()
 	"""
-	insert db a record for instance create.
+	Insert db a record for instance create.
 	"""
 	self.save_to_db(db_id,
 			name,
@@ -98,12 +94,12 @@ class SimpleScheduler(driver.Scheduler):
                       image_id=image_id,
                       user_id=user_id,
                       user_key=user_key)
-	except ConnectionError,err:
-	    LOG.error(err)
-	    """post failed,cleanup db record."""
+	except ConnectionError as ex:
+	    LOG.error(ex)
+	    """Post failed,cleanup db record."""
 	    self.cleanup_db(db_id)
 
-	    """raise error to controller"""
+	    """Raise error to controller"""
 	    raise 
 
 	return {"id":db_id} 
@@ -163,7 +159,7 @@ class SimpleScheduler(driver.Scheduler):
 		   image_id,
 		   user_id,
 		   host_id):
-	"""creating db entry for creation"""
+	"""Creating db entry for creation"""
         project = self.db.get_project(project_id)
         if not project:
             LOG.error("no such project %s" % project_id)
@@ -181,8 +177,9 @@ class SimpleScheduler(driver.Scheduler):
                 project=project)
     def cleanup_db(self,id):
 	"""
-	remove record from db.
+	Remove record from db.
 	"""
 	self.db.delete_container(id)	
+
     def get_random_name(self):
         return utils.random_str(10)

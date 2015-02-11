@@ -243,7 +243,7 @@ class Manager(base.Base):
 
     def start(self,id):
 	"""
-        Start container according to `id`
+        Start container by container `id`
         
         :params id: container id
         """
@@ -267,7 +267,7 @@ class Manager(base.Base):
 
     def stop(self,id):
 	"""
-	Stop container according to `id`.
+	Stop container by container `id`.
       
         :params id: container id
 	"""
@@ -301,14 +301,16 @@ class Manager(base.Base):
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:
+            uuid    = query.uuid
 	    user_id = query.user_id
 	    repos   = query.repos
 	    branch  = query.branch 
             try:
-                self.driver.refresh(user_id=user_id,
-                                         repos=repos,
-                                         branch=branch,
-                                         mercurial=self.mercurial)
+                self.driver.refresh(uuid=uuid,
+                                    user_id=user_id,
+                                    repos=repos,
+                                    branch=branch,
+                                    mercurial=self.mercurial)
                 self.db.update_container(id,status="running")
   	    except:
                 LOG.info("REFRESH -job refresh %s = ERR" % id)

@@ -119,6 +119,7 @@ class API(object):
             return {} 
         return response.json()
     def refresh(self,
+                uuid,
                 user_id,
                 repos,
                 branch,

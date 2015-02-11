@@ -117,8 +117,6 @@ class Manager(base.Base):
 	    uuid = resp.json()['Id'] 
 	    self.db.update_container(id,uuid=uuid,status="created")
 
-
-
 	    """
 	    Clone or Pull code before container start.
             This method contains the following two steps:
@@ -147,7 +145,6 @@ class Manager(base.Base):
                 self.mercurial.update(root_path,repos,branch)
             except:
                 raise
-    
 
             www_path = ["/home/www","/home/jm/www"]
             log_pathes = ["/home/jm/logs","/home/logs"]
@@ -166,7 +163,7 @@ class Manager(base.Base):
             }
 
 	    """
-	    start container and update db status.
+	    Start container and update db status.
 	    """
 	    status = self.driver.start(uuid,kwargs)
 	    if status == 204:
@@ -205,6 +202,11 @@ class Manager(base.Base):
 
 	LOG.info("CREATE -job create %s = OK" % id)
     def delete(self,id):
+        """
+        Delete container by id
+
+        :params id: container id
+        """
 	LOG.info("DELETE +job delete %s" % id)
 	query = self.db.get_container(id)
 	if query.status == 'running':
@@ -241,8 +243,11 @@ class Manager(base.Base):
 	LOG.info("DELETE -job delete %s" % id)
 
     def start(self,id):
-	"""Start container according to `id`"""
-
+	"""
+        Start container according to `id`
+        
+        :params id: container id
+        """
 	LOG.info("START +job start %s" % id)
 	self.db.update_container(id,status="starting") 
 	query = self.db.get_container(id)
@@ -264,6 +269,8 @@ class Manager(base.Base):
     def stop(self,id):
 	"""
 	Stop container according to `id`.
+      
+        :params id: container id
 	"""
 	LOG.info("STOP +job stop %s" % id)
 	
@@ -280,13 +287,18 @@ class Manager(base.Base):
     def destroy(self,name):
 	"""
 	Destroy a temporary container by a given name.
+        
+        :params name: container name
 	"""
 	self.driver.stop(name)
 	self.driver.delete(name)
 
     def refresh(self,id):
-        """Refresh code in container."""
+        """
+        Refresh code in container.
 
+        :params id: container id
+        """
         LOG.info("REFRESH +job refresh %s" % id)
         query = self.db.get_container(id)
         if query:

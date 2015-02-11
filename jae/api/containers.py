@@ -56,14 +56,14 @@ class Controller(Base):
         query = self.db.get_containers(project_id,user_id)
         for item in query:
             container = {
-                    'id':item.id,
-                    'name':item.name,
+                    'id': item.id,
+                    'name': item.name,
                     'repos': item.repos,
                     'branch': item.branch,
                     'image_id': item.image_id,
-		    'network':item.fixed_ip,
-                    'created':timeutils.isotime(item.created),
-                    'status':item.status,
+		    'network': item.fixed_ip,
+                    'created': timeutils.isotime(item.created),
+                    'status': item.status,
                     }
             container.setdefault("image","")
             """Get the image name and tag by the `image_id`.
@@ -103,19 +103,19 @@ class Controller(Base):
         query= self.db.get_container(id)
         if query is not None:
             container = {
-                'id':query.id,
-                'name':query.name,
-		'uuid':query.uuid,
-                'env':query.env,
-                'project_id':query.project_id,
-                'repos':query.repos,
-                'branch':query.branch,
-                'image_id':query.image_id,
-                'network':query.fixed_ip,
-                'created':timeutils.isotime(query.created),
-                'user_id':query.user_id,
-		'host_id':query.host_id,
-                'status':query.status,
+                'id': query.id,
+                'name': query.name,
+		'uuid': query.uuid,
+                'env': query.env,
+                'project_id': query.project_id,
+                'repos': query.repos,
+                'branch': query.branch,
+                'image_id': query.image_id,
+                'network': query.fixed_ip,
+                'created': timeutils.isotime(query.created),
+                'user_id': query.user_id,
+		'host_id': query.host_id,
+                'status': query.status,
                 }
 
         return ResponseObject(container)
@@ -281,15 +281,21 @@ class Controller(Base):
 
     def delete(self,request,id):
         """
-        send delete `request` to remote server for deleting.
+        Send delete `request` to container node for deleting.
         if failed,excepiton will be occured.
 
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send delete request to that host
+        If no host found, the request will be droped.
+
         :param request: `wsgi.Request`
-        :param id: container idenfier
+        :param id     : container idenfier
         """ 
         container = self.db.get_container(id)
 	if not container:
 	    return webob.exc.HTTPOk() 
+
 	host_id = container.host_id
 	host = self.db.get_host(host_id)	
 	if not host:
@@ -303,6 +309,17 @@ class Controller(Base):
         return Response(response.status_code) 
 
     def start(self,request,id):
+        """
+        Send start `request` to container node for starting container. 
+
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send start request to that host
+        If no host was found, the request will be droped.
+
+        :params request: `wsgi.Request`
+        :params id     : container id
+        """
 	container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
@@ -319,7 +336,14 @@ class Controller(Base):
 	return Response(response.status_code)
 
     def stop(self,request,id):
-	"""send stop request to remote host where container on."""
+	"""
+        Send stop `request` to container node for stoping container.
+
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send stop request to that host
+        If no host found, the request will be droped.
+        """ 
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
@@ -337,57 +361,62 @@ class Controller(Base):
 
         return Response(response.status_code) 
 
-    def reboot(self,request):
-	pass
+    def reboot(self,request,id):
+        """Reboot the specified container.""" 
+        return NotImplementedError()
 
     def destroy(self,request,body):
-	"""send destroy request to remote host."""
+	"""Send destroy request to remote host."""
 
         return NotImplementedError()
 
     def commit(self,request,body):
-	"""send commit request to remote host."""
+	"""Send commit request to container node."""
 
         return NotImplementedError() 
 
     def refresh(self,request,id):
         """
-        refresh code in container. refresh request will be 
+        Refresh code in container. `refresh request` will be 
         send to remote container server for refreshing.
         if send request failed,exception will occured.
-        is it necessary to catch the exception? I don't
+        Is it necessary to catch the exception? I don't
         know. 
 
         :param request: `wsgi.Request` object
         :param id     : container idenfier
         """
-        """check if this container is really exists,
-           otherwise return 404 not found"""
-
+        """
+        Check if this container is really exists,
+        otherwise return 404 not found.
+        """
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
 	    return webob.exc.HTTPNotFound() 
         
-        """get host id from container info,
-           if host id is None,return 404"""
-
+        """
+        Get host id from container info,
+        if host id is None,return 404.
+        """
 	host_id = container.host_id
         if not host_id:
             LOG.error("container %s has no host_id" % id)
 	    return webob.exc.HTTPNotFound() 
         
-        """get host instance by `host_id`,
-           if host instance is None,return 404"""
+        """
+        Get host instance by `host_id`,
+        if host instance is None,return 404.
+        """
 	host = self.db.get_host(host_id)
 	if not host:
 	    LOG.error("no such host")
 	    return webob.exc.HTTPNotFound() 
 
-        """get ip address and port for host instance."""	
+        """Get ip address and port for host instance."""	
 	host,port = host.host,host.port 
           
-        """make post request to the host where container on."""
+        """send `refresh request` to the host where container on."""
         #FIXME: exception shoud be catch?
 	response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))

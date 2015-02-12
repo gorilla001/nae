@@ -40,16 +40,8 @@ class SimpleScheduler(driver.Scheduler):
 
         """
         Get zone where container will be in.
-        # FIXME: zone should be get from database by zone_id
-        # TODO:  add get_zone(zone_id) 
         """
-        if zone_id == 0:
-            self.zone = 'BJ'
-        elif zone_id == 1:
-            self.zone = 'CD' 
-        else:
-            self.zone = 'BJ' 
-
+        self.zone = self.get_zone(zone_id) 
         """Filter and weighted hosts"""
 	weighted_hosts = self._scheduler()
 	for host in weighted_hosts:
@@ -183,3 +175,12 @@ class SimpleScheduler(driver.Scheduler):
 
     def get_random_name(self):
         return utils.random_str(10)
+
+    def get_zone(zone_id):
+        # FIXME: zone should be get from database by zone_id
+        if zone_id == 0:
+            zone = 'BJ'
+        if zone_id == 1:
+            zone = 'CD' 
+        return zone
+

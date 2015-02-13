@@ -52,13 +52,13 @@ class Controller(base.Base):
         :params id: the user id
  
         This method returns a dictionary with the following keys:
-            - id unique 64 bytes uuid
-            - name user's name
-            - email user's email address
-            - role_id: user's role_id, which identified the current user
-                       as super-user or normal-user.
-            - projects: the project lists the user belong to
-            - created : when the user be added   
+            - id         unique 64 bytes uuid
+            - name       user's name
+            - email      user's email address
+            - role_id    user's role_id, which identified the current user
+                         as super-user or normal-user.
+            - projects   the project lists the user belong to
+            - created    when the user be added   
         If no user found, empty dictionary will be returned.
         """
 	query = self.db.get_user(id)	
@@ -86,7 +86,7 @@ class Controller(base.Base):
 
     def create(self,request,body):
         """
-        add user db entry for specified project.
+        Add user db entry for specified project.
        
         NOTE(nmg):`project` isa `project instance` which
                    get from db. you must insert a `project
@@ -145,7 +145,7 @@ class Controller(base.Base):
 
     
     def delete(self,request,id):
-        """delete user by `id`"""
+        """Delete user by `id`"""
         try:
             self.db.delete_user(id)
         except:

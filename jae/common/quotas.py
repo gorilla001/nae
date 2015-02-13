@@ -1,12 +1,13 @@
+#!/usr/bin/env python
+# This file is used for quotas configration.
 
-
-CONTAINER_DEFAULT_LIMIT=10
-IMAGE_DEFAULT_LIMIT=10
+DEFAULT_CONTAINER_LIMIT=10
+DEFAULT_IMAGE_LIMIT=10
 
 class Quotas(object):
     quotas = {
-	'container_limit': CONTAINER_DEFAULT_LIMIT,
-	'image_limit': IMAGE_DEFAULT_LIMIT,
+	'container_limit': DEFAULT_CONTAINER_LIMIT,
+	'image_limit': DEFAULT_IMAGE_LIMIT,
     }
 
     @property

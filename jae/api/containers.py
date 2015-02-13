@@ -419,7 +419,7 @@ class Controller(Base):
 	host,port = host.host,host.port 
           
         """send `refresh request` to the host where container on."""
-        #FIXME: exception shoud be catch?
+        #FIXME: exception shoud be catched?
 	response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))
 

@@ -20,14 +20,7 @@ class Controller(base.Base):
 
     def index(self,request):
         """
-        List all users according to `project_id`.
-        This method returns a dictionary list and each dict contains the following keys:
-            - id  the unique 64 bytes uuid
-            - name the user name
-            - email user's email address
-            - role_id  user's role_id
-            - created  when user be added
-        If no use found, empty list will be returned.
+        Get users by `project_id`.
         """
         users=[]
         project_id = request.GET.get('project_id')
@@ -47,19 +40,7 @@ class Controller(base.Base):
 
     def show(self,request,id):
         """
-        Show the use detail according to user `id`.
-         
-        :params id: the user id
- 
-        This method returns a dictionary with the following keys:
-            - id         unique 64 bytes uuid
-            - name       user's name
-            - email      user's email address
-            - role_id    user's role_id, which identified the current user
-                         as super-user or normal-user.
-            - projects   the project lists the user belong to
-            - created    when the user be added   
-        If no user found, empty dictionary will be returned.
+        Get user detail according `id`
         """
 	query = self.db.get_user(id)	
         if query is None:
@@ -81,7 +62,6 @@ class Controller(base.Base):
               'role_id':query.role_id,
 	      'projects':projects_list,
               'created':isotime(query.created)}
-
 	return ResponseObject(user) 
 
     def create(self,request,body):
@@ -143,10 +123,12 @@ class Controller(base.Base):
         
         return webob.exc.HTTPCreated() 
 
-    
     def delete(self,request,id):
-        """Delete user by `id`"""
+        """
+        Delete user by `id`
+        """
         try:
+            LOG.info("Delete user %s" % id)
             self.db.delete_user(id)
         except:
             raise

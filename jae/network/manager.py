@@ -15,7 +15,7 @@ class NetworkManager(Base):
 	if not FIXED_RANGE:
 	    FIXED_RANGE = self.get_fixed_range() 
 	
-	query = self.db.get_containers()
+	query = self.db.get_networks()
         if query:
             for item in query:
                 if item.fixed_ip:

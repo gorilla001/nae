@@ -124,12 +124,12 @@ class Server(object):
             self._socket=eventlet.listen(bind_addr,family=2,backlog=backlog)
 
 	    """
-	    Register host for scheduler.
+	    register host for scheduler.
 	    """
 	    (self.host, self.port) = self._socket.getsockname()
 	    self._register.register(self.host,self.port)
 
-	    """Start all containers on this host."""
+	    """start all containers on this host."""
 	    self._start_manager.start_all()
 
 	def start(self):

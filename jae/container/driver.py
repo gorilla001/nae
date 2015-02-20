@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 
 from jae.common import cfg
 from jae.common.cfg import Int, Str
@@ -41,7 +42,7 @@ class API(object):
 
     def inspect_image(self,uuid):
         """
-        Inspect image info according to image `uuid`.
+        Inspect image info according to `uuid`.
         """
 
         # TODO(nmg): exceptions should be catched.
@@ -76,7 +77,7 @@ class API(object):
 
     def start(self,uuid,kwargs):
 	"""
-	Start a container with kwargs by container `uuid`.
+	Start a container with kwargs specified by uuid.
 	"""
         # TODO(nmg): exceptions should be catched.
 	#response = requests.post("http://%s:%s/containers/%s/start" % (self.host,self.port,uuid),
@@ -89,27 +90,21 @@ class API(object):
 	return response.status_code
 
     def stop(self,uuid):
-         """
-         Stop the container  by container `uuid`.
-         """
+         """Stop the container specified by uuid"""
          #TODO(nmg): exceptions should be catched.
          #response = requests.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
-         response = self.http.post("http://%s:%s/containers/%s/stop" % (self.host,self.port,uuid))
+         response = self.http.post("http://%s:%s/containers/%s/stop?t=5" % (self.host,self.port,uuid))
          return response.status_code
 
     def delete(self,uuid):
-         """
-         Delete the container by container `uuid`.
-         """
+         """Delete the container uuid"""
          #TODO(nmg): exceptions should be catched.
          #response = requests.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
-         response = self.http.delete("http://%s:%s/containers/%s" % (self.host,self.port,uuid))
+         response = self.http.delete("http://%s:%s/containers/%s?force=1" % (self.host,self.port,uuid))
          return response.status_code
     
     def inspect(self,uuid):
-        """
-        Inspect a container by container `uuid`.
-        """
+        """Inspect a container by uuid."""
         # TODO(nmg): exceptions should be catched.
         #response = requests.get("http://%s:%s/containers/%s/json" % \
         #                       (self.host,self.port,uuid))
@@ -143,3 +138,4 @@ class API(object):
         except:
             LOG.error("Update code failed for code sync")
             raise
+        

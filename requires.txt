@@ -11,3 +11,4 @@ repoze.lru
 mercurial
 netaddr
 jsonschema
+alembic

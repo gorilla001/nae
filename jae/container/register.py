@@ -47,7 +47,7 @@ class Register(object):
 	"""
 	interface_name = CONF.interface_name
 	if not interface_name:	
-	    raise NetWorkError("No Interface Specified!")
+	    raise NetWorkError("no interface specified!")
         addrs = netifaces.ifaddresses(interface_name)
 	
 	return addrs[netifaces.AF_INET][0]['addr']

@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python
+# This files contains some custom defined exceptions.
 
 __all__ = ['BodyEmptyError',
            'ParamNoneError',

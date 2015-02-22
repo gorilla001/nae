@@ -24,7 +24,7 @@ def _setup_logging_from_conf():
     fmt=CONF.log_format or _DEFAULT_LOG_FORMAT
     datefmt = CONF.log_date_format or _DEFAULT_LOG_DATE_FORMAT
     handler.setFormatter(logging.Formatter(fmt=fmt,
-					       datefmt=datefmt))
+					   datefmt=datefmt))
 
     if CONF.verbose or CONF.debug:
         log_root.setLevel(logging.DEBUG)

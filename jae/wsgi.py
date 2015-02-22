@@ -94,7 +94,6 @@ class Resource(object):
 
         def _process_stack(self,request,method,action_args):
             response = self.dispatch(request,method,action_args) 
-	    
 	    return response
 
 	@staticmethod

@@ -2,7 +2,7 @@ import webob
 import uuid
 import requests
 import json
-#from requests.exceptions import ConnectionError, ConnectTimeout, MissingSchema, InvalidSchema
+from jsonschema import SchemaError, ValidationError
 from requests import exceptions
 from sqlalchemy.exc import IntegrityError
 
@@ -34,6 +34,20 @@ class Controller(Base):
         self.http=client.HTTPClient()
 
     def index(self,request):
+        """
+        List all images accorind to `project_id`.
+        This method returns a dictionary list and each dict contains the following keys:
+            - id
+            - uuid
+            - name
+            - tag
+            - desc
+            - project_id
+            - created
+            - user_id
+            - status
+        If no images found, empty list will be returned.
+        """
         images=[]
         project_id=request.GET.get('project_id')
         if not project_id:
@@ -44,59 +58,119 @@ class Controller(Base):
             LOG.error("no such project %s" % project_id)
             return webob.exc.HTTPNotFound()  
         for image_instance in project_instance.images:
-            image={'id':image_instance.id,
-                   'uuid':image_instance.uuid,
-                   'name':image_instance.name,
-		   'tag':image_instance.tag,
-                   'desc':image_instance.desc,
-                   'project_id':image_instance.project_id,
-                   'created':isotime(image_instance.created),
-                   'user_id':image_instance.user_id,
+            image={'id': image_instance.id,
+                   'uuid': image_instance.uuid,
+                   'name': image_instance.name,
+		   'tag': image_instance.tag,
+                   'desc': image_instance.desc,
+                   'project_id': image_instance.project_id,
+                   'created': isotime(image_instance.created),
+                   'user_id': image_instance.user_id,
                    'status' : image_instance.status}
             images.append(image)
 
-        #query = self.db.get_images(project_id)
-        #if query is not None:
-        #    for item in query:
-        #        image={'id':item.id,
-        #               'uuid':item.uuid,
-        #               'name':item.name,
-	#	       'tag':item.tag,
-        #               'desc':item.desc,
-        #               'project_id':item.project_id,
-        #               'created':isotime(item.created),
-        #               'user_id':item.user_id,
-        #               'status' : item.status}
-        #        images.append(image)
         return ResponseObject(images) 
 
     def show(self,request,id):
-        """get image detail by image `id`"""
+        """
+        Show the image detail according to `id`.
+
+        :parmas id: the image id
+
+        This method returns a dictionary with the following keys:
+            - id
+            - uuid
+            - name
+            - repos
+            - tag 
+            - desc
+            - project_id
+            - created
+            - user_id
+            - status
+        If no image found, empty dictionary will be returned.    
+        """
 	image = {}
         query = self.db.get_image(id)
 	if query is not None:
-            image = {'id' : query.id,
-                     'uuid' : query.uuid,
-                     'name' : query.name,
-                     'repos' : query.repos,
-		     'tag' : query.tag,
-                     'desc' : query.desc,
-                     'project_id' : query.project_id,
-                     'created' : isotime(query.created),
-                     'user_id' : query.user_id,
-                     'status' : query.status}
+            image = {'id': query.id,
+                     'uuid': query.uuid,
+                     'name': query.name,
+                     'repos': query.repos,
+		     'tag': query.tag,
+                     'desc': query.desc,
+                     'project_id': query.project_id,
+                     'created': isotime(query.created),
+                     'user_id': query.user_id,
+                     'status': query.status}
 
         return ResponseObject(image) 
 
     def create(self,request,body=None):
-	if not body:
-	    LOG.error('body cannot be empty!')
-	    return webob.exc.HTTPBadRequest() 
+        """
+        For creating image, body should not be None and
+        should contains the following params:
+            - project_id  the project's id which the image belong to
+            - name        the image name
+            －desc        the image description
+            - repos       the repos contains `Dockerfile`
+            - branch      the branch
+            - user_id     the user who created the image
+        All the above params are not optional and have no default value.
+        """ 
+        """This schema is used for data validate""" 
+        schema = {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-Z0-9]*$",
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "desc": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "repos": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "branch": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                }, 
+                "user_id": {
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-Z0-9]*$",
+                },
+            },
+            "required": ["project_id","name","desc","repos","branch","user_id"]
+        }
+        try:
+            self.validator(body,schema)
+        except (SchemaError,ValidationError) as ex:
+            LOG.error(ex)
+            return webob.exc.HTTPBadRequest(explanation="Bad Paramaters")
 
-        project_id = body.get('project_id')
-	if not project_id:
-	    LOG.error('project_id cannot be None!')
-	    return webob.exc.HTTPBadRequest() 
+	#if not body:
+	#    LOG.error('body cannot be empty!')
+	#    return webob.exc.HTTPBadRequest() 
+
+        #project_id = body.get('project_id')
+	#if not project_id:
+	#    LOG.error('project_id cannot be None!')
+	#    return webob.exc.HTTPBadRequest() 
 
 	limit = QUOTAS.images or _IMAGE_LIMIT 
 	query = self.db.get_images(project_id)
@@ -104,24 +178,23 @@ class Controller(Base):
 	    LOG.error("images limit exceed,can not created anymore...")
 	    return webob.exc.HTTPMethodNotAllowed() 
 
-        name = body.get('name',utils.random_str())
-        desc = body.get('desc','')
+        #name = body.get('name',utils.random_str())
+        #desc = body.get('desc','')
 
-        repos = body.get('repos')
-	if not repos:
-	    LOG.error('repos cannot be None!')
-	    return webob.exc.HTTPBadRequest() 
+        #repos = body.get('repos')
+	#if not repos:
+	#    LOG.error('repos cannot be None!')
+	#    return webob.exc.HTTPBadRequest() 
 
-	branch = body.get('branch')
-        if not branch:
-            LOG.error("branch cannot be None!")
-            return webob.exc.HTTPBadRequest() 
+	#branch = body.get('branch')
+        #if not branch:
+        #    LOG.error("branch cannot be None!")
+        #    return webob.exc.HTTPBadRequest() 
 
-        user_id = body.get('user_id')
-	if not user_id:
-	    LOG.error('user_id cannot be None!')
-	    return webob.exc.HTTPBadRequest() 
-
+        #user_id = body.get('user_id')
+	#if not user_id:
+	#    LOG.error('user_id cannot be None!')
+	#    return webob.exc.HTTPBadRequest() 
 	image_service_endpoint = CONF.image_service_endpoint	
 	if not image_service_endpoint:
 	    LOG.error("image service endpoint not found!")
@@ -146,7 +219,12 @@ class Controller(Base):
         return ResponseObject(image.json())
 
     def delete(self,request,id):
- 	"""delete image from registry."""
+ 	"""
+        Delete image from db and registry.
+        This method contains the following two steps:
+           1. delete db entry
+           2. delete image from private image registry
+        """
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
@@ -166,7 +244,10 @@ class Controller(Base):
 	return Response(response.status_code) 
 
     def edit(self,request,id):
-        """edit image online."""
+        """
+        Edit image online.
+        This method not used any more.
+        """
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
@@ -180,7 +261,7 @@ class Controller(Base):
         return ResponseObject(response.json())
 
     def destroy(self,request,id):
-        """destroy temporary containers for image online edit."""
+        """Destroy temporary containers for image online edit."""
         image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
@@ -194,10 +275,11 @@ class Controller(Base):
         return ResponseObject(response.json())
 
     def commit(self,request):
-	repo = request.GET.pop('repo')
-	tag = request.GET.pop('tag')
-	ctn = request.GET.pop('ctn')
-	id = request.GET.pop('id')
+        """Commit container to a New image."""
+	repo       = request.GET.pop('repo')
+	tag        = request.GET.pop('tag')
+	ctn        = request.GET.pop('ctn')
+	id         = request.GET.pop('id')
  	project_id = request.GET.pop('proj_id')
 
         limit = QUOTAS.images or _IMAGE_LIMIT 
@@ -215,7 +297,7 @@ class Controller(Base):
         try:
             data = {"repository"     : repo,
                     "tag"            : tag,
-                    "container_id" : ctn,
+                    "container_id"   : ctn,
                     "id"             : id,
                     "project_id"     : project_id}
             response=self.http.post("%s/commit" % image_service_endpoint,
@@ -225,10 +307,10 @@ class Controller(Base):
             raise
         return ResponseObject(response.json())
 
-        
-	#self.image_api.commit(repo,tag,ctn,id)
-
     def conflict(self,request):
+        """
+        This method is used for conflict resolve
+        """
 	_id=request.environ['wsgiorg.routing_args'][1]['image_id']
 	ctn_info=self.db.get_containers_by_image(_id)
 	ctn_list=[]
@@ -244,6 +326,9 @@ class Controller(Base):
 	return ctn_list
 
     def baseimage(self,request):
+        """
+        This method used for getting the baseimage
+        """
         base_image_list=[]
         image_instances = self.db.get_base_images()
         for instance in image_instances:

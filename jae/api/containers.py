@@ -1,5 +1,6 @@
 import webob.exc
 import requests
+from jsonschema import SchemaError, ValidationError
 
 from jae import wsgi
 from jae.common import log as logging
@@ -45,7 +46,7 @@ class Controller(Base):
             - created
             - status
 
-        If no container found, a empty list will be returned.
+        If no container found, empty list will be returned.
 	"""
         containers=[]
 
@@ -55,14 +56,14 @@ class Controller(Base):
         query = self.db.get_containers(project_id,user_id)
         for item in query:
             container = {
-                    'id':item.id,
-                    'name':item.name,
+                    'id': item.id,
+                    'name': item.name,
                     'repos': item.repos,
                     'branch': item.branch,
                     'image_id': item.image_id,
-		    'network':item.fixed_ip,
-                    'created':timeutils.isotime(item.created),
-                    'status':item.status,
+		    'network': item.fixed_ip,
+                    'created': timeutils.isotime(item.created),
+                    'status': item.status,
                     }
             container.setdefault("image","")
             """Get the image name and tag by the `image_id`.
@@ -95,26 +96,26 @@ class Controller(Base):
             - host_id
             - status
          
-        If no container found, a empty dictionary will returned.
+        If no container found, empty dictionary will returned.
         """
 
 	container={}
         query= self.db.get_container(id)
         if query is not None:
             container = {
-                'id':query.id,
-                'name':query.name,
-		'uuid':query.uuid,
-                'env':query.env,
-                'project_id':query.project_id,
-                'repos':query.repos,
-                'branch':query.branch,
-                'image_id':query.image_id,
-                'network':query.fixed_ip,
-                'created':timeutils.isotime(query.created),
-                'user_id':query.user_id,
-		'host_id':query.host_id,
-                'status':query.status,
+                'id': query.id,
+                'name': query.name,
+		'uuid': query.uuid,
+                'env': query.env,
+                'project_id': query.project_id,
+                'repos': query.repos,
+                'branch': query.branch,
+                'image_id': query.image_id,
+                'network': query.fixed_ip,
+                'created': timeutils.isotime(query.created),
+                'user_id': query.user_id,
+		'host_id': query.host_id,
+                'status': query.status,
                 }
 
         return ResponseObject(container)
@@ -122,67 +123,142 @@ class Controller(Base):
     
     def create(self,request,body=None):
         """
-        Create container.
+        For creating container, body should not be None and
+        should contains the following params:
+            - project_id  the project's id which the containers belong to
+            - image_id    the image's id which used for creation 
+            - user_id     the user which the container belong to
+            - repos       the repos which will be tested  
+            - branch      the branch which will be tested 
+            - env         the envrionment which the container belong to(eg.DEV/QA/STAG/PUB/PROD)
+            - user_key    the user's public key which will be inject to container
+            - zone_id     the zone's id which the container belong to(eg.BJ/CD)
+        All the above parmas are not optional and have no default value.
         """
-	if not body:
-	    msg = "post request has no body?"
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanation=msg)
-	project_id = body.pop('project_id')
-	if not project_id:
-	    msg = "project id must be provided."
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanation=msg)
+        """This schema is used for data validate."""
+        schema = {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                     "type": "string",
+                     "minLength": 32,
+                     "maxLength": 64,
+                     "pattern": "^[a-zA-Z0-9]*$",
+                },
+                "image_id": {
+                     "type": "string",
+                     "minLength": 32,
+                     "maxLength": 64,
+                     "pattern": "^[a-zA-Z0-9]*$",
+                },
+                "user_id": {
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-Z0-9]*$",
+                },
+                "repos": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                },
+                "branch": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                },
+                "env": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                },
+                "user_key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                },
+                "zone_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                },
+            },       
+            "required": [ "project_id","image_id","user_id","repos","branch","env","user_key","zone_id" ] 
+        }
+        
+        try:
+            self.validator(body,schema)
+        except (SchemaError,ValidationError) as ex:
+            LOG.error(ex) 
+	    return webob.exc.HTTPBadRequest(explanation="Bad Paramaters")
 
-	image_id = body.pop('image_id')
-	if image_id == "-1":
-	    msg = "invalid image id -1."
-	    LOG.error(msg)
-	    return web.exc.HttpBadRequest(explanation=msg)
-        query = self.db.get_image(image_id)
-        if not query: 
-	    msg = "image id is invalid,no such image."
-            LOG.error(msg)
-            return webob.exc.HTTPBadRequest(explanation=msg)
-
-	user_id = body.pop('user_id')
-	if not user_id:
-	    msg = "user id must be provided."
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanation=msg)
-
-	limit = QUOTAS.containers or _CONTAINER_LIMIT
+        """Limit check"""
+        limit = QUOTAS.containers or _CONTAINER_LIMIT
 	query = self.db.get_containers(project_id,user_id)
 	if len(query) >= limit:
 	    msg = 'container limit exceeded!!!'
 	    LOG.error(msg)
 	    return webob.exc.HTTPForbidden(explanation=msg)
 
-	repos = body.pop('repos')
-	if not repos:
-	    msg = "repos must be provided"
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanaiton=msg)
+	#if not body:
+	#    msg = "post request has no body?"
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanation=msg)
+	#project_id = body.pop('project_id')
+	#if not project_id:
+	#    msg = "project id must be provided."
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	branch = body.pop('branch')
-	if not branch:
-	    msg = "branch must be provided"
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanaiton=msg)
+	#image_id = body.pop('image_id')
+	#if image_id == "-1":
+	#    msg = "invalid image id -1."
+	#    LOG.error(msg)
+	#    return web.exc.HttpBadRequest(explanation=msg)
+        #query = self.db.get_image(image_id)
+        #if not query: 
+	#    msg = "image id is invalid,no such image."
+        #    LOG.error(msg)
+        #    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	env = body.pop('env')
-	if not env:
-	    msg = "env must be provided"
-	    LOG.error(msg)
-	    return webob.exc.HTTPBadRequest(explanation=msg)
+	#user_id = body.pop('user_id')
+	#if not user_id:
+	#    msg = "user id must be provided."
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanation=msg)
 
-	user_key = body.pop('user_key')
-        if not user_key:
-            user_key=EMPTY_STRING
+	#limit = QUOTAS.containers or _CONTAINER_LIMIT
+	#query = self.db.get_containers(project_id,user_id)
+	#if len(query) >= limit:
+	#    msg = 'container limit exceeded!!!'
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPForbidden(explanation=msg)
 
-        zone_id = body.pop('zone_id')
-        if not zone_id:
-            zone_id=0	
+	#repos = body.pop('repos')
+	#if not repos:
+	#    msg = "repos must be provided"
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanaiton=msg)
+
+	#branch = body.pop('branch')
+	#if not branch:
+	#    msg = "branch must be provided"
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanaiton=msg)
+
+	#env = body.pop('env')
+	#if not env:
+	#    msg = "env must be provided"
+	#    LOG.error(msg)
+	#    return webob.exc.HTTPBadRequest(explanation=msg)
+
+	#user_key = body.pop('user_key')
+        #if not user_key:
+        #    user_key=EMPTY_STRING
+
+        #zone_id = body.pop('zone_id')
+        #if not zone_id:
+        #    zone_id=0	
 
         """Call the scheduler to decide which host the container will 
            be run on.
@@ -204,15 +280,21 @@ class Controller(Base):
 
     def delete(self,request,id):
         """
-        send delete `request` to remote server for deleting.
+        Send delete `request` to container node for deleting.
         if failed,excepiton will be occured.
 
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send delete request to that host
+        If no host found, the request will be droped.
+
         :param request: `wsgi.Request`
-        :param id: container idenfier
+        :param id     : container idenfier
         """ 
         container = self.db.get_container(id)
 	if not container:
 	    return webob.exc.HTTPOk() 
+
 	host_id = container.host_id
 	host = self.db.get_host(host_id)	
 	if not host:
@@ -226,6 +308,17 @@ class Controller(Base):
         return Response(response.status_code) 
 
     def start(self,request,id):
+        """
+        Send start `request` to container node for starting container. 
+
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send start request to that host
+        If no host was found, the request will be droped.
+
+        :params request: `wsgi.Request`
+        :params id     : container id
+        """
 	container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
@@ -242,7 +335,17 @@ class Controller(Base):
 	return Response(response.status_code)
 
     def stop(self,request,id):
-	"""send stop request to remote host where container on."""
+	"""
+        Send stop `request` to container node for stoping container.
+
+        This method contains the following two steps:
+            - find the host where the container run on
+            - send stop request to that host
+        If no host found, the request will be droped.
+        
+        :params request: `wsgi.Request`
+        :params id     : container id
+        """ 
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
@@ -260,58 +363,63 @@ class Controller(Base):
 
         return Response(response.status_code) 
 
-    def reboot(self,request):
-	pass
+    def reboot(self,request,id):
+        """Reboot the specified container.""" 
+        return NotImplementedError()
 
     def destroy(self,request,body):
-	"""send destroy request to remote host."""
+	"""Send destroy request to remote host."""
 
         return NotImplementedError()
 
     def commit(self,request,body):
-	"""send commit request to remote host."""
+	"""Send commit request to container node."""
 
         return NotImplementedError() 
 
     def refresh(self,request,id):
         """
-        refresh code in container. refresh request will be 
+        Refresh code in container. `refresh request` will be 
         send to remote container server for refreshing.
         if send request failed,exception will occured.
-        is it necessary to catch the exception? I don't
+        Is it necessary to catch the exception? I don't
         know. 
 
         :param request: `wsgi.Request` object
         :param id     : container idenfier
         """
-        """check if this container is really exists,
-           otherwise return 404 not found"""
-
+        """
+        Check if this container is really exists,
+        otherwise return 404 not found.
+        """
         container = self.db.get_container(id)
 	if not container:
 	    LOG.error("nu such container %s" % id)
 	    return webob.exc.HTTPNotFound() 
         
-        """get host id from container info,
-           if host id is None,return 404"""
-
+        """
+        Get host id from container info,
+        if host id is None,return 404.
+        """
 	host_id = container.host_id
         if not host_id:
             LOG.error("container %s has no host_id" % id)
 	    return webob.exc.HTTPNotFound() 
         
-        """get host instance by `host_id`,
-           if host instance is None,return 404"""
+        """
+        Get host instance by `host_id`,
+        if host instance is None,return 404.
+        """
 	host = self.db.get_host(host_id)
 	if not host:
 	    LOG.error("no such host")
 	    return webob.exc.HTTPNotFound() 
 
-        """get ip address and port for host instance."""	
+        """Get ip address and port for host instance."""	
 	host,port = host.host,host.port 
           
-        """make post request to the host where container on."""
-        #FIXME: exception shoud be catch?
+        """send `refresh request` to the host where container on."""
+        #FIXME: exception shoud be catched?
 	response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))
 

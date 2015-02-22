@@ -2,6 +2,7 @@ import uuid
 import copy
 import webob.exc
 from sqlalchemy.exc import IntegrityError
+from jsonschema import SchemaError, ValidationError
 
 from jae import wsgi
 from jae import base
@@ -87,8 +88,14 @@ class Controller(base.Base):
         }
         try:
             self.validator(body,schema)
-        except:
-            raise
+        except SchemaError:
+            msg = "Invalid Schema"
+            LOG.error(msg)
+            return webob.exc.HTTPBadRequest(explanation=msg)
+        except ValidationError:
+            msg = "Invalid Body"
+            LOG.error(msg)
+            return webob.exc.HTTPBadRequest(explanation=msg)
 
         project_id=body.pop('project_id')
         repo_path=body.pop('repo_path')
@@ -109,7 +116,9 @@ class Controller(base.Base):
         return webob.exc.HTTPCreated() 
 
     def delete(self,request,id):
-        """delete repos by id."""
+        """
+        Delete repository by `id`.
+        """
         try:
             self.db.delete_repo(id)
         except:

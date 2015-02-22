@@ -62,14 +62,21 @@ class Controller(base.Base):
                 status = 'building'),
                 project = project)
 
-        eventlet.spawn_n(self._manager.create,
-                         id,
-                         name,
-                         desc,
-                         repos,
-                         branch,
-                         user_id) 
+        #eventlet.spawn_n(self._manager.create,
+        #                 id,
+        #                 name,
+        #                 desc,
+        #                 repos,
+        #                 branch,
+        #                 user_id) 
 
+        self._process_task(self._manager.create,
+                           id,
+                           name,
+                           desc,
+                           repos,
+                           branch,
+                           user_id) 
         return ResponseObject({"id":id})
 
     def delete(self,request,id):
@@ -80,7 +87,9 @@ class Controller(base.Base):
         :param id     : image id
         """
 	
-	eventlet.spawn_n(self._manager.delete,id)
+	#eventlet.spawn_n(self._manager.delete,id)
+	self._process_task(self._manager.delete,id)
+       
 
 	return Response(200)
 
@@ -110,12 +119,17 @@ class Controller(base.Base):
                                name,
                                port) 
             """
-            eventlet.spawn_n(self._manager.edit,
-                             kwargs,
-                             http_host,
-                             name,
-                             port) 
+            #eventlet.spawn_n(self._manager.edit,
+            #                 kwargs,
+            #                 http_host,
+            #                 name,
+            #                 port) 
 
+            self._process_task(self._manager.edit,
+                               kwargs,
+                               http_host,
+                               name,
+                               port) 
         response = {"url":"http://%s:%s" % \
                    (http_host,port),
                    "name": name}
@@ -165,19 +179,29 @@ class Controller(base.Base):
                          user_id = image_instance.user_id,
                          status = 'building'),
                          project=project)
-        eventlet.spawn_n(self._manager.commit,
-                     new_image_id,
-                     repository,
-                     tag,
-                     container_uuid)
+        #eventlet.spawn_n(self._manager.commit,
+        #             new_image_id,
+        #             repository,
+        #             tag,
+        #             container_uuid)
+
+        self._process_task(self._manager.commit,
+                           new_image_id,
+                           repository,
+                           tag,
+                           container_uuid)
         #NOTE(nmg):there may be a bug here.
         return ResponseObject({"id":new_image_id})
 
     def destroy(self,request,id):
         """destroy temporary container for image edit."""
-        eventlet.spawn_n(self._manager.destroy,id)
+        #eventlet.spawn_n(self._manager.destroy,id)
+        self._process_task(self._manager.destroy,id)
       
         return Response(200)
-	 
+    def _process_task(self,func,*args):
+       """Generate a greenthread to run the `func` with the `args`""" 
+       self.run_task(func,*args)
+
 def create_resource():
     return wsgi.Resource(Controller())

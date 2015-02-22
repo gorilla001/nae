@@ -1,7 +1,5 @@
 import webob.exc
 import os 
-import traceback
-from mercurial.error import RepoError
 
 from jae.common import cfg
 from jae.common import log as logging
@@ -51,50 +49,29 @@ class Manager(base.Base):
 		repos,
 		branch,
 		user_id):
-	"""
-        Create new image
- 
-        :params id     : image id
-        :params name   : image name
-        :params desc   : image desc
-        :params repos  : image repos
-        :params branch : repo branch
-        :params user_id: the user_id used for creating home directory
-        """
+	"""create new image."""
+
 	LOG.info("BUILD +job build %s" % name)
         repo_name=os.path.basename(repos)
+	#user_home = os.path.join("/home",user_id)
         user_home = os.path.join(os.path.expandvars('$HOME'),user_id)
 	if not os.path.exists(user_home):
 	    os.mkdir(user_home)
         if utils.repo_exist(user_id,repo_name):
 	    try:
                 self.mercurial.pull(user_home,repos)
-	    except RepoError:
-                self.db.update_image(id,status="CREATED-FAILED")
-                msg = "Pull repos %s failed: no such repos" % repos
-                self.db.update_image(id,errmsg=msg)
-                LOG.error(msg)
-                LOG.info("BUILD -job build %s = ERR" % name)
-                return
+	    except:
+                LOG.error("pull %s failed!" % repos)
+                self.db.update_image(id,status="error")
+                raise
         else:
 	    try:
                 self.mercurial.clone(user_home,repos)
-	    except RepoError:
-                self.db.update_image(id,status="CREATED-FAILED")
-                msg = "Clone repos %s failed: no such repos" % repos
-                self.db.update_image(id,errmsg=msg)
-                LOG.error(msg)
-                LOG.info("BUILD -job build %s = ERR" % name)
-                return
-        try:
-            self.mercurial.update(user_home,repos,branch)
-        except:
-            self.db.update_image(id,status="CREATED-FAILED")
-            msg = "Update repos %s to branch %s failed" % (repos,branch)
-            self.db.update_image(id,errmsg=msg)
-            LOG.error(msg)
-            LOG.info("BUILD -job build %s = ERR" % name)
-            return
+	    except:
+                LOG.error("clone %s failed!" % repos)
+                self.db.update_image(id,status="error")
+                raise
+        self.mercurial.update(user_home,repos,branch)
 
         tar_path=utils.make_zip_tar(os.path.join(user_home,repo_name))
 

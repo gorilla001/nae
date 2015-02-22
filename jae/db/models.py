@@ -59,7 +59,6 @@ class Image(BaseModel):
     created = Column(DateTime, default=func.now())
     user_id= Column(String(32))
     status = Column(String(100))
-    errmsg = Column(String(500),default="")
 
 class Container(BaseModel):
 
@@ -83,7 +82,6 @@ class Container(BaseModel):
     host_id = Column(String(32))
     fixed_ip = Column(String(32))
     status = Column(String(100))
-    errmsg = Column(String(500),default="")
 
 class User(BaseModel):
     __tablename__ = 'users'
@@ -123,10 +121,8 @@ class Network(BaseModel):
     container_id = Column(String(64))
     fixed_ip = Column(String(32))
     created = Column(DateTime, default=func.now())
-    
-"""
-Not Used Anymore
 
+"""not used anymore.
 class Network(BaseModel):
     __tablename__ = 'networks'
 

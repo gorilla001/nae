@@ -33,7 +33,6 @@ jae/common/parser.py
 jae/common/periodic_task.py
 jae/common/quotas.py
 jae/common/response.py
-jae/common/rpc.py
 jae/common/states.py
 jae/common/test.py
 jae/common/timeutils.py

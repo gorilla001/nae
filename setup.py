@@ -2,28 +2,28 @@
 
 from setuptools import setup
 
-setup(name='jae',
+setup(name='nae',
       version='1.0',
       description='app engine',
       author='nmg',
       author_email='minguon@jumei.com',
       url='https://git.oschina.net/nmg/nae.git',
 
-      packages=['jae',
-		'jae.common',
-		'jae.api',
-		'jae.container',
-		'jae.image',
-		'jae.db',
-		'jae.scheduler',
-		'jae.network',
+      packages=['nae',
+		'nae.common',
+		'nae.api',
+		'nae.container',
+		'nae.image',
+		'nae.db',
+		'nae.scheduler',
+		'nae.network',
 	       ],
 
-      scripts=['bin/jae-api',
-	       'bin/jae-container',
-	       'bin/jae-image'],
+      scripts=['bin/nae-api',
+	       'bin/nae-container',
+	       'bin/nae-image'],
 
-      data_files=[('/etc/jae',['etc/jae.conf',
+      data_files=[('/etc/nae',['etc/nae.conf',
 			       'etc/api-paste.ini',
 			      ]
 		 )]

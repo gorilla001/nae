@@ -27,7 +27,7 @@ class ConfigParser(BaseParser):
     def __init__(self):
 	super(ConfigParser, self).__init__()
 
-        """The dictionary where all the configrations from config file are in"""
+        """This dictionary contains all the configuration informations"""
         self._opts = {}
 
     def __call__(self,conf):

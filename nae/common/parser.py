@@ -8,6 +8,7 @@ class ParseError(Exception):
         return 'at line %d, %s: %r' % (self.lineno, self.msg, self.line)
 
 class BaseParser(object):
+    """The base class for configration parse"""
     lineno = 0
     
     def parse(self,conf):

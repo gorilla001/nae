@@ -44,13 +44,10 @@ class ConfigParser(BaseParser):
 
 CONF=ConfigParser()
 
+DEFAULT_CONF_FILE = "/etc/nae/nae.conf"
+
 def parse_config():
     try:
-        return CONF('/etc/nae/nae.conf')
+        return CONF(DEFAULT_CONF_FILE)
     except:
         raise
-
-if __name__ == '__main__':
-    CONF('/etc/nae/nae.conf')
-    for key,value in CONF._opts.items():
-	print key,value

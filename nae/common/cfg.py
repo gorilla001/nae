@@ -19,9 +19,15 @@ class Str(str):
         return str.__new__(cls,value)
 
 class ConfigParser(BaseParser):
+    """The configration parse object. All configrations will be collected
+       in a dictionary called `_opts`. Currently only configrations those 
+       in config file will be collected and command line arguments are ignored.
+       Fix to collected CLI arguments also.
+    """
     def __init__(self):
 	super(ConfigParser, self).__init__()
 
+        """The dictionary where all the configrations from config file are in"""
         self._opts = {}
 
     def __call__(self,conf):

@@ -221,26 +221,35 @@ class Controller(Base):
     def delete(self,request,id):
  	"""
         Delete image from db and registry.
-        This method contains the following two steps:
+        This method contains the following three steps:
            1. delete db entry
            2. delete image from private image registry
+           3. delete local image
         """
 	image_instance = self.db.get_image(id)
 	if not image_instance:
 	    LOG.warning("no such image %s" % id)
 	    return webob.exc.HTTPNotFound() 
+
+        """Delete image from database"""
+        self.db.delete_image(id)
+
+        """Delete image from image registry"""
 	image_service_endpoint = CONF.image_service_endpoint
 	if not image_service_endpoint:
 	    LOG.error("no image service endpoint found!")
 	    return webob.exc.HTTPNotFound() 
+
 	if not image_service_endpoint.startswith("http://"):
 	    image_service_endpoint += "http://"
+
 	try:
 	    response = self.http.delete("%s/%s" % \
 			(image_service_endpoint,id))
 	except ConnectionError,err:
 	     LOG.error(err)
 	     return webob.exc.HTTPInternalServerError() 
+
 	return Response(response.status_code) 
 
     def edit(self,request,id):

@@ -53,7 +53,7 @@ class Manager(base.Base):
 
         """Create new container and start it.
 
-           There are  steps to do this:
+           There are three steps to do this:
            1. Pull image from docker registry.
            2. Create container use the specified image.
            3. Start container.

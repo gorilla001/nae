@@ -84,6 +84,7 @@ class Manager(base.Base):
 	LOG.info("pull image succeed!")
 
         """
+        Generate arguments for container creation.
         """
         port=resp.json()['Config']['ExposedPorts']
 	kwargs = {'Hostname'       : '',

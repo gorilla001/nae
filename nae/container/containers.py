@@ -101,10 +101,12 @@ class Controller(Base):
 
     def start(self,request,id):
 	"""
-        Start container by `id`
+        Start container according container id. 
       
         :params request: `wsgi.Request`
         :params      id: the container id
+
+        returns: if start succeed, 204 will be returned.
         """
         query = self.db.get_container(id)
         if query.status == states.RUNNING:
@@ -120,10 +122,12 @@ class Controller(Base):
 
     def stop(self,request,id):
 	""" 
-        Stop container by `id`
+        Stop container according container id. 
        
         :params request: `wsgi.Request`
         :params id: the container id
+
+        returns: if stop succeed, 204 will be returned.
 	"""
 	query = self.db.get_container(id)
         if query.status == states.STOPED:

@@ -203,7 +203,7 @@ class Manager(base.Base):
 	LOG.info("CREATE -job create %s = OK" % id)
     def delete(self,id):
         """
-        Delete container by id
+        Delete container according container id
 
         :params id: container id
         """

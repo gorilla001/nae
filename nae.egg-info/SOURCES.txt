@@ -3,6 +3,7 @@ setup.py
 bin/nae-api
 bin/nae-container
 bin/nae-image
+bin/nae-web
 nae/__init__.py
 nae/base.py
 nae/service.py
@@ -61,3 +62,5 @@ nae/scheduler/filters.py
 nae/scheduler/host.py
 nae/scheduler/manager.py
 nae/scheduler/scheduler.py
+nae/web/__init__.py
+nae/web/controller.py

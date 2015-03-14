@@ -1,5 +1,5 @@
 from nae import wsgi
-from nae.web import controller 
+from nae.web.controller import images 
 import routes
 
 class APIRouter(wsgi.Router):
@@ -12,5 +12,5 @@ class APIRouter(wsgi.Router):
     def _setup_routes(self):
 
         self.mapper.resource('image','images',
-                             controller=controller.create_resource())
+                             controller=images.create_resource())
 

@@ -63,4 +63,5 @@ nae/scheduler/host.py
 nae/scheduler/manager.py
 nae/scheduler/scheduler.py
 nae/web/__init__.py
-nae/web/controller.py
+nae/web/controller/__init__.py
+nae/web/controller/images.py

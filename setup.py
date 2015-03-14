@@ -18,6 +18,7 @@ setup(name='nae',
 		'nae.scheduler',
 		'nae.network',
                 'nae.web',
+                'nae.web.controller',
 	       ],
 
       scripts=['bin/nae-api',

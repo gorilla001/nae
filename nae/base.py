@@ -3,7 +3,8 @@
 import eventlet
 from jsonschema import validate
 
-from jae import db
+from nae import db
+
 class Base(object):
     def __init__(self):
 	self.db = db.API()

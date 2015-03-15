@@ -1,0 +1,17 @@
+<html>
+<body>
+    <div>
+        <table>
+            <tbody style="border:1px solid #bebebe">
+                {{for item in images}}
+                <tr>
+                    <td> {{item['uuid']}} </td>
+                    <td> {{item['name']}} </td>
+                    <td> {{item['tag']}} </td>
+                </tr>
+                {{endfor}}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

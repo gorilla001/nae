@@ -1,5 +1,4 @@
 import webob.exc
-import webob.response
 import uuid
 import eventlet
 import os
@@ -11,11 +10,9 @@ from nae import wsgi
 from nae import base
 from nae.common import log as logging
 from nae.common.mercu import MercurialControl
-from nae.common import utils
-from nae.common.response import Response, ResponseObject
-from nae.image import manager
-from nae.image import driver
 from nae.common import cfg
+from nae.common.timeutils import isotime
+from nae.web.render import render
 
 
 CONF=cfg.CONF
@@ -26,11 +23,21 @@ class Controller(base.Base):
     def __init__(self):
 	super(Controller,self).__init__()
 
-        self._manager = manager.Manager()
-
     def index(self,request):
         images = [] 
-        return webob.response.Response(json=images)
+        query = self.db.get_images(project_id=None)
+        for item in query:
+            image={'id': item.id,
+                   'uuid': item.uuid,
+                   'name': item.name,
+		   'tag': item.tag,
+                   'desc': item.desc,
+                   'project_id': item.project_id,
+                   'created': isotime(item.created),
+                   'user_id': item.user_id,
+                   'status' : item.status}
+            images.append(image)
+        return render('images.html',images=images)
 
     def show(self,request,id):
         return webob.exc.HTTPMethodNotAllowed()

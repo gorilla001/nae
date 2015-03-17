@@ -14,3 +14,10 @@ class APIRouter(wsgi.Router):
         self.mapper.resource('image','images',
                              controller=images.create_resource())
 
+class StaticRouter(wsgi.Router):
+    def __init__(self):
+        self.mapper=routes.Mapper()
+	self._setup_routes()
+	super(APIRouter,self).__init__(self.mapper)
+
+    def _setup_routes(self):

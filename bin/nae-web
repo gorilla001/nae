@@ -15,3 +15,11 @@ if __name__ == '__main__':
     server = service.WSGIService('web')
     launcher.launch_server(server,workers=server.workers or 1)
     launcher.wait()
+
+#from bottle import route, run
+#
+#@route('/hello')
+#def hello():
+#    return "hello, world"
+#
+#run(host="0.0.0.0", port=8080, debug=True)

@@ -1,7 +1,0 @@
-
-
-
-
-RUNNING = 'running'
-
-STOPED  = 'stoped'

@@ -6,6 +6,7 @@ bin/nae-image
 bin/nae-web
 nae/__init__.py
 nae/base.py
+nae/manager.py
 nae/service.py
 nae/version.py
 nae/wsgi.py
@@ -28,6 +29,7 @@ nae/common/exception.py
 nae/common/executils.py
 nae/common/importutils.py
 nae/common/log.py
+nae/common/loopingcall.py
 nae/common/mercu.py
 nae/common/nwutils.py
 nae/common/parser.py
@@ -39,12 +41,18 @@ nae/common/test.py
 nae/common/timeutils.py
 nae/common/utils.py
 nae/common/view.py
+nae/common/rpc/__init__.py
+nae/common/rpc/amqp.py
+nae/common/rpc/base.py
+nae/common/rpc/dispatcher.py
+nae/common/rpc/impl_kombu.py
 nae/container/__init__.py
 nae/container/autostart.py
 nae/container/containers.py
 nae/container/driver.py
 nae/container/manager.py
 nae/container/register.py
+nae/container/service.py
 nae/container/wsgi.py
 nae/db/__init__.py
 nae/db/api.py

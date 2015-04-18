@@ -4,14 +4,15 @@ import eventlet
 eventlet.monkey_patch(os=False)
 
 import sys
-from jae import service
-from jae.common import cfg
-from jae.common import log as logging
+from nae import service
+from nae.common import cfg
+from nae.common import log as logging
 
 if __name__ == '__main__':
     cfg.parse_config()
     logging.setup()
     launcher = service.ProcessLauncher()
-    server = service.WSGIService('container')
-    launcher.launch_server(server,workers=server.workers or 1)
+    #server = service.WSGIService('container')
+    server = service.Service.create()
+    launcher.launch_server(server,workers=5)
     launcher.wait()

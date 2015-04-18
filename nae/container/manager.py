@@ -11,7 +11,8 @@ from nae.common import nwutils
 
 from nae.container import driver
 from nae import base 
-from nae.network import manager
+from nae import manager 
+from nae.network import manager as network_manager
 
 
 CONF = cfg.CONF
@@ -19,13 +20,13 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class Manager(base.Base):
+class ContainerManager(base.Base, manager.Manager):
     def __init__(self):
-	super(Manager,self).__init__()
+	super(ContainerManager,self).__init__()
 
 	self.driver = driver.API()
 	self.mercurial = MercurialControl()
-	self.network = manager.NetworkManager()
+	self.network = network_manager.NetworkManager()
 
     def service_init(self):
         """There will be three things doing here:

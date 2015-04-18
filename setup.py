@@ -11,6 +11,7 @@ setup(name='nae',
 
       packages=['nae',
 		'nae.common',
+		'nae.common.rpc',
 		'nae.api',
 		'nae.container',
 		'nae.image',

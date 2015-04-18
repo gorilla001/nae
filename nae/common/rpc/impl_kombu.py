@@ -5,6 +5,7 @@ import kombu
 import kombu.entity
 import kombu.messaging
 from eventlet import greenpool
+from eventlet import pools
 
 import sys
 import time
@@ -12,22 +13,11 @@ import eventlet
 import greenlet
 import itertools
 
-from nae.common.rpc import base
+from nae.common.rpc import amqp
+from nae.common import log as logging
 
+LOG = logging.getLogger(__name__)
 
-class Pool(pools.Pool):
-    """Class that implements a Pool of Connections."""
-
-    def __init__(self, conf, connection_cls, *args, **kwargs):
-        self.connection_cls = connection_cls
-        self.conf = conf
-        self.rpc_conn_pool_size = 100
-        kwargs.setdefault("max_size", self.rpc_conn_pool_size)
-        kwargs.setdefault("order_as_stack", True)
-        super(Pool, self).__init__(*args, **kwargs)
-
-    def create(self):
-        return self.connection_cls(self.conf)
 
 
 class ConsumerBase(object):
@@ -36,13 +26,26 @@ class ConsumerBase(object):
     def __init__(self, channel, callback, tag, **kwargs):
         self.callback = callback
         self.tag = str(tag)
+        self.kwargs = kwargs
         self.channel = channel
+        self.queue = None
+        self.reconnect(self.channel)
+
+    def reconnect(self, channel):
+        """Re-declare the queue after a rabbit reconnect"""
         self.kwargs['channel'] = channel
         self.queue = kombu.entity.Queue(**self.kwargs)
         self.queue.declare()
-
+        
     def consume(self, *args, **kwargs):
-        """"""
+        """
+        :keyword consumer_tag: unique identifier for the consumer.
+                               if not specified, a unique tag will be generated.
+
+        :keyword nowait: Do not wait for a reply. Default is False.
+
+        :keyword callback: callback called for each delivered message. 
+        """
         options = {'consumer_tag': self.tag}
         options['nowait'] = kwargs.get('nowait', False)
         callback = kwargs.get('callback', self.callback)
@@ -57,7 +60,18 @@ class ConsumerBase(object):
             except Exception:
                 LOG.exception("Failed to process message... skipping it.")
 
+        """
+        Start a queue consumer. Consumers last as long as the channel they 
+        were created on, or until the client cancels them.
+        """
         self.queue.consume(*args, callback=_callback, **options)
+
+    def cancel(self):
+        """Cancel the consuming from the queue if it has started"""
+        try:
+            self.queue.cancel(self.tag)
+        except:
+            pass
 
 
 class FanoutConsumer(ConsumerBase):
@@ -78,7 +92,9 @@ class FanoutConsumer(ConsumerBase):
                                          durable=options['durable'],
                                          auto_delete=options['auto_delete'])
 
-        super(FanoutConsumer, self).__init__(channel, callback, tag,
+        super(FanoutConsumer, self).__init__(channel,
+                                             callback,
+                                             tag,
                                              name=queue_name,
                                              exchange=exchange,
                                              routing_key=topic,
@@ -109,7 +125,7 @@ class TopicConsumer(ConsumerBase):
 class Publisher(object):
     """Base publisher class"""
 
-    def __init__(self, channel, exchange_name, routing_key, **kwargs)
+    def __init__(self, channel, exchange_name, routing_key, **kwargs):
         """Init the publisher class with exchange_name and routing_key"""
         self.channel = channel
         self.exchange_name = exchange_name
@@ -137,11 +153,16 @@ class TopicPublisher(Publisher):
                    'auto_delete': False,
                    'exclusive': False} 
         options.update(kwargs)
-        super(TopicPublisher, self).__init__(channel, conf.control_exchange,
-                                             topic, type='topic', **options)
+        super(TopicPublisher, self).__init__(channel,
+                                             conf.control_exchange,
+                                             topic,
+                                             type='topic',
+                                             **options)
 
 
 class Connection(object):
+    """Connection object"""
+
     def __init__(self, conf):
         self.conf = conf
         self.max_retries = 5
@@ -152,7 +173,7 @@ class Connection(object):
 
         params = {}
         params.setdefault('hostname', self.conf.rabbit_host)
-        params.setdefault('port', self.conf.rabbit_port)
+        params.setdefault('port', int(self.conf.rabbit_port))
         params.setdefault('userid', self.conf.rabbit_userid)
         params.setdefault('password', self.conf.rabbit_password)
         params.setdefault('virtual_host', self.conf.rabbit_virtual_host)
@@ -175,6 +196,8 @@ class Connection(object):
         self.connection = kombu.connection.BrokerConnection(**self.params)
         self.connection.connect()
         self.channel = self.connection.channel()
+        for consumer in self.consumers:
+            consumer.reconnect(self.channel)
 
 
     def reconnect(self):
@@ -268,37 +291,6 @@ class Connection(object):
             self.declare_topic_consumer(topic, callback)
 
 
-class ConnectionContext(base.Connection):
-    def __init__(self, conf, connection_pool, pooled=True):
-        self.conf = conf
-        self.connection_pool = connection_pool
-        self.pooled = pooled
-
-        if self.pooled:
-            self.connection = self.connection_pool.get()
-        else:
-            self.connection = self.connection_pool.connection_cls(self.conf)
-
-    def __enter__(self):
-        """When with ConnectionContext() is used, return self"""
-        return self
-
-    def __exit__(self, exc_type, exc_value, tb):
-        """End of 'with' statement."""
-        self.connection.close()
-
-    def create_consumer(self, topic, proxy, fanout=False):
-        self.connection.create_consumer(topic, proxy, fanout)
-
-    def consume_in_thread(self):
-        self.connection.consume_in_thread()
-
-    def __getattr__(self, key):
-        """Get method from self.connection"""
-        if self.connection:
-            return getattr(self.connection, key)
-        else:
-            LOG.exception("Connection failed")
 
 class ProxyCallback(object):
     def __init__(self, proxy):
@@ -319,10 +311,13 @@ class ProxyCallback(object):
         except Exception:
             LOG.exception("Something goes wrong during message handling")
 
-
-def create_connection(conf, new=True, connection_pool):
-    """Create a connection context manager"""
-    return ConnectionContext(conf, connection_pool, pooled=not new)
+def create_connection(conf,new=True):
+    """Create a connection"""
+    return amqp.create_connection(conf,
+                                  new,
+                                  amqp.create_connection_pool(conf, Connection))
+    #"""Create a connection context manager"""
+    #return ConnectionContext(conf, connection_pool, pooled=not new)
 
 
 def cast(conf, topic, msg, connection_pool):

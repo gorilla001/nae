@@ -1,6 +1,7 @@
 import eventlet
 
 from nae.common import log as logging
+from nae.common.rpc import dispatcher as rpc_dispatcher
 
 LOG=logging.getLogger(__name__)
 
@@ -29,10 +30,10 @@ def periodic_task(*args, **kwargs):
         return f
     return decorator
 
-class PeriodicTaskMeta(type):
+class ManagerMeta(type):
     def __init__(cls, name, bases, dict):
         """Metaclass that allows us to collect decorated periodic tasks."""
-        super(PeriodicTaskMeta,cls).__init__(name,bases,dict)
+        super(ManagerMeta,cls).__init__(name,bases,dict)
 
         try:
             cls._periodic_tasks = cls._periodic_tasks[:]
@@ -55,7 +56,7 @@ class PeriodicTaskMeta(type):
                 name = task.__name__
                 if task._periodic_interval < 0:
                     LOG.info("""Skipping periodic task %(task)s because
-                                 its interval is negative"""),
+                                 its interval is negative""",
                              {'task': task.__name__})
                     continue
  
@@ -68,11 +69,11 @@ class PeriodicTaskMeta(type):
                 cls._periodic_interval[name] = task._periodic_interval
                 cls._last_run[name] = task._periodic_last_run
 
-class PeriodicTask(object):
-    __metaclass__ = PeriodicTaskMeta
+class Manager(object):
+    __metaclass__ = ManagerMeta
 
     def __init__(self):
-        super(PeriodicTasks, self).__init__() 
+        super(Manager, self).__init__() 
         
 
     def periodic_tasks(self):
@@ -92,9 +93,13 @@ class PeriodicTask(object):
                 task(self)
                 """After finish a task, allow manager to do other work.This method will invoke the hub's switch to
                    let anyother greenthreads to schedule."""
-                   eventlet.sleep(0) 
+                eventlet.sleep(0) 
             except Exception as ex:
                 LOG.error("Error during %(full_task_name)s",locals())
                 return
 
             self._last_run[task_name] = time.time()
+
+    def create_rpc_dispatcher(self):
+        """Get the rpc dispatcher"""
+        return rpc_dispatcher.RpcDispatcher(self)

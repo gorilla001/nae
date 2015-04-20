@@ -13,6 +13,7 @@ from nae.container import driver
 from nae import base 
 from nae import manager 
 from nae.network import manager as network_manager
+from nae.manager import periodic_task
 
 
 CONF = cfg.CONF
@@ -27,6 +28,7 @@ class ContainerManager(base.Base, manager.Manager):
 	self.driver = driver.API()
 	self.mercurial = MercurialControl()
 	self.network = network_manager.NetworkManager()
+        self.version = '1.0.0'
 
     def service_init(self):
         """There will be three things doing here:
@@ -326,3 +328,11 @@ class ContainerManager(base.Base, manager.Manager):
             self.db.update_container(id,status="refresh-failed")
             raise
         LOG.info("REFRESH -job refresh %s = OK" % id)
+
+    @periodic_task(periodic_interval=180)
+    def check_instance_state(self):
+        LOG.info("Check instance state...Done")
+
+    @periodic_task
+    def check_host_state(self):
+        LOG.info("Check host state...Done")

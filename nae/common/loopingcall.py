@@ -2,6 +2,7 @@
 import sys
 
 from eventlet import event
+from eventlet import greenthread
 from nae.common import log as logging
 
 
@@ -39,3 +40,7 @@ class LoopingCall(object):
 
     def wait(self):
         self.done.wait()
+
+    @property
+    def func_name(self):
+        return self.func.__name__

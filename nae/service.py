@@ -8,6 +8,7 @@ from nae.common import cfg
 from nae.common.cfg import Int
 from nae.common import rpc
 from nae.common import importutils
+from nae.common import loopingcall
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -151,7 +152,6 @@ class Service(object):
             topic = 'compute'
         if not manager:
             manager = CONF.container_manager
-        print manager
         if not periodic_interval:
             periodic_interval = CONF.periodic_interval or 60
 
@@ -159,6 +159,7 @@ class Service(object):
                           topic=topic,
                           manager=manager,
                           periodic_interval=periodic_interval)
+
         return service_obj
 
     def start(self):
@@ -205,7 +206,7 @@ class Service(object):
             except Exception:
                 pass
 
-    def periodic_task(self):
+    def periodic_tasks(self):
         """Tasks to be run at a periodic interval"""
         self.manager.periodic_tasks()
         

@@ -1,4 +1,5 @@
 import eventlet
+import time
 
 from nae.common import log as logging
 from nae.common.rpc import dispatcher as rpc_dispatcher
@@ -18,17 +19,19 @@ def periodic_task(*args, **kwargs):
         1. Without arguments '@periodic_task', this whill be run on default
            interval of 60 seconds.
 
-        2. With arguments: @periodic_task(interval = N)
+        2. With arguments: @periodic_task(periodic_interval = N)
            this will be run on every N seconds.
     """ 
 
     def decorator(f):
         f._periodic_task = True
-        f._periodic_interval = kwargsss.pop('interval',DEFAULT_INTERVAL)
+        f._periodic_interval = kwargs.pop('periodic_interval',DEFAULT_INTERVAL)
         f._periodic_last_run = time.time()
 
         return f
-    return decorator
+    if kwargs:
+        return decorator
+    return decorator(args[0])
 
 class ManagerMeta(type):
     def __init__(cls, name, bases, dict):
@@ -74,7 +77,7 @@ class Manager(object):
 
     def __init__(self):
         super(Manager, self).__init__() 
-        
+        self.version = '1.0.0' 
 
     def periodic_tasks(self):
         """Tasks to be run at a periodic interval"""

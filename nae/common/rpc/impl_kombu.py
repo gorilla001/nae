@@ -53,8 +53,10 @@ class ConsumerBase(object):
             raise ValueError("No callback defined")
 
         def _callback(raw_message):
+            print raw_message
             message = self.channel.message_to_python(raw_message)
             try:
+                LOG.info("Start consuming messages...")
                 callback(message.payload)
                 message.ack()
             except Exception:
@@ -88,7 +90,8 @@ class FanoutConsumer(ConsumerBase):
                    'auto_delete': True,
                    'exclusive': True}
         options.update(kwargs)
-        exchange = kombu.entity.Exchange(name=exchange_name, type='fanout',
+        exchange = kombu.entity.Exchange(name=exchange_name,
+                                         type='fanout',
                                          durable=options['durable'],
                                          auto_delete=options['auto_delete'])
 
@@ -181,7 +184,6 @@ class Connection(object):
         self.params = params
         self.connection = None
         self.channel = None
-
         self.reconnect()
 
     def _connect(self):
@@ -209,6 +211,7 @@ class Connection(object):
                 self._connect()
                 return
             except:
+                #raise
                 LOG.info("Connecting to AMQP failed...retry") 
     
             if attempt >= self.max_retries:
@@ -241,7 +244,10 @@ class Connection(object):
             self.consumer_thread = eventlet.spawn(_consumer_thread)
         return self.consumer_thread
     
-    
+    def consume(self):
+        for consumer in self.consumers:
+            consumer.consume()
+
     def publisher_send(self,publisher_cls,topic,msg):
         """Send message from publisher"""
         def _error_callback(exc):

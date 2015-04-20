@@ -53,10 +53,10 @@ class ConsumerBase(object):
             raise ValueError("No callback defined")
 
         def _callback(raw_message):
-            print raw_message
+            
+            LOG.info("Start consuming messages...")
             message = self.channel.message_to_python(raw_message)
             try:
-                LOG.info("Start consuming messages...")
                 callback(message.payload)
                 message.ack()
             except Exception:
@@ -189,15 +189,16 @@ class Connection(object):
     def _connect(self):
         """Connect to rabbit"""
         if self.connection is not None:
-            LOG.info("Connecting to AMQP server on %(hostname)s:%(port)d" % self.params)
             try:
                 self.connection.close()
             except:
                 pass
             self.connection = None
+        LOG.info("Connecting to AMQP server on %(hostname)s:%(port)d" % self.params)
         self.connection = kombu.connection.BrokerConnection(**self.params)
         self.connection.connect()
         self.channel = self.connection.channel()
+
         for consumer in self.consumers:
             consumer.reconnect(self.channel)
 
@@ -244,9 +245,45 @@ class Connection(object):
             self.consumer_thread = eventlet.spawn(_consumer_thread)
         return self.consumer_thread
     
-    def consume(self):
-        for consumer in self.consumers:
-            consumer.consume()
+
+    def iterconsume(self, limit=None, timeout=None):
+        """Return an iterator that will consume from all queues/consumers"""
+
+        info = {'do_consume': True}
+
+        def _error_callback(exc):
+            if isinstance(exc, socket.timeout):
+                LOG.exception(_('Timed out waiting for RPC response: %s') %
+                              str(exc))
+                raise rpc_common.Timeout()
+            else:
+                LOG.exception(_('Failed to consume message from queue: %s') %
+                              str(exc))
+                info['do_consume'] = True
+
+        def _consume():
+            print 'do consume'
+            if info['do_consume']:
+                for consumer in self.consumers:
+                    consumer.consume()
+                info['do_consume'] = False
+            return self.connection.drain_events(timeout=timeout)
+
+        for iteration in itertools.count(0):
+            yield self.ensure(_error_callback, _consume)
+
+    #def consume(self):
+    #    for consumer in self.consumers:
+    #        consumer.consume()
+
+    def consume(self, limit=None):
+        """Consume from all queues/consumers"""
+        it = self.iterconsume(limit=limit)
+        while True:
+            try:
+                it.next()
+            except StopIteration:
+                return
 
     def publisher_send(self,publisher_cls,topic,msg):
         """Send message from publisher"""

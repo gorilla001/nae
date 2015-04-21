@@ -336,3 +336,7 @@ class ContainerManager(base.Base, manager.Manager):
     @periodic_task
     def check_host_state(self):
         LOG.info("Check host state...Done")
+
+
+    def check(self,**args):
+        print args.get('hello')

@@ -12,6 +12,8 @@ import time
 import eventlet
 import greenlet
 import itertools
+import socket
+import json
 
 from nae.common.rpc import amqp
 from nae.common import log as logging
@@ -53,20 +55,23 @@ class ConsumerBase(object):
             raise ValueError("No callback defined")
 
         def _callback(raw_message):
-            
-            LOG.info("Start consuming messages...")
             message = self.channel.message_to_python(raw_message)
             try:
-                callback(message.payload)
-                message.ack()
+                callback(self.deserialize(message.payload))
             except Exception:
                 LOG.exception("Failed to process message... skipping it.")
-
+            else:
+                message.ack()
         """
         Start a queue consumer. Consumers last as long as the channel they 
         were created on, or until the client cancels them.
+
+        The following method equals:
+            self.channel.basic_consume(queue=self.queue.name,
+                                   callback=callback,
+                                   **options)
         """
-        self.queue.consume(*args, callback=_callback, **options)
+        return self.queue.consume(*args, callback=_callback, **options)
 
     def cancel(self):
         """Cancel the consuming from the queue if it has started"""
@@ -75,6 +80,12 @@ class ConsumerBase(object):
         except:
             pass
 
+    def deserialize(self,msg):
+        """Deserialize message of json format to python dictionary if any"""
+        try:
+            return json.loads(msg)
+        except:
+            return msg
 
 class FanoutConsumer(ConsumerBase):
     """Consumer class for 'fanout'"""
@@ -212,7 +223,6 @@ class Connection(object):
                 self._connect()
                 return
             except:
-                #raise
                 LOG.info("Connecting to AMQP failed...retry") 
     
             if attempt >= self.max_retries:
@@ -253,16 +263,15 @@ class Connection(object):
 
         def _error_callback(exc):
             if isinstance(exc, socket.timeout):
-                LOG.exception(_('Timed out waiting for RPC response: %s') %
+                LOG.exception('Timed out waiting for RPC response: %s' %
                               str(exc))
-                raise rpc_common.Timeout()
+                raise #rpc_common.Timeout()
             else:
-                LOG.exception(_('Failed to consume message from queue: %s') %
+                LOG.exception('Failed to consume message from queue: %s' %
                               str(exc))
                 info['do_consume'] = True
 
         def _consume():
-            print 'do consume'
             if info['do_consume']:
                 for consumer in self.consumers:
                     consumer.consume()
@@ -341,8 +350,8 @@ class ProxyCallback(object):
         self.pool = greenpool.GreenPool()
 
     def __call__(self, message):
-        method = message.pop('method')
-        if not message:
+        method = message.pop('method', None)
+        if not method:
             LOG.warn("no method for message %s process" % message)
             return
         args = message.pop("args", {})
@@ -350,7 +359,7 @@ class ProxyCallback(object):
 
     def _process_data(self, method, args):
         try:
-            self.proxy.dispatch(method, args)
+            self.proxy.dispatch(method, **args)
         except Exception:
             LOG.exception("Something goes wrong during message handling")
 

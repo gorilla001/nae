@@ -16,6 +16,16 @@ class Controller(base.Base):
 	super(Controller,self).__init__()
 
     def index(self,request):
+        """
+        List all projects.
+        
+        This method returns a dictionary list and each dict containers the following keys:
+            - id
+            - name
+            - desc
+            - created
+        If no projects found, empty list will be returned.
+        """
         projects=[]
         project_instances = self.db.get_projects()
 	if project_instances:
@@ -30,7 +40,20 @@ class Controller(base.Base):
         return ResponseObject(projects) 
 
     def show(self,request,id):
-        """show project details for `id`"""
+        """
+        Show project detail according to project `id`.
+      
+        This method returns a dictionary with following keys:
+            - id
+            - name
+            - desc
+            - created
+            - users
+            - repos
+            - images
+            - containers
+        If no project found, empty dictionary will be returned.
+        """
         project_instance = self.db.get_project(id)
 	if project_instance is None:
             return {}
@@ -67,76 +90,43 @@ class Controller(base.Base):
                    'status' : image_instance.status}
             image_list.append(image)
 
+        """Get containes list"""
+        container_list = []
+        for item in project_instance.containers:
+            container = {'id': item.id,
+                         'name': item.name,
+                         'uuid': item.uuid,
+                         'env': item.env,
+                         'project_id': item.project_id,
+                         'repos': item.repos,
+                         'branch': item.branch,
+                         'image_id': item.image_id,
+                         'network': item.network,
+                         'created': item.created,
+                         'user_id': item.user_id,
+                         'host_id': item.host_id,
+                         'status': item.status}             
+            container_list.append(container)
+
         project = {"id": project_instance.id,
                    "name": project_instance.name,
                    "desc": project_instance.desc,
                    "created": isotime(project_instance.created),
 		   "users" : user_list,
                    "repos" : repo_list,
-                   "images": image_list}
+                   "images": image_list,
+                   "containers": container_list}
         
-        #query=self.db_api.get_repos(project_id=id)
-        #repos=[]
-        #for item in query:
-	#    repo = {"id":item.id,
-        #            "repo_path":item.repo_path,
-        #            "created":isotime(item.created)}
-        #    repos.append(repo)
-        #project.update({"repos":repos})
-
-	#
-        #query = self.db_api.get_images(project_id=id)
-        #images=[]
-        #for item in query:
-        #    image = {'id' : item.id,
-        #             'name' : item.name,
-	#	     'tag' : item.tag,
-        #             'size' : item.size,
-        #             'desc' : item.desc,
-        #             'created' : isotime(item.created),
-        #             'status' : item.status}
-        #    images.append(image)
-	#project.update({"images":images})
-
-        #query = self.db_api.get_containers(id,None)
-        #containers=[]
-        #for item in query:
-        #    container = {
-        #        'id':item.id,
-        #        'name':item.name,
-        #        'env':item.env,
-        #        'repos':item.repos,
-        #        'branch':item.branch,
-        #        'image':item.image,
-        #        'network':item.network,
-        #        'created':isotime(item.created),
-        #        'user_id':item.user_id,
-        #        'status':item.status}
-        #project.update({"containers":containers})
-
-        #query = self.db_api.get_users(project_id=id)
-	#users=[]
-        #for item in query:
-        #    user={
-        #        'id':item.id,
-        #        'name':item.name,
-        #        'email':item.email,
-        #        'role_id':item.role_id,
-        #        'created':isotime(item.created),
-        #        }
-        #    users.append(user)
-	#project.update({"users":users})
-
         return ResponseObject(project) 
 
     def create(self,request,body):
-        """add project."""
-        #name=body.get('name')
-        #if not name:
-	#    LOG.error("project name must be provided")
-        #    return Response(505)
-
-        #desc=body.get('desc','')
+        """
+        For creating project, body should be None and
+        should contains the following params:
+            - name the project name
+            - desc the description for the project
+        All the above params are not optional and have no default value.
+        """
         schema = { 
             "type": "object",
             "properties": {
@@ -152,22 +142,20 @@ class Controller(base.Base):
         name = body.pop("name")
         desc = body.pop("desc")
 
-        """generate project id."""
-        project_id = uuid.uuid4().hex
-
         try:
             self.db.add_project(dict(
-			id = project_id,
+			id = uuid.uuid4().hex, 
                         name = name,
                         desc = desc))
         except:
             raise
 
-        #FIXME: return ?
         return webob.exc.HTTPOk() 
 
     def delete(self,request,id):
-        """delete project by `id`"""
+        """
+        Delete project identified by `id`.
+        """
         LOG.info("DELETE +job delete %s" % id)
         try:
             self.db.delete_project(id)

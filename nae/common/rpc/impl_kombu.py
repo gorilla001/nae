@@ -272,18 +272,20 @@ class Connection(object):
                 info['do_consume'] = True
 
         def _consume():
+            """Make sure consume only run once, otherwise the 'consumer_tag' will be
+               reused and 530 error whill occured."""
             if info['do_consume']:
                 for consumer in self.consumers:
                     consumer.consume()
                 info['do_consume'] = False
+
+            #for consumer in self.consumers:
+            #    consumer.consume()
+
             return self.connection.drain_events(timeout=timeout)
 
         for iteration in itertools.count(0):
             yield self.ensure(_error_callback, _consume)
-
-    #def consume(self):
-    #    for consumer in self.consumers:
-    #        consumer.consume()
 
     def consume(self, limit=None):
         """Consume from all queues/consumers"""

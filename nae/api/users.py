@@ -22,9 +22,9 @@ class Controller(base.Base):
         """
         List all users according to `project_id`.
         This method returns a dictionary list and each dict contains the following keys:
-            - id  the unique 64 bytes uuid
-            - name the user name
-            - email user's email address
+            - id       the unique 64 bytes uuid
+            - name     the user name
+            - email    user's email address
             - role_id  user's role_id
             - created  when user be added
         If no use found, empty list will be returned.
@@ -145,7 +145,9 @@ class Controller(base.Base):
 
     
     def delete(self,request,id):
-        """Delete user by `id`"""
+        """
+        Delete user identified by `id`.
+        """
         try:
             self.db.delete_user(id)
         except:

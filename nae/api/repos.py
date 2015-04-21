@@ -70,7 +70,13 @@ class Controller(base.Base):
 	return ResponseObject(repo)
 
     def create(self,request,body):
-        """create repos by body dict."""
+        """
+        For creating repos, body should not be None and
+        should contains the following params:
+            - project_id
+            - repo_path
+        All the above params are not optional and have no default value.
+        """ 
         schema = {
             "type": "object",
             "properties": {
@@ -97,8 +103,8 @@ class Controller(base.Base):
             LOG.error(msg)
             return webob.exc.HTTPBadRequest(explanation=msg)
 
-        project_id=body.pop('project_id')
-        repo_path=body.pop('repo_path')
+        project_id = body.pop('project_id')
+        repo_path = body.pop('repo_path')
 
         project = self.db.get_project(id=project_id)
         if not project:

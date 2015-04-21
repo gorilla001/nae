@@ -167,6 +167,7 @@ class SimpleScheduler(driver.Scheduler):
                 host_id=host_id,
                 status="building"),
                 project=project)
+
     def cleanup_db(self,id):
 	"""
 	Remove record from db.

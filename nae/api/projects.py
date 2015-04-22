@@ -30,11 +30,12 @@ class Controller(base.Base):
         project_instances = self.db.get_projects()
 	if project_instances:
 	    for instance in project_instances:
-                project={
-                        'id':instance.id,
-                        'name':instance.name,
-                        'desc':instance.desc,
-                        'created':isotime(instance.created)}
+                project = {
+                    'id': instance.id,
+                    'name': instance.name,
+                    'desc': instance.desc,
+                    'created': isotime(instance.created)
+                    }
                 projects.append(project)
 
         return ResponseObject(projects) 
@@ -61,11 +62,13 @@ class Controller(base.Base):
         """get project user list."""
 	user_list = [] 
 	for user_instance in project_instance.users:
-            user = { "id": user_instance.id, 
-                     "name": user_instance.name,
-                     "email": user_instance.email,
-                     "role_id": user_instance.role_id,
-                     "created" : isotime(user_instance.created)} 
+            user = {
+                "id": user_instance.id, 
+                "name": user_instance.name,
+                "email": user_instance.email,
+                "role_id": user_instance.role_id,
+                "created" : isotime(user_instance.created)
+                } 
             user_list.append(user)
 
         """"get project repo list."""
@@ -79,43 +82,49 @@ class Controller(base.Base):
         """"get project image list."""
         image_list = []
         for image_instance in project_instance.images:
-            image={'id':image_instance.id,
-                   'uuid':image_instance.uuid,
-                   'name':image_instance.name,
-		   'tag':image_instance.tag,
-                   'desc':image_instance.desc,
-                   'project_id':image_instance.project_id,
-                   'created':isotime(image_instance.created),
-                   'user_id':image_instance.user_id,
-                   'status' : image_instance.status}
+            image = {
+                'id': image_instance.id,
+                'uuid': image_instance.uuid,
+                'name': image_instance.name,
+		'tag': image_instance.tag,
+                'desc': image_instance.desc,
+                'project_id': image_instance.project_id,
+                'created': isotime(image_instance.created),
+                'user_id': image_instance.user_id,
+                'status' : image_instance.status
+                }
             image_list.append(image)
 
         """Get containes list"""
         container_list = []
         for item in project_instance.containers:
-            container = {'id': item.id,
-                         'name': item.name,
-                         'uuid': item.uuid,
-                         'env': item.env,
-                         'project_id': item.project_id,
-                         'repos': item.repos,
-                         'branch': item.branch,
-                         'image_id': item.image_id,
-                         'network': item.network,
-                         'created': item.created,
-                         'user_id': item.user_id,
-                         'host_id': item.host_id,
-                         'status': item.status}             
+            container = {
+                'id': item.id,
+                'name': item.name,
+                'uuid': item.uuid,
+                'env': item.env,
+                'project_id': item.project_id,
+                'repos': item.repos,
+                'branch': item.branch,
+                'image_id': item.image_id,
+                'network': item.network,
+                'created': item.created,
+                'user_id': item.user_id,
+                'host_id': item.host_id,
+                'status': item.status
+                }             
             container_list.append(container)
 
-        project = {"id": project_instance.id,
-                   "name": project_instance.name,
-                   "desc": project_instance.desc,
-                   "created": isotime(project_instance.created),
-		   "users" : user_list,
-                   "repos" : repo_list,
-                   "images": image_list,
-                   "containers": container_list}
+        project = {
+            "id": project_instance.id,
+            "name": project_instance.name,
+            "desc": project_instance.desc,
+            "created": isotime(project_instance.created),
+	    "users" : user_list,
+            "repos" : repo_list,
+            "images": image_list,
+            "containers": container_list
+            }
         
         return ResponseObject(project) 
 

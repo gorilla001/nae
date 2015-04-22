@@ -48,7 +48,7 @@ class Controller(Base):
 
         If no container found, empty list will be returned.
 	"""
-        containers=[]
+        containers = []
 
         project_id = request.GET.get('project_id')
         user_id = request.GET.get('user_id')
@@ -56,15 +56,15 @@ class Controller(Base):
         query = self.db.get_containers(project_id,user_id)
         for item in query:
             container = {
-                    'id': item.id,
-                    'name': item.name,
-                    'repos': item.repos,
-                    'branch': item.branch,
-                    'image_id': item.image_id,
-		    'network': item.fixed_ip,
-                    'created': timeutils.isotime(item.created),
-                    'status': item.status,
-                    }
+                'id': item.id,
+                'name': item.name,
+                'repos': item.repos,
+                'branch': item.branch,
+                'image_id': item.image_id,
+	        'network': item.fixed_ip,
+                'created': timeutils.isotime(item.created),
+                'status': item.status,
+                }
             container.setdefault("image","")
             """Get the image name and tag by the `image_id`.
                if the image not found, use the default."""

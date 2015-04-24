@@ -8,6 +8,7 @@ nae/__init__.py
 nae/base.py
 nae/manager.py
 nae/service.py
+nae/test.py
 nae/version.py
 nae/wsgi.py
 nae.egg-info/PKG-INFO
@@ -46,7 +47,6 @@ nae/common/rpc/amqp.py
 nae/common/rpc/base.py
 nae/common/rpc/dispatcher.py
 nae/common/rpc/impl_kombu.py
-nae/common/rpc/test.py
 nae/container/__init__.py
 nae/container/autostart.py
 nae/container/containers.py

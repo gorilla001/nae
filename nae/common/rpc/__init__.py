@@ -22,3 +22,8 @@ def _get_impl():
 def create_connection(new=True):
     """Create a connection to the message bus used for rpc"""
     return _get_impl().create_connection(CONF, new=new)
+
+
+def cast(topic, msg):
+    """Invoke a remote method that dose not return anything"""
+    return _get_impl().cast(CONF, topic, msg)

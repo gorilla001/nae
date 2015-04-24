@@ -145,6 +145,9 @@ class Publisher(object):
         self.exchange_name = exchange_name
         self.routing_key = routing_key
         self.kwargs = kwargs
+        self.exchange = None
+        self.producer = None
+        self.connect()
 
     def connect(self):
         self.exchange = kombu.entity.Exchange(name=self.exchange_name,
@@ -158,7 +161,7 @@ class Publisher(object):
 
 class TopicPublisher(Publisher):
     """Publisher class for topic"""
-    def __init__(self,conf, channel, topic):
+    def __init__(self,conf, channel, topic, **kwargs):
         """init a 'topic' publisher.
 
         Kombu options may be passed as keyword args to override defaults
@@ -343,6 +346,11 @@ class Connection(object):
             self.declare_fanout_consumer(topic, callback)
         else:
             self.declare_topic_consumer(topic, callback)
+
+    def close(self):
+        """Close connection"""
+        self.connection.release()
+        self.connection = None
 
 
 

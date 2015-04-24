@@ -55,3 +55,9 @@ class ConnectionContext(base.Connection):
 def create_connection(conf, new, connection_pool):
     """Create a connection""" 
     return ConnectionContext(conf, connection_pool, pooled=not new)
+
+
+def cast(conf, topic, msg, connection_pool):
+    """Throw the msg to the queue without wait for a reply"""
+    with ConnectionCotext(conf, connection_pool) as conn:
+        conn.topic_send(topic, msg)

@@ -374,10 +374,14 @@ def create_connection(conf,new=True):
     #return ConnectionContext(conf, connection_pool, pooled=not new)
 
 
-def cast(conf, topic, msg, connection_pool):
+def cast(conf, topic, msg):
     """Send a message on a topic without waiting for a response"""
-    with ConnectionContext(conf, connection_pool) as conn:
-        conn.topic_send(topic, msg)
+    #with ConnectionContext(conf, connection_pool) as conn:
+    #    conn.topic_send(topic, msg)
+    return amqp.cast(conf,
+                     topic,
+                     msg,
+                     amqp.create_connection_pool(conf, Connection)) 
 
 # class Connection(object):
 #    def __init__(self):

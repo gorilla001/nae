@@ -329,14 +329,27 @@ class ContainerManager(base.Base, manager.Manager):
             raise
         LOG.info("REFRESH -job refresh %s = OK" % id)
 
-    @periodic_task(periodic_interval=180)
+    @periodic_task
     def check_instance_state(self):
-        LOG.info("Check instance state...Done")
+        """
+        Check the container instance's  state every one minute. If is down, update the
+        container's stat to 'STOPED' in database entry.
+        
+        You can modified the check interval by using:
+            @periodic_task(periodic_interval = N)
+        Which will check the status every N seconds.
+        """ 
+        LOG.info("Check instance state")
 
     @periodic_task
     def check_host_state(self):
+        """
+        Touch the temstamp every one minite in the database entry. If over one minite the
+        host didn't updated, the host will be thought to down.
+        """
         LOG.info("Check host state...Done")
 
 
     def check(self,**args):
-        print args.get('hello')
+        """Just for rpc check"""
+        print args

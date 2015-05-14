@@ -182,8 +182,8 @@ class Connection(object):
 
     def __init__(self, conf):
         self.conf = conf
-        self.max_retries = 5
-        self.retry_interval = 5.0
+        self.max_retries = self.conf.rabbit_max_retries or 5
+        self.retry_interval = self.conf.rabbit_retry_interval or 5.0
         self.consumers = []
         self.consumer_thread = None
         self.consumer_num = itertools.count(1)

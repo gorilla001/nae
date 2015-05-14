@@ -147,7 +147,7 @@ class Service(object):
         """
         
         if not host:
-            host = CONF.hostname
+            host = CONF.nodename
         if not topic:
             topic = 'compute'
         if not manager:

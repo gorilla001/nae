@@ -6,7 +6,7 @@ logging.setup()
 
 from nae.common import rpc
 
-topic = 'compute.test'
+topic = 'compute.00001'
 
 msg = {'method': 'check', 'args': {'hello': 'world'}}
 

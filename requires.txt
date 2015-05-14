@@ -12,3 +12,4 @@ mercurial
 netaddr
 jsonschema
 Tempita
+kombu

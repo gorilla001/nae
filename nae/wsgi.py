@@ -62,10 +62,12 @@ class Resource(object):
 	def __call__(self,request):
 	    action_args = self.get_action_args(request.environ)
 	    action = action_args.pop('action',None)
+
 	    try:
 	        method=getattr(self.controller,action)
 	    except AttributeError:
 		raise
+
 	    body=self.get_body(request)
 	    action_args.update(body)
 
@@ -76,10 +78,12 @@ class Resource(object):
 	        args = env['wsgiorg.routing_args'][1].copy()
 	    except KeyError:
 		raise
+
 	    try:
 	        del args['controller']
 	    except KeyError:
 	        pass
+
 	    try:
 	        del args['format']
 	    except KeyError:

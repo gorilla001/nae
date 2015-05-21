@@ -1,10 +1,10 @@
-import requests
 import uuid
 import json
 from nae.common import cfg
 from nae.common import log as logging
 
 from nae.common.cfg import Str, Int
+from nae.common import client
 import requests
 
 CONF=cfg.CONF
@@ -15,6 +15,7 @@ class API(object):
 	self.host = Str(CONF.host)
         self.port = Int(CONF.port)
         self.headers={'Content-Type':'application/json'}
+        self.http = client.HTTPClient()
 
     def create(self,name,kwargs):
 	"""
@@ -39,7 +40,7 @@ class API(object):
                  'VolumesFrom' : '',
                  'ExposedPorts': {"17698/tcp": {}}}
         data.update(kwargs)
-        resp = requests.post("http://%s:%s/containers/create?name=%s" % \
+        resp = self.http.post("http://%s:%s/containers/create?name=%s" % \
                             (self.host,self.port,name),
                             headers={'Content-Type':'application/json'},
                             data=json.dumps(data))
@@ -59,7 +60,7 @@ class API(object):
                     'VolumesFrom':[],
                     'CapAdd':[],
                     'CapDrop':[]}
-        resp = requests.post("http://%s:%s/containers/%s/start" % \
+        resp = self.http.post("http://%s:%s/containers/%s/start" % \
                                  (self.host,self.port,uuid),
                                  headers={'Content-Type':'application/json'},
                                  data=json.dumps(data))
@@ -70,9 +71,9 @@ class API(object):
         """
         Inspect image by image `name`.
         """
-	response = requests.get("http://%s:%s/images/%s/json" % \
+	resp = self.http.get("http://%s:%s/images/%s/json" % \
                                 (self.host,self.port,name))
-        return response.status_code,response.json()
+        return resp.status_code,resp.json()
 
     def build(self,name,data):
         """
@@ -82,10 +83,10 @@ class API(object):
         :params name: image name
         :params data: tar stream data with ``Dockerfile``
         """
-	response = requests.post("http://%s:%s/build?t=%s" % (self.host,self.port,name),
+	resp = self.http.post("http://%s:%s/build?t=%s" % (self.host,self.port,name),
 				 headers={'Content-Type':'application/tar'},
 				 data=data)	
-        return response.status_code
+        return resp.status_code
 
     def delete(self,repository,tag):
         """
@@ -100,9 +101,10 @@ class API(object):
             return 404
 	if not image_registry_endpoint.startswith("http://"):
 	    image_registry_endpoint = "http://" + image_registry_endpoint
-	response=requests.delete("%s/v1/repositories/%s/tags/%s" % \
+
+	resp = self.http.delete("%s/v1/repositories/%s/tags/%s" % \
 				(image_registry_endpoint,repository,tag))
-	return response.status_code
+	return resp.status_code
 
     def tag(self,name,tag="latest"):
         """
@@ -119,9 +121,10 @@ class API(object):
 	    image_registry_endpoint = image_registry_endpoint.replace("http://","")
 	host = Str(CONF.host)
         port = Int(CONF.port)
-	response=requests.post("http://%s:%s/images/%s:%s/tag?repo=%s/%s&force=1&tag=%s" 
+
+	resp = self.http.post("http://%s:%s/images/%s:%s/tag?repo=%s/%s&force=1&tag=%s" 
                        % (host,port,name,tag,image_registry_endpoint,name,tag))
-	return response.status_code,"%s/%s" % (image_registry_endpoint,name)
+	return resp.status_code,"%s/%s" % (image_registry_endpoint,name)
 
     def push(self,name,tag="latest"):
         """
@@ -130,10 +133,10 @@ class API(object):
         :params name: image name
         :params tag : image tag,default is latest
         """
-	response=requests.post("http://%s:%s/images/%s/push?tag=%s" % \
+	resp = self.http.post("http://%s:%s/images/%s/push?tag=%s" % \
                                 (self.host,self.port,name,tag),
 				headers={'X-Registry-Auth':uuid.uuid4().hex})
-   	return response.status_code
+   	return resp.status_code
 
     def destroy(self,name):
         """
@@ -141,10 +144,10 @@ class API(object):
  
         :params name: image name
         """
-	response=requests.post("http://%s:%s/containers/%s/stop" % \
+	resp = self.http.post("http://%s:%s/containers/%s/stop" % \
                               (self.host,self.port,name))
 
-	response=requests.delete("http://%s:%s/containers/%s" % \
+	resp = self.http.delete("http://%s:%s/containers/%s" % \
                               (self.host,self.port,name))
 
     def commit(self,container,repository,tag):
@@ -155,6 +158,6 @@ class API(object):
         :params repository: the image repository 
         :params tag       : the image tag
         """
-        response=requests.post("http://%s:%s/commit?author=&comment=&container=%s&repo=%s&tag=%s" % \
+        resp = self.http.post("http://%s:%s/commit?author=&comment=&container=%s&repo=%s&tag=%s" % \
                               (self.host,self.port,container,repository,tag))
-        return response
+        return resp

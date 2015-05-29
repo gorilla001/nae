@@ -177,6 +177,10 @@ class Controller(base.Base):
         """return webob.exc.HTTPNoContent() seems more better."""
         return webob.exc.HTTPNoContent()
 
+    def update(self, request, body):
+        """Update project information"""
+        return NotImplementedError()
+
      
 
 def create_resource():

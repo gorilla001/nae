@@ -252,6 +252,10 @@ class Controller(Base):
 
 	return Response(response.status_code) 
 
+    def update(self, request, body):
+        """Updated image information"""
+        return NotImplementedError()
+
     def edit(self,request,id):
         """
         Edit image online.

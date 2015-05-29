@@ -35,7 +35,7 @@ class Controller(base.Base):
                     'name': instance.name,
                     'desc': instance.desc,
                     'created': isotime(instance.created)
-                    }
+                }
                 projects.append(project)
 
         return ResponseObject(projects) 
@@ -68,7 +68,7 @@ class Controller(base.Base):
                 "email": user_instance.email,
                 "role_id": user_instance.role_id,
                 "created" : isotime(user_instance.created)
-                } 
+            } 
             user_list.append(user)
 
         """"get project repo list."""
@@ -92,7 +92,7 @@ class Controller(base.Base):
                 'created': isotime(image_instance.created),
                 'user_id': image_instance.user_id,
                 'status' : image_instance.status
-                }
+            }
             image_list.append(image)
 
         """Get containes list"""
@@ -112,7 +112,7 @@ class Controller(base.Base):
                 'user_id': item.user_id,
                 'host_id': item.host_id,
                 'status': item.status
-                }             
+            }             
             container_list.append(container)
 
         project = {
@@ -124,7 +124,7 @@ class Controller(base.Base):
             "repos" : repo_list,
             "images": image_list,
             "containers": container_list
-            }
+        }
         
         return ResponseObject(project) 
 

@@ -132,6 +132,9 @@ class Controller(base.Base):
 
         """return webob.exc.HTTPNoContent seems more better."""
         return webob.exc.HTTPNoContent()
+    def update(self, request, body):
+        """Updated repos information"""
+        return NotImplementedError()
 
 def create_resource():
     return wsgi.Resource(Controller())

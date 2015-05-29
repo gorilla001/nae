@@ -364,6 +364,9 @@ class Controller(Base):
 		      % (host,port,id))
 
         return Response(response.status_code) 
+    def update(self, request, body):
+        """Updated container information"""
+        return NotImplementedError()
  
 def create_resource():
     return wsgi.Resource(Controller())

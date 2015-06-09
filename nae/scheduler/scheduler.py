@@ -94,7 +94,7 @@ class SimpleScheduler(driver.Scheduler):
 	    """Raise error to controller"""
 	    raise 
 
-	return {"id":db_id} 
+	return {"id": db_id} 
 
     def delete_instance(self,id):
 	pass

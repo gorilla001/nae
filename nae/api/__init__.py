@@ -1,9 +1,9 @@
-from jae import wsgi
-from jae.api import containers
-from jae.api import images
-from jae.api import projects
-from jae.api import users 
-from jae.api import repos 
+from nae import wsgi
+from nae.api import containers
+from nae.api import images
+from nae.api import projects
+from nae.api import users 
+from nae.api import repos 
 import routes
 
 class APIRouter(wsgi.Router):

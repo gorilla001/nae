@@ -20,12 +20,3 @@
 # For detailed information about "nae" see
 #
 # https://github.com/pwzgorilla/nae/wiki
-
-**pip install -r requires.txt
-**python setup.py install
-
-How to use
-
-**nae-api
-**nae-image
-**nae-container

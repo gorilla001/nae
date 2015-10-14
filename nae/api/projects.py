@@ -26,7 +26,7 @@ class Controller(base.Base):
             - created
         If no projects found, empty list will be returned.
         """
-        projects=[]
+        projects = []
         project_instances = self.db.get_projects()
 	if project_instances:
 	    for instance in project_instances:
@@ -72,7 +72,7 @@ class Controller(base.Base):
             user_list.append(user)
 
         """"get project repo list."""
- 	repo_list =[]
+ 	repo_list = []
 	for repo_instance in project_instance.repos:
 	    repo = { "id":repo_instance.id,
 		     "repo_path": repo_instance.repo_path,

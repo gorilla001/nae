@@ -14,22 +14,22 @@ from nae.common import exception
 from nae.common import client
 from nae.base import Base
 
-CONF=cfg.CONF
+CONF = cfg.CONF
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
-QUOTAS=quotas.Quotas()
+QUOTAS = quotas.Quotas()
 
-EMPTY_STRING=""
+EMPTY_STRING = ""
 
 class Controller(Base):
     def __init__(self):
 	super(Controller,self).__init__()
 
 	if not CONF.default_scheduler:
-	    self._scheduler=scheduler.SimpleScheduler()
+	    self._scheduler = scheduler.SimpleScheduler()
 
-        self.http=client.HTTPClient()
+        self.http = client.HTTPClient()
 
     def index(self,request):
 	"""

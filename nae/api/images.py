@@ -20,10 +20,10 @@ from nae.common import utils
 from nae.common import client
 
 
-CONF=cfg.CONF
-LOG=logging.getLogger(__name__)
+CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
-QUOTAS=quotas.Quotas()
+QUOTAS = quotas.Quotas()
 
 _IMAGE_LIMIT = 12
 

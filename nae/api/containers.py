@@ -22,17 +22,18 @@ QUOTAS = quotas.Quotas()
 
 EMPTY_STRING = ""
 
+
 class Controller(Base):
     def __init__(self):
-	super(Controller,self).__init__()
+        super(Controller, self).__init__()
 
-	if not CONF.default_scheduler:
-	    self._scheduler = scheduler.SimpleScheduler()
+        if not CONF.default_scheduler:
+            self._scheduler = scheduler.SimpleScheduler()
 
         self.http = client.HTTPClient()
 
-    def index(self,request):
-	"""
+    def index(self, request):
+        """
         List all containers on all container nodes according to `project_id`
         and `user_id`.
         
@@ -52,8 +53,8 @@ class Controller(Base):
 
         project_id = request.GET.get('project_id')
         user_id = request.GET.get('user_id')
-        
-        query = self.db.get_containers(project_id,user_id)
+
+        query = self.db.get_containers(project_id, user_id)
         for item in query:
             container = {
                 'id': item.id,
@@ -61,23 +62,23 @@ class Controller(Base):
                 'repos': item.repos,
                 'branch': item.branch,
                 'image_id': item.image_id,
-	        'network': item.fixed_ip,
+                'network': item.fixed_ip,
                 'created': timeutils.isotime(item.created),
                 'status': item.status,
-                }
-            container.setdefault("image","")
+            }
+            container.setdefault("image", "")
             """Get the image name and tag by the `image_id`.
                if the image not found, use the default."""
             image_id = item.image_id
             image_instance = self.db.get_image(image_id)
             if image_instance:
-                image = "%s:%s" % (image_instance.name,image_instance.tag)
-                container.update({"image":image})
+                image = "%s:%s" % (image_instance.name, image_instance.tag)
+                container.update({"image": image})
 
             containers.append(container)
         return ResponseObject(containers)
 
-    def show(self,request,id):
+    def show(self, request, id):
         """
         Show the container info according by container's id `id`.
 
@@ -99,13 +100,13 @@ class Controller(Base):
         If no container found, empty dictionary will returned.
         """
 
-	container={}
-        query= self.db.get_container(id)
+        container = {}
+        query = self.db.get_container(id)
         if query is not None:
             container = {
                 'id': query.id,
                 'name': query.name,
-		'uuid': query.uuid,
+                'uuid': query.uuid,
                 'env': query.env,
                 'project_id': query.project_id,
                 'repos': query.repos,
@@ -114,14 +115,13 @@ class Controller(Base):
                 'network': query.fixed_ip,
                 'created': timeutils.isotime(query.created),
                 'user_id': query.user_id,
-		'host_id': query.host_id,
+                'host_id': query.host_id,
                 'status': query.status,
-                }
+            }
 
         return ResponseObject(container)
 
-    
-    def create(self,request,body=None):
+    def create(self, request, body=None):
         """
         For creating container, body should not be None and
         should contains the following params:
@@ -140,16 +140,16 @@ class Controller(Base):
             "type": "object",
             "properties": {
                 "project_id": {
-                     "type": "string",
-                     "minLength": 32,
-                     "maxLength": 64,
-                     "pattern": "^[a-zA-Z0-9]*$",
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-Z0-9]*$",
                 },
                 "image_id": {
-                     "type": "string",
-                     "minLength": 32,
-                     "maxLength": 64,
-                     "pattern": "^[a-zA-Z0-9]*$",
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 64,
+                    "pattern": "^[a-zA-Z0-9]*$",
                 },
                 "user_id": {
                     "type": "string",
@@ -182,43 +182,37 @@ class Controller(Base):
                     "minLength": 1,
                     "maxLength": 255,
                 },
-            },       
-            "required": [ "project_id","image_id","user_id","repos","branch","env","user_key","zone_id" ] 
+            },
+            "required": ["project_id", "image_id", "user_id", "repos",
+                         "branch", "env", "user_key", "zone_id"]
         }
-        
-        try:
-            self.validator(body,schema)
-        except (SchemaError,ValidationError) as ex:
-            LOG.error(ex) 
-	    return webob.exc.HTTPBadRequest(explanation="Bad Paramaters")
 
+        try:
+            self.validator(body, schema)
+        except (SchemaError, ValidationError) as ex:
+            LOG.error(ex)
+            return webob.exc.HTTPBadRequest(explanation="Bad Paramaters")
         """Limit check"""
         limit = QUOTAS.containers or _CONTAINER_LIMIT
-	query = self.db.get_containers(project_id,user_id)
-	if len(query) >= limit:
-	    msg = 'container limit exceeded!!!'
-	    LOG.error(msg)
-	    return webob.exc.HTTPForbidden(explanation=msg)
-
+        query = self.db.get_containers(project_id, user_id)
+        if len(query) >= limit:
+            msg = 'container limit exceeded!!!'
+            LOG.error(msg)
+            return webob.exc.HTTPForbidden(explanation=msg)
         """Call the scheduler to decide which host the container will 
            be run on.
         """
-        # TODO(nmg): This should be modified to use rpc call not function call. 
-	try:
-	    instance = self._scheduler.run_instance(project_id,
-						    user_id,
-						    image_id,
-						    repos,
-						    branch,
-						    env,
-						    user_key,
-                                                    zone_id)
-	except exception.NoValidHost:
-	    raise 
-	    
-	return ResponseObject(instance)
+        # TODO(nmg): This should be modified to use rpc call not function call.
+        try:
+            instance = self._scheduler.run_instance(project_id, user_id,
+                                                    image_id, repos, branch,
+                                                    env, user_key, zone_id)
+        except exception.NoValidHost:
+            raise
 
-    def delete(self,request,id):
+        return ResponseObject(instance)
+
+    def delete(self, request, id):
         """
         Send delete `request` to container node for deleting.
         if failed,excepiton will be occured.
@@ -230,24 +224,24 @@ class Controller(Base):
 
         :param request: `wsgi.Request`
         :param id     : container idenfier
-        """ 
+        """
         container = self.db.get_container(id)
-	if not container:
-	    return webob.exc.HTTPOk() 
+        if not container:
+            return webob.exc.HTTPOk()
 
-	host_id = container.host_id
-	host = self.db.get_host(host_id)	
-	if not host:
-	    LOG.error("no such host %s" % host_id)
-	    return webob.exc.HTTPNotFound() 
+        host_id = container.host_id
+        host = self.db.get_host(host_id)
+        if not host:
+            LOG.error("no such host %s" % host_id)
+            return webob.exc.HTTPNotFound()
 
-	host,port = host.host,host.port
-        # FIXME: try to catch exceptions and dealing with it. 
-	response = self.http.delete("http://%s:%s/v1/containers/%s" \
+        host, port = host.host, host.port
+        # FIXME: try to catch exceptions and dealing with it.
+        response = self.http.delete("http://%s:%s/v1/containers/%s" \
 			%(host,port,id))
-        return Response(response.status_code) 
+        return Response(response.status_code)
 
-    def start(self,request,id):
+    def start(self, request, id):
         """
         Send start `request` to container node for starting container. 
 
@@ -259,23 +253,23 @@ class Controller(Base):
         :params request: `wsgi.Request`
         :params id     : container id
         """
-	container = self.db.get_container(id)
-	if not container:
-	    LOG.error("nu such container %s" % id)
-	    return webob.exc.HTTPNotFound() 
-	host = self.db.get_host(container.host_id)
-	if not host:
-	    LOG.error("no such host")
-	    return webob.exc.HTTPNotFound() 
-	host,port = host.host,host.port
-        
+        container = self.db.get_container(id)
+        if not container:
+            LOG.error("nu such container %s" % id)
+            return webob.exc.HTTPNotFound()
+        host = self.db.get_host(container.host_id)
+        if not host:
+            LOG.error("no such host")
+            return webob.exc.HTTPNotFound()
+        host, port = host.host, host.port
+
         response=self.http.post("http://%s:%s/v1/containers/%s/start" \
                        %(host,port,id))
 
-	return Response(response.status_code)
+        return Response(response.status_code)
 
-    def stop(self,request,id):
-	"""
+    def stop(self, request, id):
+        """
         Send stop `request` to container node for stoping container.
 
         This method contains the following two steps:
@@ -285,39 +279,39 @@ class Controller(Base):
         
         :params request: `wsgi.Request`
         :params id     : container id
-        """ 
+        """
         container = self.db.get_container(id)
-	if not container:
-	    LOG.error("nu such container %s" % id)
-	    return webob.exc.HTTPNotFound() 
+        if not container:
+            LOG.error("nu such container %s" % id)
+            return webob.exc.HTTPNotFound()
 
-	host_id = container.host_id
-	host = self.db.get_host(host_id)
-	if not host:
-	    LOG.error("no such host")
-	    return webob.exc.HTTPNotFound() 
+        host_id = container.host_id
+        host = self.db.get_host(host_id)
+        if not host:
+            LOG.error("no such host")
+            return webob.exc.HTTPNotFound()
 
-	host,port = host.host,host.port 
-	response = self.http.post("http://%s:%s/v1/containers/%s/stop" \
+        host, port = host.host, host.port
+        response = self.http.post("http://%s:%s/v1/containers/%s/stop" \
 		      % (host,port,id))
 
-        return Response(response.status_code) 
+        return Response(response.status_code)
 
-    def reboot(self,request,id):
-        """Reboot the specified container.""" 
+    def reboot(self, request, id):
+        """Reboot the specified container."""
         return NotImplementedError()
 
-    def destroy(self,request,body):
-	"""Send destroy request to remote host."""
+    def destroy(self, request, body):
+        """Send destroy request to remote host."""
 
         return NotImplementedError()
 
-    def commit(self,request,body):
-	"""Send commit request to container node."""
+    def commit(self, request, body):
+        """Send commit request to container node."""
 
-        return NotImplementedError() 
+        return NotImplementedError()
 
-    def refresh(self,request,id):
+    def refresh(self, request, id):
         """
         Refresh code in container. `refresh request` will be 
         send to remote container server for refreshing.
@@ -333,40 +327,38 @@ class Controller(Base):
         otherwise return 404 not found.
         """
         container = self.db.get_container(id)
-	if not container:
-	    LOG.error("nu such container %s" % id)
-	    return webob.exc.HTTPNotFound() 
-        
+        if not container:
+            LOG.error("nu such container %s" % id)
+            return webob.exc.HTTPNotFound()
         """
         Get host id from container info,
         if host id is None,return 404.
         """
-	host_id = container.host_id
+        host_id = container.host_id
         if not host_id:
             LOG.error("container %s has no host_id" % id)
-	    return webob.exc.HTTPNotFound() 
-        
+            return webob.exc.HTTPNotFound()
         """
         Get host instance by `host_id`,
         if host instance is None,return 404.
         """
-	host = self.db.get_host(host_id)
-	if not host:
-	    LOG.error("no such host")
-	    return webob.exc.HTTPNotFound() 
-
-        """Get ip address and port for host instance."""	
-	host,port = host.host,host.port 
-          
+        host = self.db.get_host(host_id)
+        if not host:
+            LOG.error("no such host")
+            return webob.exc.HTTPNotFound()
+        """Get ip address and port for host instance."""
+        host, port = host.host, host.port
         """send `refresh request` to the host where container on."""
         #FIXME: exception shoud be catched?
-	response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
+        response = self.http.post("http://%s:%s/v1/containers/%s/refresh" \
 		      % (host,port,id))
 
-        return Response(response.status_code) 
+        return Response(response.status_code)
+
     def update(self, request, body):
         """Updated container information"""
         return NotImplementedError()
- 
+
+
 def create_resource():
     return wsgi.Resource(Controller())

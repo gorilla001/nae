@@ -1,9 +1,7 @@
-
 from nae.common import rpc
 
 
 class Service(object):
-    
     def __init__(self, host, topic, manager, periodic_interval):
         self.host = host
         self.topic = topic
@@ -11,7 +9,6 @@ class Service(object):
         self.periodic_interval = periodic_interval
         self.timers = []
         self.conn = None
-
 
     @classmethod
     def create(cls,
@@ -29,7 +26,7 @@ class Service(object):
 
         :returns: container service object. 
         """
-        
+
         if not host:
             host = CONF.hostname
         if not topic:
@@ -53,18 +50,14 @@ class Service(object):
         """
 
         LOG.info("Create consumer connection for service %s" % self.topic)
-        self.conn = rpc.create_connection(new=True) 
-
+        self.conn = rpc.create_connection(new=True)
         """Get callback object"""
-        rpc_dispatcher = self.manager.create_rpc_dispatcher() 
-
+        rpc_dispatcher = self.manager.create_rpc_dispatcher()
         """Create direct topic consumer"""
         topic = "%s.%s" % (self.topic, self.host)
         self.conn.create_consumer(topic, rpc_dispatcher, fanout=False)
-
         """Start consumer to consume"""
         self.conn.consume_in_thread()
-
         """Start peridic tasks"""
         periodic = loopingcall.LoopingCall(self.periodic_tasks)
         periodic.start(interval=self.periodic_interval)
@@ -72,17 +65,17 @@ class Service(object):
 
     def stop(self):
         """Stop periodic tasks"""
-         
+
         for task in self.timers:
             try:
                 task.stop()
             except Exception:
-                pass    
+                pass
         self.timers = []
 
     def wait(self):
         """Wait for the task to finish"""
-        
+
         for task in self.timers:
             try:
                 task.wait()
@@ -92,4 +85,3 @@ class Service(object):
     def periodic_task(self):
         """Tasks to be run at a periodic interval"""
         self.manager.periodic_tasks()
-        

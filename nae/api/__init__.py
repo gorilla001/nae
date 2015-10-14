@@ -2,54 +2,57 @@ from nae import wsgi
 from nae.api import containers
 from nae.api import images
 from nae.api import projects
-from nae.api import users 
-from nae.api import repos 
+from nae.api import users
+from nae.api import repos
 import routes
+
 
 class APIRouter(wsgi.Router):
     def __init__(self):
 
-        self.mapper=routes.Mapper()
-	self._setup_routes()
-	super(APIRouter,self).__init__(self.mapper)
+        self.mapper = routes.Mapper()
+        self._setup_routes()
+        super(APIRouter, self).__init__(self.mapper)
 
     def _setup_routes(self):
         """
         The following `mapper.resource` will generated the following routes:
         """
-        
-        self.mapper.resource('container','containers',
-			     controller=containers.create_resource(),
-			     member={'start':'POST',
-				     'stop':'POST',
-                                     'reboot':'POST',
-				     'commit':'POST',
-                                     'destroy':'POST',
-                                     'refresh':'POST'})
+
+        self.mapper.resource('container',
+                             'containers',
+                             controller=containers.create_resource(),
+                             member={
+                                 'start': 'POST',
+                                 'stop': 'POST',
+                                 'reboot': 'POST',
+                                 'commit': 'POST',
+                                 'destroy': 'POST',
+                                 'refresh': 'POST'
+                             })
         self.mapper.resource('image',
                              'images',
-			     controller=images.create_resource(),
-                             member={'destroy':'POST'})
+                             controller=images.create_resource(),
+                             member={'destroy': 'POST'})
 
         self.mapper.connect('/images/commit',
-			     controller=images.create_resource(),
-                             action='commit',
-                             conditions={'method':['POST']})
-
-                            
+                            controller=images.create_resource(),
+                            action='commit',
+                            conditions={'method': ['POST']})
         """Not used anymore."""
         #self.mapper.connect('/baseimages',
         #                controller=images.create_resource(),
         #                action='baseimage',
         #                conditions={'method':['GET']})
-			     
-        self.mapper.resource('project','projects',
-			     controller=projects.create_resource())
 
-        self.mapper.resource('user','users',
-			     controller=users.create_resource())
+        self.mapper.resource('project',
+                             'projects',
+                             controller=projects.create_resource())
 
-        self.mapper.resource('repository','repos',
-			     controller=repos.create_resource())
+        self.mapper.resource('user',
+                             'users',
+                             controller=users.create_resource())
 
-
+        self.mapper.resource('repository',
+                             'repos',
+                             controller=repos.create_resource())

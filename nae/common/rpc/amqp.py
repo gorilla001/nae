@@ -1,6 +1,7 @@
 from eventlet import pools
 from nae.common.rpc import base
 
+
 class Pool(pools.Pool):
     """Class that implements a Pool of Connections."""
 
@@ -17,7 +18,8 @@ class Pool(pools.Pool):
 
 
 def create_connection_pool(conf, connection_cls):
-    return Pool(conf, connection_cls) 
+    return Pool(conf, connection_cls)
+
 
 class ConnectionContext(base.Connection):
     def __init__(self, conf, connection_pool, pooled=True):
@@ -53,7 +55,7 @@ class ConnectionContext(base.Connection):
 
 
 def create_connection(conf, new, connection_pool):
-    """Create a connection""" 
+    """Create a connection"""
     return ConnectionContext(conf, connection_pool, pooled=not new)
 
 

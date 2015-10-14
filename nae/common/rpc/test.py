@@ -12,25 +12,21 @@ params.setdefault('userid', CONF.rabbit_userid)
 params.setdefault('password', CONF.rabbit_password)
 params.setdefault('virtual_host', CONF.rabbit_virtual_host)
 
-
 connection = kombu.BrokerConnection(**params)
 connection.connect()
 channel = connection.channel()
 
-topic = "compute.test" 
+topic = "compute.test"
 
 producer = kombu.Producer(channel,
-                          exchange = CONF.control_exchange,
-                          routing_key = topic) 
+                          exchange=CONF.control_exchange,
+                          routing_key=topic)
 
-
-body = { }
+body = {}
 
 while True:
-    print 'send msg',body
+    print 'send msg', body
 
-    producer.publish(body,
-                     routing_key = topic,
-                     exchange = CONF.control_exchange)
+    producer.publish(body, routing_key=topic, exchange=CONF.control_exchange)
 
     time.sleep(1)

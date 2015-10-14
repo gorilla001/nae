@@ -13,7 +13,7 @@ if __name__ == '__main__':
     logging.setup()
     launcher = service.ProcessLauncher()
     server = service.WSGIService('web')
-    launcher.launch_server(server,workers=server.workers or 1)
+    launcher.launch_server(server, workers=server.workers or 1)
     launcher.wait()
 
 #from bottle import route, run

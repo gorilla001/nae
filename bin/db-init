@@ -4,11 +4,10 @@ from sqlalchemy import create_engine
 from jae.db.models import BaseModel as model
 from jae.common import cfg
 
-CONF=cfg.CONF
+CONF = cfg.CONF
 
 cfg.parse_config()
- 
- 
+
 engine_url = CONF.db_connection
 
 try:

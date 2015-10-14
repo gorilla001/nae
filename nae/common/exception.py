@@ -8,39 +8,46 @@ __all__ = ['BodyEmptyError',
            'ParseError',
            'NoValidHost',
            'NoValidIPAddress',
-           'NetWorkError',
-]
+           'NetWorkError', ]
+
 
 class BaseException(Exception):
     msg = "A unknown exception occurred."
-    def __init__(self,message=None):
+
+    def __init__(self, message=None):
         if not message:
             message = self.msg
 
-        super(BaseException,self).__init__(message)
+        super(BaseException, self).__init__(message)
 
 
 class BodyEmptyError(BaseException):
     msg = "Body can not be None."
 
+
 class ParamNoneError(Exception):
-    def __init__(self,param):
-	self.param = param
+    def __init__(self, param):
+        self.param = param
+
     def __str__(self):
         return '%s cannot be None!' % self.param
 
+
 class ImageLimitExceedError(Exception):
-    def __init__(self,message):
+    def __init__(self, message):
         self.msg = message
+
     def __str__(self):
         return self.msg
 
+
 class ContainerLimitExceeded(Exception):
     def __init__(self):
-	self.msg = 'container limit exceeded!!!'
-  
+        self.msg = 'container limit exceeded!!!'
+
     def __str__(self):
-	return self.msg
+        return self.msg
+
 
 class ParseError(Exception):
     def __init__(self, message, lineno, line):
@@ -53,14 +60,16 @@ class ParseError(Exception):
 
 
 class NoValidHost(BaseException):
-    msg = "No container node available." 
+    msg = "No container node available."
+
 
 class NoValidIPAddress(Exception):
     msg = "No IPAddress left."
 
+
 class NetWorkError(Exception):
-    def __init__(self,msg):
-	self.msg = msg
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-	return self.msg
+        return self.msg

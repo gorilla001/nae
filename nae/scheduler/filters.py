@@ -21,6 +21,7 @@ class StatusFilter(object):
         return True
 
     def service_is_up(self, host):
+        # FIXME(nmg): this implemention is too ugly, maybe has a elegant way. 
         telnet = Telnet()
         try:
             telnet.open(str(host.host), int(host.port))

@@ -3,7 +3,7 @@ The API Document:
 1. Projects
 
 ```
-    1.1 List projects.
+1.1 List projects.
 ```
 
         GET /projects
